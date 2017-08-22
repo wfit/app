@@ -1,0 +1,26 @@
+{
+	"name": "wfit-app",
+	"version": "1.0.0",
+	"main": "main.js",
+	"author": "Bastien Clément",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/galedric/wfit.git"
+	},
+	"build": {
+		"appId": "fr.waitforit.app",
+		"productName": "Wait for it",
+		"directories": {
+			"output": "target"
+		},
+		"win": {
+			"target": "nsis-web",
+			"publish": "github"
+		},
+		"nsis": {
+			"oneClick": true,
+			"createDesktopShortcut": false,
+			"deleteAppDataOnUninstall": true
+		}
+	}
+}
