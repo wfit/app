@@ -1,0 +1,21 @@
+@import base.UserRequest
+@()(implicit req: UserRequest[_])
+
+@layout("Connexion", "login") {
+	@stylesheet("login")
+	<div id="login">
+		<h2><img src="@routes.Assets.versioned("images/banner.png")"></h2>
+		<form class="box" autocomplete="off">
+			<label>
+				<span>Identifiant</span>
+				<input id="login-id">
+			</label>
+			<label>
+				<span>Mot de passe</span>
+				<input type="password" id="login-pass">
+			</label>
+			<button id="login-btn">Connexion</button>
+		</form>
+	</div>
+	<script>gt.login.setup()</script>
+}

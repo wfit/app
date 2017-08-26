@@ -1,76 +1,51 @@
-const {app, dialog} = require("electron");
-const http = require("http");
-const vm = require('vm');
+const {app, dialog, BrowserWindow} = require("electron");
+const load = () => require("./loader");
 
-const base = "http://localhost:9000";
+//app.setAppUserModelId("fr.waitforit.app");
 
-function fetch(url, expectedContentType, callback) {
-	try {
-		http.get(url, (res) => {
-			const {statusCode} = res;
-			const contentType = res.headers["content-type"];
+const isSecondInstance = app.makeSingleInstance(() => {});
+if (isSecondInstance) app.quit();
 
-			let error;
-			if (statusCode !== 200) {
-				error = new Error(`Request Failed.\nStatus Code: ${statusCode}`);
-			} else if (!expectedContentType.test(contentType)) {
-				error = new Error(`Invalid content-type.\nExpected application/json but received ${contentType}`);
-			}
+let splash;
 
-			if (error) {
-				res.resume();
-				callback(error, null);
-				return;
-			}
+let watchdog = setTimeout(() => app.quit(), 60 * 1000);
+global.disableWatchdog = () => clearTimeout(watchdog);
+global.closeSplash = () => {
+	if (splash) splash.destroy();
+	splash = null;
+};
 
-			res.setEncoding("utf8");
-			let rawData = "";
-			res.on("data", (chunk) => rawData += chunk);
-			res.on("end", () => callback(null, rawData));
-		});
-	} catch (e) {
-		failure("Fetch failed.\n\n" + e.message);
-	}
-}
+process.on("uncaughtException", (err) => {
+	global.closeSplash();
+	dialog.showErrorBox("An error occurred", err.stack);
+	app.exit();
+});
 
-function whenReady(thunk) {
-	if (app.isReady()) thunk();
-	else app.on("ready", thunk);
-}
-
-function failure(content) {
-	whenReady(() => {
-		dialog.showErrorBox("Bootstrap error", content);
-		app.quit();
+function doUpdate() {
+	global.closeSplash();
+	dialog.showMessageBox({
+		title: "Mise à jour disponible",
+		message: "Une mise à jour pour l'app Wait For It\nest disponible et va être installée.",
+		icon: __dirname + "/build/icon.ico"
 	});
+	autoUpdater.quitAndInstall();
 }
 
-function bootstrap(manifest) {
-	fetch(base + manifest.path, /^application\/javascript/, (err, data) => {
-		if (err) return failure("Unable to fetch bootstrap script.\n\n" + err.message);
-		whenReady(() => {
-			try {
-				const init = `
-					const code = () => { ${data} };
-					(function(r) {
-						require = r;
-						code();
-					})
-				`;
-				vm.runInThisContext(init)(require);
-			} catch (e) {
-				failure(e.message + "\n\n" + e.stack);
-			}
-		});
-	});
-}
+app.on("window-all-closed", () => {});
 
-fetch(base + "/electron/bootstrap", /^application\/json/, (err, data) => {
-	if (err) return failure("Unable to fetch manifest.\n\n" + err.message);
-	try {
-		const manifest = JSON.parse(data);
-		bootstrap(manifest);
-	} catch (e) {
-		failure("Unable to parse manifest.\n\n" + e.message);
+app.on("ready", function () {
+	splash = new BrowserWindow({width: 590, height: 150, frame: false, transparent: true,
+		show: false, skipTaskbar: true, alwaysOnTop: true});
+	splash.setIgnoreMouseEvents(true);
+	splash.loadURL(`file://${__dirname}/splash.html`);
+	splash.once("ready-to-show", () => splash.show());
+
+	if (require("electron-is-dev")) {
+		load();
+	} else {
+		const {autoUpdater} = require("electron-updater");
+		autoUpdater.on("update-not-available", load);
+		autoUpdater.on("update-downloaded", doUpdate);
+		autoUpdater.checkForUpdates();
 	}
 });

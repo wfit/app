@@ -1,0 +1,64 @@
+@import base.UserRequest
+@import play.api.libs.json.Json
+@import java.net.URLEncoder
+
+@(title: String, module: String = "")(content: Html)(implicit request: UserRequest[_])
+
+@if(request.isEmbedded) {
+	@content
+	@defining(Html(URLEncoder.encode(Json.obj("title" -> title, "module" -> module).toString, "UTF-8"))) { meta =>
+		<script id="page-metadata" type="application/x.gt.metadata">@meta</script>
+	}
+} else {
+	<!DOCTYPE html>
+	<html @if(request.isElectron) {app} @if(!request.authenticated) {unauthenticated}>
+	<head>
+		<title>@title - Wait For It</title>
+		<link rel="icon" type="image/png" href="@routes.Assets.versioned("images/wfit.png")">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed|Roboto+Mono|Roboto:300,400,500&subset=latin-ext">
+		@stylesheet("base")
+		<script>
+			GT_APP = @if(request.isElectron) { true; } else { false; }
+			GT_AUTHENTICATED = @if(request.authenticated) { true; } else { false; }
+		</script>
+		@scalajs.html.scripts(
+			"client",
+			name => routes.Assets.versioned(name).toString,
+			name => getClass.getResource(s"/public/$name") != null
+		)
+	</head>
+	<body>
+		<header>
+			<h1><img src="@routes.Assets.versioned("images/wfit.png")"></h1>
+			<div class="spacer"></div>
+			<div id="app-buttons">
+				<button data-action="minimize"><i>remove</i></button>
+				<button data-action="maximize"><i>crop_square</i></button>
+				<button data-action="close"><i>close</i></button>
+			</div>
+		</header>
+		<nav>
+			<ul>
+				@nav("dashboard", "dashboard", module)
+				@nav("account_circle", "profile", module)
+				@nav("event", "calendar", module)
+				@nav("flash_on", "slacks", module)
+				@nav("pages", "composer", module)
+				@nav("group", "roster", module)
+				@if(request.isElectron) {
+					@nav("extension", "addons", module)
+				} else {
+					@nav("public", "", module)
+				}
+			</ul>
+		</nav>
+		<section id="wrapper">
+			@content
+		</section>
+		<script>
+			gt.init();
+		</script>
+	</body>
+	</html>
+}

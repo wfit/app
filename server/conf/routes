@@ -1,13 +1,14 @@
-
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
-
-# An example controller showing a sample home page
+# Base
 GET        /                          controllers.HomeController.index
+GET        /login                     controllers.HomeController.login(continue: Option[String] ?= None)
+GET        /logout                    controllers.HomeController.logout
 
+# Dashboard
+GET        /dashboard                 controllers.DashboardController.dashboard
+
+# Electron support
 GET        /electron/bootstrap        controllers.ElectronController.bootstrap
 
-# Map static resources from the /public folder to the /assets URL path
+# Assets
 GET        /assets/*file              controllers.Assets.versioned(path="/public", file: Asset)
 

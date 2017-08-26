@@ -14,3 +14,4 @@ dist
 /RUNNING_PID
 /.settings
 package-lock.json
+node_modules

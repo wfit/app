@@ -1,15 +1,21 @@
 package controllers
 
+import base.UserAction
 import javax.inject._
 import play.api.mvc._
 
-/**
-  * This controller creates an `Action` to handle HTTP requests to the
-  * application's home page.
-  */
 @Singleton
-class HomeController @Inject()() extends InjectedController {
-	def index = Action {
-		Ok(views.html.main())
+class HomeController @Inject()(userAction: UserAction) extends InjectedController {
+	def index = userAction { req =>
+		if (req.authenticated) Redirect(routes.DashboardController.dashboard())
+		else Redirect(routes.HomeController.login())
+	}
+
+	def login(continue: Option[String]) = userAction.unauthenticated { implicit req =>
+		Ok(views.html.home.login())
+	}
+
+	def logout = Action {
+		Redirect(routes.HomeController.index()).withNewSession
 	}
 }

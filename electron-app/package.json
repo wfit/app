@@ -1,18 +1,26 @@
 {
 	"name": "wfit-app",
-	"version": "1.0.0",
+	"version": "0.1.0",
+	"description": "Wait For It - App",
 	"main": "main.js",
 	"author": "Bastien Clément",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/galedric/wfit.git"
 	},
+	"dependencies": {
+		"electron-updater": "^2.8.7"
+	},
 	"build": {
 		"appId": "fr.waitforit.app",
-		"productName": "Wait for it",
+		"productName": "Wait For It",
 		"directories": {
 			"output": "target"
 		},
+		"files": [
+			"**/*",
+			"build/icon.*"
+		],
 		"win": {
 			"target": "nsis-web",
 			"publish": "github"
@@ -20,7 +28,8 @@
 		"nsis": {
 			"oneClick": true,
 			"createDesktopShortcut": false,
-			"deleteAppDataOnUninstall": true
+			"deleteAppDataOnUninstall": true,
+			"artifactName": "${productName} Setup.${ext}"
 		}
 	}
 }
