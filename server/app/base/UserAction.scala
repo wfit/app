@@ -3,6 +3,7 @@ package base
 import akka.http.scaladsl.model.StatusCodes.Redirection
 import controllers.routes
 import javax.inject.Inject
+import models.{Toon, User}
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
@@ -15,20 +16,21 @@ class UserAction @Inject()(authService: AuthService, rosterService: RosterServic
 	extends ActionBuilder[UserRequest, AnyContent] with ActionTransformer[Request, UserRequest] {
 
 	private def unauthenticatedRequest[A](request: Request[A]): Future[UserRequest[A]] = {
-		Future.successful(UserRequest(None, Set.empty, UserAcl.empty, request))
+		Future.successful(UserRequest(None, Seq.empty, Toon.dummy(User.guest), UserAcl.empty, request))
 	}
 
 	private def constructUserRequest[A](request: Request[A], userId: UUID): Future[UserRequest[A]] = {
 		val user = rosterService.loadUser(userId).map(_.get)
-		val toons = rosterService.loadToons(userId)
+		val toons = rosterService.toonsForUser(userId)
+		val main = user.flatMap(rosterService.mainForUser)
 		val acl = authService.loadAcl(userId)
-		for (u <- user; t <- toons; a <- acl) yield UserRequest(Some(u), t, a, request)
+		for (u <- user; t <- toons; a <- acl; m <- main) yield UserRequest(Some(u), t, m, a, request)
 	}
 
 	private def loadSession[A](request: Request[A], session: String): Future[UserRequest[A]] = {
 		authService.loadSession(UUID(session)).transformWith {
 			case Success(Some(user)) => constructUserRequest(request, user)
-			case _ => Future.failed(new Exception("Invalid session identifier"))
+			case _ => unauthenticatedRequest(request)
 		}
 	}
 

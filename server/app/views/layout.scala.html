@@ -1,24 +1,26 @@
-@import base.UserRequest
-@import play.api.libs.json.Json
-@import java.net.URLEncoder
+@(title: String)(content: Html)(implicit request: UserRequest[_])
 
-@(title: String, module: String = "")(content: Html)(implicit request: UserRequest[_])
+@nav(icon: String, module: String, target: String) = {
+	<li data-module="@module"><a href="@target"><i>@icon</i></a></li>
+}
 
-@if(request.isEmbedded) {
+@if(request.isFetch) {
+	@* Playing with history will issue a Gt-Fetch request despite it being a top-level navigation *@
+	<script>if (!window.GT_LOADED) location.reload();</script>
 	@content
-	@defining(Html(URLEncoder.encode(Json.obj("title" -> title, "module" -> module).toString, "UTF-8"))) { meta =>
-		<script id="page-metadata" type="application/x.gt.metadata">@meta</script>
-	}
 } else {
 	<!DOCTYPE html>
 	<html @if(request.isElectron) {app} @if(!request.authenticated) {unauthenticated}>
 	<head>
-		<title>@title - Wait For It</title>
+		<title>@title</title>
 		<link rel="icon" type="image/png" href="@routes.Assets.versioned("images/wfit.png")">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed|Roboto+Mono|Roboto:300,400,500&subset=latin-ext">
-		@stylesheet("base")
+		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/base.css")">
+		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/wow.css")">
+		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/layout.css")">
 		<script>
+			GT_LOADED = true;
 			GT_APP = @if(request.isElectron) { true; } else { false; }
 			GT_AUTHENTICATED = @if(request.authenticated) { true; } else { false; }
 		</script>
@@ -31,34 +33,42 @@
 	<body>
 		<header>
 			<h1><img src="@routes.Assets.versioned("images/wfit.png")"></h1>
+			<h2>@title</h2>
 			<div class="spacer"></div>
+			@if(request.authenticated) {
+				<div id="user-badge">
+					<span class="dot"></span>
+					<span wow-class="@request.main.cls.id">@request.main.name</span>
+					<i>expand_more</i>
+				</div>
+			}
 			<div id="app-buttons">
 				<button data-action="minimize"><i>remove</i></button>
 				<button data-action="maximize"><i>crop_square</i></button>
 				<button data-action="close"><i>close</i></button>
 			</div>
 		</header>
-		<nav>
-			<ul>
-				@nav("dashboard", "dashboard", module)
-				@nav("account_circle", "profile", module)
-				@nav("event", "calendar", module)
-				@nav("flash_on", "slacks", module)
-				@nav("pages", "composer", module)
-				@nav("group", "roster", module)
-				@if(request.isElectron) {
-					@nav("extension", "addons", module)
-				} else {
-					@nav("public", "", module)
-				}
-			</ul>
-		</nav>
-		<section id="wrapper">
-			@content
-		</section>
-		<script>
-			gt.init();
-		</script>
+		@if(request.authenticated) {
+			<nav>
+				<ul>
+					@nav("dashboard", "dashboard", routes.DashboardController.dashboard().url)
+					@nav("account_circle", "profile", routes.ProfileController.autoProfile().url)
+					@nav("event", "calendar", null)
+					@nav("flash_on", "slacks", null)
+					@nav("pages", "composer", null)
+					@nav("group", "roster", null)
+					@if(request.isElectron) {
+						@nav("extension", "addons", null)
+					} else {
+						@nav("forum", "forum", "http://waitforit.fr/forum/")
+					}
+					@nav("settings", "admin", controllers.admin.routes.AdminController.home().url)
+				</ul>
+			</nav>
+		}
+		<section id="content" hidden>@content</section>
+		<aside id="toasts"></aside>
+		<script>gt.init();</script>
 	</body>
 	</html>
 }

@@ -1,14 +1,28 @@
 # Base
-GET        /                          controllers.HomeController.index
-GET        /login                     controllers.HomeController.login(continue: Option[String] ?= None)
-GET        /logout                    controllers.HomeController.logout
+GET         /                          controllers.HomeController.index
+GET         /login                     controllers.HomeController.login(continue: Option[String] ?= None)
+POST        /login                     controllers.HomeController.performLogin
+GET         /logout                    controllers.HomeController.logout
 
 # Dashboard
-GET        /dashboard                 controllers.DashboardController.dashboard
+GET         /dashboard                 controllers.DashboardController.dashboard
+
+# Profile
+GET         /profile                   controllers.ProfileController.autoProfile
+GET         /profile/:user             controllers.ProfileController.profile(user: utils.UUID)
+GET         /profile/:user/edit        controllers.ProfileController.edit(user: utils.UUID)
+GET         /profile/:user/bind        controllers.ProfileController.bind(user: utils.UUID)
+POST        /profile/:user/bind        controllers.ProfileController.bindPost(user: utils.UUID)
+
+# Admin
+GET         /admin                     controllers.admin.AdminController.home
+GET         /admin/acl/users           controllers.admin.AclController.users
+GET         /admin/acl/groups          controllers.admin.AclController.groups
+GET         /admin/acl/keys            controllers.admin.AclController.keys
 
 # Electron support
-GET        /electron/bootstrap        controllers.ElectronController.bootstrap
+GET         /electron/bootstrap        controllers.ElectronController.bootstrap
 
 # Assets
-GET        /assets/*file              controllers.Assets.versioned(path="/public", file: Asset)
+GET         /assets/*file              controllers.Assets.versioned(path="/public", file: Asset)
 

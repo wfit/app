@@ -1,0 +1,60 @@
+@(user: User, main: Toon, toons: Seq[Toon])(implicit req: UserRequest[_])
+
+@view("Profil et personnages", "profile", styles = Seq("profile/profile")) {
+	<div class="layout-columns" id="profile">
+		<div class="left">
+			<div id="profile-card">
+				<img src="@main.thumbnailUrl">
+				<div class="text">
+					<span class="name" wow-class="2">@main.name</span>
+					<span class="info">
+						@main.level
+						@main.race
+						@main.cls
+					</span>
+				</div>
+			</div>
+			<div id="profile-personal">
+				<table>
+					<tr><th><i>face</i> Prénom</th><td>&ndash;</td></tr>
+					<tr><th><i>cake</i> Age</th><td>&ndash;</td></tr>
+					<tr><th><i>public</i> Région</th><td>&ndash;</td></tr>
+				</table>
+				<table>
+					<tr><th><i>gamepad</i> BattleTag</th><td>&ndash;</td></tr>
+					<tr><th><i>local_post_office</i> E-mail</th><td>&ndash;</td></tr>
+					<tr><th><i>local_phone</i> Téléphone</th><td>&ndash;</td></tr>
+				</table>
+			</div>
+			<div id="profile-action">
+				<a href="@routes.ProfileController.edit(req.user)" class="btn"><i>edit</i> Editer</a>
+			</div>
+		</div>
+		<div class="right">
+			<h3>Personnages</h3>
+			<a href="@routes.ProfileController.bind(req.user)" class="btn">
+				<i>add</i> Ajouter
+			</a>
+			<div id="profile-toons">
+				@for(toon <- toons) {
+					<div class="toon box">
+						<div class="render cls@toon.race-@toon.gender" style="background-image: url('@toon.renderUrl');"></div>
+						<div class="info">
+							<span class="name" wow-class="@toon.cls.id">@toon.name</span>
+							<span>5 jours - @toon.ilvl ilvl</span>
+						</div>
+						<div class="specs">
+
+						</div>
+						<div class="actions">
+
+						</div>
+					</div>
+				}
+				@for(i <- 1 to 3) {
+					<div class="padding"></div>
+				}
+			</div>
+		</div>
+	</div>
+}

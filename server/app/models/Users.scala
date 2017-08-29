@@ -14,7 +14,7 @@ class Users (tag: Tag) extends Table[User](tag, "gt_users_view") {
 	def btag = column[Option[String]]("btag")
 	def tel = column[Option[String]]("tel")
 
-	def * = (uuid, name, group, mail, btag, tel) <> (User.tupled, User.unapply)
+	def * = (uuid, name, group, mail, btag, tel) <> ((User.apply _).tupled, User.unapply)
 }
 
 object Users extends TableQuery(new Users(_))

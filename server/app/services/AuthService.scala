@@ -3,15 +3,18 @@ package services
 import javax.inject.{Inject, Singleton}
 import models._
 import org.mindrot.jbcrypt.BCrypt
+import play.api.mvc.Results
 import scala.concurrent.{ExecutionContext, Future}
-import utils.{UserAcl, UUID}
+import utils.{UserAcl, UserError, UUID}
 import utils.SlickAPI._
 
 @Singleton
 class AuthService @Inject()(implicit ec: ExecutionContext) {
+	private val badAuth = DBIO.failed(UserError("Identifiants incorrects", Results.Unauthorized))
+
 	private def checkPass(cred: Credential, plaintext: String, f: (String, String) => Boolean) = {
 		if (f(plaintext, cred.pass)) DBIO.successful(cred)
-		else DBIO.failed(new Exception("Identifiants incorrects"))
+		else badAuth
 	}
 
 	def login(rawId: String, pass: String): Future[UUID] = {
@@ -29,10 +32,10 @@ class AuthService @Inject()(implicit ec: ExecutionContext) {
 						checkPass(cred, pass, (plaintext, hashed) =>
 							BCrypt.checkpw(plaintext, hashed.replaceFirst("^\\$2y\\$", "\\$2a\\$")))
 					case other =>
-						DBIO.failed(new Exception(s"Mot de passe non supporté: $other"))
+						DBIO.failed(UserError(s"Mot de passe non supporté: $other"))
 				}
 			case None =>
-				DBIO.failed(new Exception(s"Identifiants incorrects"))
+				badAuth
 		}.flatMap { cred =>
 			Users.filter(_.fid === cred.id).result.headOption.map(u => (cred.id, u.map(_.uuid)))
 		}.flatMap {
@@ -42,6 +45,11 @@ class AuthService @Inject()(implicit ec: ExecutionContext) {
 				val uuid = UUID.random
 				(Users.map(u => (u.uuid, u.fid)) += (uuid, fid)) andThen DBIO.successful(uuid)
 		}.transactionally.run
+	}
+
+	def createSession(user: UUID): Future[UUID] = {
+		val session = UUID.random
+		((Sessions += Session(session, user)) andThen DBIO.successful(session)).run
 	}
 
 	def loadSession(id: UUID): Future[Option[UUID]] = {

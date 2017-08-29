@@ -1,0 +1,7 @@
+@import play.api.libs.json.Json
+@import java.net.URLEncoder
+@import play.api.libs.json.Json.JsValueWrapper
+
+@(entries: (String, JsValueWrapper)*)
+
+<script type="application/gt-metadata">@Html(URLEncoder.encode(Json.obj(entries: _*).toString, "UTF-8"))</script>

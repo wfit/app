@@ -17,6 +17,8 @@ object GuildTools {
 
 	def init(): Unit = {
 		setupWindowControls()
+		Interceptor.setup()
+		Display.init()
 	}
 
 	private def setupWindowControls(): Unit = if (app) {

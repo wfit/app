@@ -1,0 +1,128 @@
+#profile {
+	.left {
+		flex-shrink: 0;
+		min-width: 250px;
+	}
+
+	.right {
+		flex: 1;
+	}
+}
+
+#profile-card {
+	display: flex;
+
+	img {
+		width: 60px;
+		height: 60px;
+		margin-right: 8px;
+		border: 1px solid #666;
+	}
+
+	.text {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding-right: 24px;
+	}
+
+	.name {
+		font-family: 'Roboto Condensed', sans-serif;
+		font-size: 18px;
+	}
+
+	.info {
+		font-weight: 300;
+		margin-top: 4px;
+	}
+}
+
+#profile-personal {
+	margin-top: 16px;
+	padding-bottom: 14px;
+	border: solid #444;
+	border-width: 1px 0 1px 0;
+
+	table {
+		width: 100%;
+		margin-top: 12px;
+
+		th {
+			font-weight: 400;
+			text-align: left;
+			font-family: 'Roboto Condensed', sans-serif;
+			width: 100px;
+		}
+
+		th, td {
+			padding: 2px 0;
+		}
+	}
+}
+
+#profile-action {
+	margin-top: 16px;
+	text-align: center;
+}
+
+#profile-toons {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: flex-start;
+	margin: -12px 0 0 -12px;
+	max-width: 500px * 4;
+
+	.toon, .padding {
+		flex: 1;
+		min-width: 350px;
+		max-width: 500px;
+		margin: 12px 0 0 12px;
+	}
+
+	.padding {
+		padding: 0 12px;
+	}
+
+	.toon {
+		display: flex;
+		flex-direction: column;
+
+		.render {
+			height: 150px;
+			background-position: 50% 40%;
+			background-size: 560px 420px;
+			margin: -12px -12px 12px -12px;
+			background-clip: content-box;
+			border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+			&.cls1-0 { background-position-y: 43%; }
+			&.cls1-1 { background-position-y: 50%; }
+			&.cls2-1 { background-position-y: 46%; }
+			&.cls3-0 { background-position-y: 53%; }
+			&.cls3-1 { background-position-y: 56%; }
+			&.cls4-0 { background-position-y: 36%; }
+			&.cls4-1 { background-position-y: 41%; }
+			&.cls5-0 { background-position-y: 50%; }
+			&.cls5-1 { background-position-y: 45%; }
+			&.cls7-0, &.cls7-1 { background-position-y: 63%; }
+			&.cls8-0, &.cls8-1 { background-position-y: 38%; }
+			&.cls9-0 { background-position-y: 60%; }
+			&.cls9-1 { background-position-y: 58%; }
+			&.cls10-1 { background-position-y: 47%; }
+			&.cls11-0 { background-position-y: 36%; }
+			&.cls22-0 { background-position-y: 45%; }
+			&.cls24-1, &.cls25-1, &.cls25-1 { background-position-y: 47%; }
+		}
+
+		img {
+			width: 60px;
+			height: 60px;
+		}
+
+		.info {
+			display: flex;
+			flex-direction: column;
+		}
+	}
+}

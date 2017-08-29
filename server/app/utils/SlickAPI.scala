@@ -2,6 +2,7 @@ package utils
 
 import java.util.{UUID => JUUID}
 import javax.inject.Inject
+import models.wow.WClass
 import org.apache.commons.codec.binary.Hex
 import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.{ExecutionContext, Future}
@@ -12,7 +13,7 @@ object SlickAPI extends MySQLProfile.API {
 	@Inject var dbc: DatabaseConfigProvider = _
 	lazy val DB = dbc.get[JdbcProfile].db
 
-	@Inject implicit var ec: ExecutionContext = _
+	@Inject protected implicit var ec: ExecutionContext = _
 
 	implicit class DBQueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
 		@inline final def run: Future[Seq[A]] = DB.run(q.result)
@@ -54,5 +55,9 @@ object SlickAPI extends MySQLProfile.API {
 
 	implicit val customUuidColumnType: BaseColumnType[UUID] = MappedColumnType.base[UUID, Array[Byte]](
 		{ uuid => scalaUuidToBin(uuid.value) }, { bin => UUID(scalaBinToUuid(bin)) }
+	)
+
+	implicit val classColumnType: BaseColumnType[WClass] = MappedColumnType.base[WClass, Int](
+		{ cls => cls.id }, { id => WClass.fromId(id) }
 	)
 }

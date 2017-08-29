@@ -24,6 +24,8 @@ lazy val server = (project in file("server"))
 		commonSettings,
 		libraryDependencies ++= Seq(
 			guice,
+			ehcache,
+			ws,
 			"com.vmunier" %% "scalajs-scripts" % "1.1.1",
 			"org.mindrot" % "jbcrypt" % "0.4",
 			"com.typesafe.slick" %% "slick" % "3.2.1",
@@ -35,7 +37,11 @@ lazy val server = (project in file("server"))
 		pipelineStages := Seq(digest, gzip),
 		compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
 		includeFilter in (Assets, LessKeys.less) := "*.less",
-		excludeFilter in (Assets, LessKeys.less) := "_*.less"
+		excludeFilter in (Assets, LessKeys.less) := "_*.less",
+		TwirlKeys.templateImports ++= Seq(
+			"_root_.base.UserRequest",
+			"_root_.utils.UUID"
+		)
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)
@@ -46,7 +52,8 @@ lazy val client = (project in file("client"))
 		commonScalaJsSettings,
 		//scalaJSUseMainModuleInitializer := true,
 		libraryDependencies ++= Seq(
-			"org.scala-js" %%% "scalajs-dom" % "0.9.3"
+			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
+			"com.typesafe.play" %%% "play-json" % "2.6.3"
 		)
 	)
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
@@ -76,6 +83,7 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 		name := "shared",
 		commonSettings,
 		libraryDependencies ++= Seq(
+			"com.typesafe.play" %%% "play-json" % "2.6.3"
 		)
 	)
 	.jsSettings(commonScalaJsSettings)

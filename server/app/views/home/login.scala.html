@@ -1,21 +1,19 @@
-@import base.UserRequest
 @()(implicit req: UserRequest[_])
 
-@layout("Connexion", "login") {
-	@stylesheet("login")
+@view("Connexion", "login", "views.login.form", styles = Seq("login")) {
 	<div id="login">
 		<h2><img src="@routes.Assets.versioned("images/banner.png")"></h2>
-		<form class="box" autocomplete="off">
+		<form class="box" action="@routes.HomeController.performLogin()">
 			<label>
 				<span>Identifiant</span>
-				<input id="login-id">
+				<input name="id">
 			</label>
 			<label>
 				<span>Mot de passe</span>
-				<input type="password" id="login-pass">
+				<input type="password" name="pass">
 			</label>
-			<button id="login-btn">Connexion</button>
+			<button>Connexion</button>
 		</form>
+		<div class="box error" hidden></div>
 	</div>
-	<script>gt.login.setup()</script>
 }

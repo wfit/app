@@ -1,0 +1,21 @@
+@(target: UUID)(implicit req: UserRequest[_])
+
+@view("Ajout d'un personnage", "profile", styles = Seq("profile/profile")) {
+	<div class="layout-center">
+		<div class="column" style="width: 300px;">
+			<form class="box" action="@routes.ProfileController.bindPost(target)" error-display="bind-error">
+				<label>
+					Serveur
+					<input name="realm" value="Ysondre">
+				</label>
+				<label>
+					Personnage
+					<input name="name" autofocus>
+				</label>
+				<button>Associer</button>
+				<a href="@routes.ProfileController.profile(target)" class="btn alternate">Annuler</a>
+			</form>
+			<div class="box error" hidden id="bind-error"></div>
+		</div>
+	</div>
+}
