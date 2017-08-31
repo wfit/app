@@ -5,6 +5,7 @@ import javax.inject.Inject
 import models.wow.WClass
 import org.apache.commons.codec.binary.Hex
 import play.api.db.slick.DatabaseConfigProvider
+import play.api.mvc.Result
 import scala.concurrent.{ExecutionContext, Future}
 import slick.jdbc.{JdbcProfile, MySQLProfile}
 import slick.lifted.AppliedCompiledFunction
@@ -34,6 +35,9 @@ object SlickAPI extends MySQLProfile.API {
 	implicit class DBIOActionExecutor[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
 		@inline final def run: Future[R] = DB.run(q)
 	}
+
+	implicit def ResultFromDBIO(dbio: DBIOAction[Result, NoStream, Nothing]): Future[Result] = dbio.run
+	implicit def ValueToDBIO[R](value: R): DBIOAction[R, NoStream, Effect] = DBIO.successful(value)
 
 	val uuidToBin: (Rep[String]) => Rep[Array[Byte]] = SimpleFunction.unary[String, Array[Byte]]("uuid_to_bin")
 	val binToUuid: (Rep[Array[Byte]]) => Rep[String] = SimpleFunction.unary[Array[Byte], String]("bin_to_uuid")

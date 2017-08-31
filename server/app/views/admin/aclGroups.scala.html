@@ -1,0 +1,39 @@
+@(groups: Seq[AclGroup], forumGroups: Map[Int, String])(implicit request: UserRequest[_])
+
+@admin.layout("Groupes", "acl-groups") {
+	<h3>Groupes définis</h3>
+	<table class="box full">
+		<tr>
+			<th>Nom</th>
+			<th>Groupe forum</th>
+			<th>ID</th>
+		</tr>
+		@for(group <- groups) {
+			<tr>
+				<td><a href="@manage.routes.AclController.group(group.uuid)">@group.title</a></td>
+				<td>@group.forumGroup.flatMap(forumGroups.get).getOrElse("—")</td>
+				<td class="selectable">@group.uuid</td>
+			</tr>
+		}
+	</table>
+
+	<h3>Nouveau groupe</h3>
+	<form class="row box inline" action="@manage.routes.AclController.createGroup()" error-toast>
+		<label>
+			Nom
+			<input name="title">
+		</label>
+		<label>
+			Groupe forum
+			<select name="forumGroup" typed="number">
+				<option value="0">—</option>
+				@for((fid, title) <- forumGroups) {
+					<option value="@fid">@title</option>
+				}
+			</select>
+		</label>
+		<button class="self-align-middle">
+			Créer
+		</button>
+	</form>
+}

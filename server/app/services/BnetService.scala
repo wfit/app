@@ -17,10 +17,7 @@ class BnetService @Inject()(conf: Configuration, ws: WSClient)
 
 	def fetchToon(realm: String, name: String): Future[Toon] = {
 		ws.url(s"$base/wow/character/$realm/$name")
-			.addQueryStringParameters(
-				"locale" -> "fr_FR",
-				"apikey" -> key,
-				"fields" -> "items")
+			.addQueryStringParameters("apikey" -> key, "fields" -> "items")
 			.get()
 			.collect {
 				case res if res.status == 200 => res.json

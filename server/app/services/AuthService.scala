@@ -1,15 +1,19 @@
 package services
 
+import akka.Done
 import javax.inject.{Inject, Singleton}
 import models._
 import org.mindrot.jbcrypt.BCrypt
+import play.api.cache.AsyncCacheApi
 import play.api.mvc.Results
 import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration._
 import utils.{UserAcl, UserError, UUID}
 import utils.SlickAPI._
 
 @Singleton
-class AuthService @Inject()(implicit ec: ExecutionContext) {
+class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
+                           (implicit ec: ExecutionContext) {
 	private val badAuth = DBIO.failed(UserError("Identifiants incorrects", Results.Unauthorized))
 
 	private def checkPass(cred: Credential, plaintext: String, f: (String, String) => Boolean) = {
@@ -56,5 +60,41 @@ class AuthService @Inject()(implicit ec: ExecutionContext) {
 		Sessions.filter(s => s.id === id).map(_.user).headOption
 	}
 
-	def loadAcl(user: UUID): Future[UserAcl] = Future.successful(UserAcl.empty)
+	def loadAcl(userId: UUID): Future[UserAcl] = {
+		rosterService.loadUser(userId).flatMap {
+			case Some(user) => loadAcl(user)
+			case None => Future.successful(UserAcl.empty)
+		}
+	}
+
+	private class CombinedGrants {
+		var min = Int.MaxValue
+		var max = Int.MinValue
+		var negate = false
+		def result: Int = if (negate) min else max
+	}
+
+	def loadAcl(user: User): Future[UserAcl] = cache.getOrElseUpdate(s"auth:acl:${ user.uuid }", 5.minutes) {
+		val groups = AclGroups.filter { group =>
+			val explicitly = AclMemberships.filter(m => group.uuid === m.group && m.user === user.uuid).exists
+			val implicitly = group.forumGroup === user.group
+			explicitly || implicitly
+		}.map(_.uuid)
+
+		val grantsQuery = AclGroupGrants.filter(_.subject in groups).join(AclKeys).on((g, k) => g.key === k.id)
+		for (grants <- grantsQuery.run) yield {
+			UserAcl(grants.groupBy { case (g, k) => k.key }
+				.mapValues { grantsAndKey => grantsAndKey.map { case (grant, key) => grant } }
+				.map { case (key, keyGrants) =>
+					(key, keyGrants.foldLeft(new CombinedGrants) { (combined, grant) =>
+						combined.max = combined.max max grant.value
+						combined.min = combined.min min grant.value
+						combined.negate = combined.negate || grant.negate
+						combined
+					}.result)
+				})
+		}
+	}
+
+	def flushUserAcl(user: UUID): Future[Done] = cache.remove(s"auth:acl:$user")
 }

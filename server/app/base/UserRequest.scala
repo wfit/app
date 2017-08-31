@@ -4,7 +4,7 @@ import base.UserRequest.Parameter
 import models.{Toon, User}
 import play.api.libs.json.{JsLookupResult, JsValue, Reads}
 import play.api.mvc.{Request, WrappedRequest}
-import utils.UserAcl
+import utils.{UserAcl, UserError, UUID}
 
 case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, acl: UserAcl,
                            request: Request[A]) extends WrappedRequest[A](request) {
@@ -23,10 +23,16 @@ case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, 
 object UserRequest {
 	case class Parameter(value: JsLookupResult) extends AnyVal {
 		def as[T: Reads]: T = value.as[T]
+		def asOpt[T: Reads]: Option[T] = value.asOpt[T]
+
+		def validate[T: Reads](pred: T => Boolean, error: String = "Pré-condition échouée"): T = {
+			asOpt[T].filter(pred) getOrElse (throw UserError(error))
+		}
 
 		def asBoolean: Boolean = as[Boolean]
 		def asString: String = as[String]
 		def asInt: Int = as[Int]
+		def asUUID: UUID = UUID(as[String])
 	}
 
 	object Parameter {

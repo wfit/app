@@ -1,0 +1,87 @@
+@(group: AclGroup, keys: Seq[AclKey], grants: Seq[(AclGroupGrant, String)], members: Seq[User])(implicit request: UserRequest[_])
+
+@admin.layout(group.title, "acl-groups") {
+	<div class="row">
+		<div class="flex">
+			<h3>@group.title</h3>
+			<table class="box full">
+				<tr>
+					<th>Permission</th>
+					<th>Valeur</th>
+					<th>Négation</th>
+					<th>Actions</th>
+				</tr>
+				@for((grant, key) <- grants) {
+					<tr>
+						<td><a>@key</a></td>
+						<td>@grant.value</td>
+						<td>@if(grant.negate) { Oui } else { Non }</td>
+						<td><a href="@manage.routes.AclController.groupRevoke(group.uuid, grant.key)" method="delete">Révoquer</a></td>
+					</tr>
+				}
+			</table>
+
+			<h3>Ajouter une permission</h3>
+			<form class="row box inline" action="@manage.routes.AclController.groupGrant(group.uuid)" error-toast>
+				<label>
+					Permission
+					<select name="key">
+					@for(key <- keys) {
+						<option value="@key.id">@key.key</option>
+					}
+					</select>
+				</label>
+				<label>
+					Valeur
+					<input name="value" type="number" typed="number">
+				</label>
+				<label>
+					Negate
+					<select name="negate" typed="boolean">
+						<option value="0">0</option>
+						<option value="1">1</option>
+					</select>
+				</label>
+				<button class="self-align-middle">
+					Ajouter
+				</button>
+			</form>
+
+			<h3>Supprimer ce groupe</h3>
+			<div class="box" style="display: inline-block">
+				<a class="btn" method="delete" href="@manage.routes.AclController.deleteGroup(group.uuid)">
+					Supprimer
+				</a>
+				<div class="small mt">
+					Cette opération est irreversible. Toutes les permissions définies et les membres seront perdus.
+				</div>
+			</div>
+		</div>
+
+		<div style="width: 300px;">
+			<h3>Membres</h3>
+			@defining(group.forumGroup.isDefined) { auto =>
+				<table class="box full">
+					<tr>
+						<th>Utilisateur</th>
+						@if(!auto) { <th>Action</th> }
+					</tr>
+					@for(member <- members) {
+						<tr>
+							<td><a href="@manage.routes.AclController.user(member.uuid)">@member.name</a></td>
+							@if(!auto) {
+								<td><a method="delete" href="@manage.routes.AclController.userKick(member.uuid, group.uuid, backToGroup = true)">Kick</a></td>
+							}
+						</tr>
+					}
+				</table>
+				@if(auto) {
+					<div class="small mt gray">
+						Les membres de ce groupe sont déterminés à partir d'un groupe forum. Il n'est pas possible de les
+						modifier depuis le Tools.
+					</div>
+				}
+			}
+		</div>
+	</div>
+}

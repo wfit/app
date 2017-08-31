@@ -1,0 +1,61 @@
+@import _root_.utils.UserAcl
+@(user: User, acl: UserAcl, groups: Seq[(AclGroup, Boolean)])(implicit request: UserRequest[_])
+
+@admin.layout(user.name, "acl-users") {
+	<div class="row">
+		<div class="flex">
+			<h3>@user.name</h3>
+			<table class="box full">
+				<tr>
+					<th>Permission</th>
+					<th>Valeur</th>
+				</tr>
+				@for((key, value) <- acl.grants.toSeq.sortBy { case (k, v) => k }) {
+					<tr>
+						<td>@key</td>
+						<td>@value</td>
+					</tr>
+				}
+			</table>
+		</div>
+
+		<div style="width: 300px;">
+			<h3>Groupes</h3>
+			<table class="box full">
+				<tr>
+					<th>Groupe</th>
+					<th>Action</th>
+				</tr>
+				@for((group, member) <- groups if member) {
+					<tr>
+						<td><a href="@manage.routes.AclController.group(group.uuid)">@group.title</a></td>
+						<td>
+							@if(group.forumGroup.isEmpty) {
+								<a href="@manage.routes.AclController.userKick(user.uuid, group.uuid)" method="delete">Kick</a>
+							}
+						</td>
+					</tr>
+				}
+			</table>
+
+			@defining(groups.filter { case (g, m) => !m && g.forumGroup.isEmpty }) { addable =>
+				@if(addable.nonEmpty) {
+					<h3>Ajouter au groupe</h3>
+					<form class="row box" action="@manage.routes.AclController.userInvite(user.uuid)" error-toast>
+						<label class="flex">
+							Groupe
+							<select name="group">
+							@for((group, member) <- addable) {
+								<option value="@group.uuid">@group.title</option>
+							}
+							</select>
+						</label>
+						<button class="self-align-middle">
+							Ajouter
+						</button>
+					</form>
+				}
+			}
+		</div>
+	</div>
+}

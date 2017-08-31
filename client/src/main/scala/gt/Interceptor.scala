@@ -3,10 +3,11 @@ package gt
 import facades.html5
 import org.scalajs.dom
 import org.scalajs.dom.{html, NodeListOf}
-import play.api.libs.json.{JsObject, JsString}
+import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.{CustomEvent, Http}
 import org.scalajs.dom.ext._
+import scala.util.{Failure, Success, Try}
 
 object Interceptor {
 	def setup(): Unit = {
@@ -24,9 +25,26 @@ object Interceptor {
 				throw new IllegalStateException("Form is being submitted twice")
 			}
 
-			var params = Map.empty[String, JsString]
-			for (node <- form.querySelectorAll("input[name]"); input = node.asInstanceOf[html.Input]) {
-				params += (input.name -> JsString(input.value))
+			var params = Map.empty[String, JsValue]
+			for (node <- form.querySelectorAll("input[name], select[name], textarea[name]"); input = node.asInstanceOf[html.Input]) {
+				val value = input.getAttribute("typed") match {
+					case "number" =>
+						Try(input.value.toDouble) match {
+							case Success(number) =>
+								JsNumber(number)
+							case Failure(e) =>
+								Toast.error(s"Impossible d'interpréter '${input.value}' en tant que nombre.")
+								throw e
+						}
+					case "boolean" =>
+						JsBoolean(input.value match {
+							case "" | "0" => false
+							case _ => true
+ 						})
+					case _ =>
+						JsString(input.value)
+				}
+				params += (input.name -> value)
 			}
 
 			val errorDisplay = Option(form.getAttribute("error-display")).map(dom.document.getElementById)
@@ -42,6 +60,9 @@ object Interceptor {
 				result match {
 					case Http.Failure(code, err) =>
 						form.dispatchEvent(CustomEvent("error", err))
+						if (form.hasAttribute("error-toast")) {
+							Toast.error(err)
+						}
 						for (node <- errorDisplay) {
 							node.removeAttribute("hidden")
 							node.textContent = err
@@ -55,7 +76,7 @@ object Interceptor {
 
 	private def disableForm(form: html.Form): Unit = {
 		form.classList.add("in-flight")
-		for (node <- form.querySelectorAll("input, button:not([disabled]");
+		for (node <- form.querySelectorAll("input, select, textarea, button:not([disabled]");
 		     input = node.asInstanceOf[html.Input]) {
 			input.disabled = true
 			input.setAttribute("in-flight-disabled", "1")
@@ -64,7 +85,7 @@ object Interceptor {
 
 	private def enableForm(form: html.Form): Unit = {
 		form.classList.remove("in-flight")
-		for (node <- form.querySelectorAll("input[in-flight-disabled], button[in-flight-disabled]");
+		for (node <- form.querySelectorAll("input[in-flight-disabled], select[in-flight-disabled], textarea[in-flight-disabled], button[in-flight-disabled]");
 		     input = node.asInstanceOf[html.Input]) {
 			input.disabled = false
 			input.removeAttribute("in-flight-disabled")
@@ -86,7 +107,7 @@ object Interceptor {
 				event.preventDefault()
 			case Some(href) if href startsWith "/" =>
 				event.preventDefault()
-				Display.navigate(href)
+				Display.navigate(href, Option(link.getAttribute("method")).getOrElse("get"))
 			case _ =>
 			// ignore
 		}

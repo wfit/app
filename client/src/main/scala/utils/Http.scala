@@ -130,6 +130,10 @@ object Http {
 		fetch(url, HttpMethod.GET, EmptyBody, headers)
 	}
 
+	def delete(url: String, headers: Map[String, String] = Map.empty): Future[Response] = {
+		fetch(url, HttpMethod.DELETE, EmptyBody, headers)
+	}
+
 	def post[B: HttpBody](url: String, body: B = EmptyBody,
 	                      headers: Map[String, String] = Map.empty): Future[Response] = {
 		fetch(url, HttpMethod.POST, body, headers)

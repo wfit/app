@@ -1,0 +1,25 @@
+@(title: String, section: String = null, path: String = null, styles: Seq[String] = Seq.empty)(content: Html)(implicit request: UserRequest[_])
+
+@nav(title: String, sectionId: String, target: Call) = {
+	<a href="@target" class="btn @if(section != sectionId) {alternate}">@title</a>
+}
+
+@view(title, "admin", path, styles) {
+	<div class="layout-columns">
+		<div class="column">
+			<h3 class="light no-margin">Gestion ACLs</h3>
+			@nav("Utilisateurs", "acl-users", manage.routes.AclController.users())
+			@nav("Groupes", "acl-groups", manage.routes.AclController.groups())
+			@nav("Permissions", "acl-keys", manage.routes.AclController.keys())
+			@*
+			<h3>Statut</h3>
+			@nav("Serveur", "status-server", null)
+			@nav("Journal", "status-log", null)
+			@nav("Rapports", "status-reports", null)
+			*@
+		</div>
+		<div>
+			@content
+		</div>
+	</div>
+}

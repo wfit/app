@@ -63,9 +63,14 @@ object Display {
 		activeStyles = Set.empty
 	}
 
-	def navigate(url: String): Unit = if (!navigationInProgress) {
+	def navigate(url: String, method: String = "get"): Unit = if (!navigationInProgress) {
 		navigationInProgress = true
-		Http.get(url).foreach { res =>
+		val req = method match {
+			case "post" => Http.post(url)
+			case "delete" => Http.delete(url)
+			case _ => Http.get(url)
+		}
+		req.foreach { res =>
 			navigationInProgress = false
 			handleResponse(res)
 		}

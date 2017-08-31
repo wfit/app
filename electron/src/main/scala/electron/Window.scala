@@ -15,7 +15,7 @@ object Window {
 		icon = AppTray.icon,
 		frame = false,
 		autoHideMenuBar = true,
-		backgroundColor = "#121212"
+		backgroundColor = "#131313"
 	)).asInstanceOf[BrowserWindow]
 
 	private var isVisible = false

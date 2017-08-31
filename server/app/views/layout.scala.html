@@ -19,6 +19,7 @@
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/base.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/wow.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/layout.css")">
+		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/window.css")">
 		<script>
 			GT_LOADED = true;
 			GT_APP = @if(request.isElectron) { true; } else { false; }
@@ -62,7 +63,7 @@
 					} else {
 						@nav("forum", "forum", "http://waitforit.fr/forum/")
 					}
-					@nav("settings", "admin", controllers.admin.routes.AdminController.home().url)
+					@nav("settings", "admin", manage.routes.AdminController.home().url)
 				</ul>
 			</nav>
 		}

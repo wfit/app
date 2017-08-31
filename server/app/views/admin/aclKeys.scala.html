@@ -1,0 +1,36 @@
+@(keys: Seq[AclKey])(implicit request: UserRequest[_])
+
+@admin.layout("Permissions", "acl-keys") {
+	<h3>Permissions définies</h3>
+	<table class="box full">
+		<tr>
+			<th>Permission</th>
+			<th>Descriptions</th>
+			<th>Action</th>
+		</tr>
+		@for(key <- keys) {
+			<tr>
+				<td><a>@key.key</a></td>
+				<td>@key.desc</td>
+				<td>
+					<a href="@manage.routes.AclController.deleteKey(key.id)" method="delete">Supprimer</a>
+				</td>
+			</tr>
+		}
+	</table>
+
+	<h3>Nouvelle permission</h3>
+	<form class="row box inline" action="@manage.routes.AclController.createKey()" error-toast>
+		<label>
+			Permission
+			<input name="key">
+		</label>
+		<label>
+			Description
+			<input name="desc" style="width: 300px;">
+		</label>
+		<button class="self-align-middle">
+			Créer
+		</button>
+	</form>
+}
