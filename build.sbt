@@ -1,5 +1,5 @@
 name := "wfit"
-version := "latest"
+version in ThisBuild := "latest-SNAPSHOT"
 
 lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 	scalaVersion := "2.12.3",
@@ -26,7 +26,6 @@ lazy val root = project.in(file(".")).aggregate(server).settings(
 lazy val server = (project in file("server"))
 	.settings(
 		name := "wfit-server",
-		version := "latest-SNAPSHOT",
 		commonSettings,
 		libraryDependencies ++= Seq(
 			guice,
