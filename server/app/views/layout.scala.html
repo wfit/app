@@ -33,7 +33,12 @@
 	</head>
 	<body>
 		<header>
-			<h1><img src="@routes.Assets.versioned("images/wfit.png")"></h1>
+			<h1>
+				<img src="@routes.Assets.versioned("images/wfit.png")">
+				<span class="lds-dual-ring">
+					<span></span>
+				</span>
+			</h1>
 			<h2>@title</h2>
 			<div class="spacer"></div>
 			@if(request.authenticated) {
@@ -60,6 +65,7 @@
 					@nav("group", "roster", null)
 					@if(request.isElectron) {
 						@nav("extension", "addons", null)
+						@nav("screen_share", "tv", null)
 					} else {
 						@nav("forum", "forum", "http://waitforit.fr/forum/")
 					}

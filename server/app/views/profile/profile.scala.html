@@ -2,7 +2,7 @@
 
 @view("Profil et personnages", "profile", styles = Seq("profile/profile")) {
 	<div class="layout-columns" id="profile">
-		<div class="left">
+		<div class="left column">
 			<div id="profile-card">
 				<img src="@main.thumbnailUrl">
 				<div class="text">
@@ -14,27 +14,24 @@
 					</span>
 				</div>
 			</div>
-			<div id="profile-personal">
-				<table>
-					<tr><th><i>face</i> Prénom</th><td>&ndash;</td></tr>
-					<tr><th><i>cake</i> Age</th><td>&ndash;</td></tr>
-					<tr><th><i>public</i> Région</th><td>&ndash;</td></tr>
-				</table>
-				<table>
-					<tr><th><i>gamepad</i> BattleTag</th><td>&mdash;</td></tr>
-					<tr><th><i>local_post_office</i> E-mail</th><td>&ndash;</td></tr>
-					<tr><th><i>local_phone</i> Téléphone</th><td>&ndash;</td></tr>
-				</table>
-			</div>
-			<div id="profile-action">
-				<a href="@routes.ProfileController.edit(req.user)" class="btn"><i>edit</i> Editer</a>
+			<hr>
+			<table>
+				<tr><th><i>face</i> Prénom</th><td>&ndash;</td></tr>
+				<tr><th><i>cake</i> Age</th><td>&ndash;</td></tr>
+				<tr><th><i>public</i> Région</th><td>&ndash;</td></tr>
+			</table>
+			<table>
+				<tr><th><i>gamepad</i> BattleTag</th><td>&ndash;</td></tr>
+				<tr><th><i>local_post_office</i> E-mail</th><td>&ndash;</td></tr>
+				<tr><th><i>local_phone</i> Téléphone</th><td>&ndash;</td></tr>
+			</table>
+			<hr>
+			<div class="pack">
+				<a href="@routes.ProfileController.edit(req.user)" class="btn alternate"><i>edit</i> Editer le profil</a>
+				<a href="@routes.ProfileController.bind(req.user)" class="btn alternate"><i>link</i> Associer un personnage</a>
 			</div>
 		</div>
 		<div class="right">
-			<h3>Personnages</h3>
-			<a href="@routes.ProfileController.bind(req.user)" class="btn">
-				<i>add</i> Ajouter
-			</a>
 			<div id="profile-toons">
 				@for(toon <- toons) {
 					<div class="toon box">

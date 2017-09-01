@@ -1,5 +1,6 @@
 package utils
 
+import gt.Toast
 import org.scalajs.dom
 import org.scalajs.dom.experimental.{RequestInit, Response => JSResponse, _}
 import play.api.libs.json.{Json, JsValue}
@@ -9,10 +10,8 @@ import scala.scalajs.js
 import scala.scalajs.js.URIUtils
 
 object Http {
-	val defaultHeaders = Map(
-		"Gt-Fetch" -> "1"
-	)
-
+	private var serverInstance: js.UndefOr[String] = js.undefined
+	val defaultHeaders = Map("Gt-Fetch" -> "1")
 	val emptyHeaders = new Headers()
 
 	private def extractHeaders(headers: Headers): Map[String, String] = {
@@ -116,6 +115,10 @@ object Http {
 		).asInstanceOf[RequestInit]
 
 		Fetch.fetch(url, settings).toFuture.flatMap { response =>
+			val instance = response.headers.get("gt-instance").asInstanceOf[String]
+			if (serverInstance.isEmpty) serverInstance = instance
+			else if (serverInstance.asInstanceOf[String] != instance) Toast.serverUpdated()
+
 			if (300 <= response.status && response.status < 400) {
 				Future.successful(new Response(Some(response), null))
 			} else {

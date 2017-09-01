@@ -15,7 +15,11 @@ object Window {
 		icon = AppTray.icon,
 		frame = false,
 		autoHideMenuBar = true,
-		backgroundColor = "#131313"
+		backgroundColor = "#131313",
+		nodeIntegration = true,
+		nodeIntegrationInWorker = true,
+		devTools = true,
+		textAreasAreResizable = false
 	)).asInstanceOf[BrowserWindow]
 
 	private var isVisible = false
@@ -27,6 +31,10 @@ object Window {
 		win.once("ready-to-show", () => {
 			isReady = true
 			if (isVisible) win.show()
+			else {
+				win.show()
+				win.hide()
+			}
 		})
 
 		win.on("close", (event: js.Dynamic) => {
@@ -45,5 +53,13 @@ object Window {
 
 	def close(): Unit = {
 		win.destroy()
+	}
+
+	def openDevTools(): Unit = {
+		win.webContents.openDevTools(lit(mode = "detach"))
+	}
+
+	def reload(): Unit = {
+		win.webContents.executeJavaScript("gt.reload()", gesture = true)
 	}
 }

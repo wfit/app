@@ -1,7 +1,7 @@
 package gt
 
 import facades.html5
-import facades.electron.{BrowserWindow, ElectronModule}
+import facades.electron.ElectronModule
 import org.scalajs.dom
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{global => g}
@@ -34,5 +34,10 @@ object GuildTools {
 				}
 			}
 		})
+	}
+
+	def reload(): Unit = {
+		Display.beginLoading()
+		dom.document.location.reload()
 	}
 }

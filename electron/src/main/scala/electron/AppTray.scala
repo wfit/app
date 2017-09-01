@@ -9,7 +9,12 @@ object AppTray {
 
 	private val instance = jnew(Electron.moduleDynamic.Tray)(icon).asInstanceOf[Tray]
 
+	private val openDevTools: js.Function = () => Window.openDevTools()
+	private val reloadWindow: js.Function = () => Window.reload()
+
 	private val menu = Electron.menu.buildFromTemplate(js.Array(
+		lit(label = "DevTools", click = openDevTools),
+		lit(label = "Recharger", click = reloadWindow),
 		lit(label = "Quitter", role = "quit")
 	))
 

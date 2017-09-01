@@ -9,7 +9,7 @@
 	align-items: stretch;
 
 	& > div {
-		padding: 12px;
+		padding: 24px;
 		overflow: auto;
 
 		&:first-child {
@@ -42,8 +42,21 @@
 	flex-direction: column;
 	align-items: stretch;
 
-	& > *:not(:first-child) {
-		margin-top: 12px;
+	& > * {
+		margin-bottom: 0;
+		&:not(:first-child) {
+			margin-top: 24px;
+		}
+	}
+
+	& > .pack {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+
+		& > *:not(:first-child) {
+			margin-top: 12px;
+		}
 	}
 }
 

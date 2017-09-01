@@ -1,7 +1,7 @@
 package controllers.manage
 
 import akka.Done
-import base.UserAction
+import base.{CheckAcl, UserAction}
 import javax.inject.{Inject, Singleton}
 import models._
 import play.api.mvc.{InjectedController, Result}
@@ -12,9 +12,11 @@ import utils.SlickAPI._
 import utils.FutureOps
 
 @Singleton
-class AclController @Inject()(userAction: UserAction, authService: AuthService)
+class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authService: AuthService)
                              (implicit executionContext: ExecutionContext)
 	extends InjectedController {
+
+	private def aclAction = userAction.authenticated andThen checkAcl("admin.acl")
 
 	private def enumerateGroupMembers(group: UUID): Future[Seq[UUID]] = {
 		Users.filter { u =>
@@ -34,11 +36,11 @@ class AclController @Inject()(userAction: UserAction, authService: AuthService)
 		}
 	}
 
-	def users = userAction.authenticated.async { implicit req =>
+	def users = aclAction.async { implicit req =>
 		Users.sortBy(_.name).run.map(users => Ok(views.html.admin.aclUsers(users)))
 	}
 
-	def user(uuid: UUID) = userAction.authenticated.async { implicit req =>
+	def user(uuid: UUID) = aclAction.async { implicit req =>
 		for {
 			user <- Users.filter(_.uuid === uuid).head
 			acl <- authService.loadAcl(uuid)
@@ -50,13 +52,13 @@ class AclController @Inject()(userAction: UserAction, authService: AuthService)
 		} yield Ok(views.html.admin.aclUser(user, acl, groups))
 	}
 
-	def userInvite(user: UUID) = userAction.authenticated(parse.json).async { implicit req =>
+	def userInvite(user: UUID) = aclAction(parse.json).async { implicit req =>
 		val entry = AclMembership(user, req.param("group").asUUID)
 		val action = (AclMemberships += entry) andThen Redirect(routes.AclController.user(user))
 		action.run andThenAsync authService.flushUserAcl(user)
 	}
 
-	def userKick(user: UUID, group: UUID, backToGroup: Boolean) = userAction.authenticated.async { implicit req =>
+	def userKick(user: UUID, group: UUID, backToGroup: Boolean) = aclAction.async { implicit req =>
 		val action = AclMemberships.filter(m => m.user === user && m.group === group).delete andThen Redirect(
 			if (backToGroup) routes.AclController.group(group)
 			else routes.AclController.user(user)
@@ -64,26 +66,26 @@ class AclController @Inject()(userAction: UserAction, authService: AuthService)
 		action.run andThenAsync authService.flushUserAcl(user)
 	}
 
-	def groups = userAction.authenticated.async { implicit req =>
+	def groups = aclAction.async { implicit req =>
 		val groups = AclGroups.sortBy(_.title).run
 		val forumGroups = sql"SELECT group_id, group_name FROM milbb_groups WHERE group_id > 7".as[(Int, String)].run
 		for (gs <- groups; fgs <- forumGroups) yield Ok(views.html.admin.aclGroups(gs, fgs.toMap))
 	}
 
-	def createGroup = userAction.authenticated(parse.json).async { implicit req =>
+	def createGroup = aclAction(parse.json).async { implicit req =>
 		val title = req.param("title").validate[String](_.nonEmpty, "Le nom du groupe doit être défini.")
 		val forumGroup = req.param("forumGroup").asOpt[Int].filter(_ > 0)
 		(AclGroups += AclGroup(UUID.random, title, forumGroup)) andThen Redirect(routes.AclController.groups())
 	}
 
-	def group(uuid: UUID) = userAction.authenticated.async { implicit req =>
+	def group(uuid: UUID) = aclAction.async { implicit req =>
 		for {
 			grp <- AclGroups.filter(_.uuid === uuid).head
 			ks <- AclKeys.sortBy(_.key).run
 			gs <- AclGroupGrants.filter(_.subject === uuid).sortBy(_.key).run
 			membersQuery = grp.forumGroup match {
 				case Some(id) => Users.filter(_.group === id)
-				case None => Users.filter(u => AclMemberships.filter(_.user === u.uuid).exists)
+				case None => Users.filter(u => AclMemberships.filter(m => m.user === u.uuid && m.group === uuid).exists)
 			}
 			ms <- membersQuery.sortBy(_.name).run
 		} yield {
@@ -93,36 +95,36 @@ class AclController @Inject()(userAction: UserAction, authService: AuthService)
 		}
 	}
 
-	def groupGrant(uuid: UUID) = userAction.authenticated(parse.json).async { implicit req =>
+	def groupGrant(uuid: UUID) = aclAction(parse.json).async { implicit req =>
 		withGroupFlush(uuid) {
 			val grant = AclGroupGrant(uuid, req.param("key").asUUID, req.param("value").asInt, req.param("negate").asBoolean)
 			(AclGroupGrants insertOrUpdate grant) andThen Redirect(routes.AclController.group(uuid))
 		}
 	}
 
-	def groupRevoke(uuid: UUID, key: UUID) = userAction.authenticated.async { implicit req =>
+	def groupRevoke(uuid: UUID, key: UUID) = aclAction.async { implicit req =>
 		withGroupFlush(uuid) {
 			AclGroupGrants.filter(g => g.subject === uuid && g.key === key).delete andThen Redirect(routes.AclController.group(uuid))
 		}
 	}
 
-	def deleteGroup(uuid: UUID) = userAction.authenticated.async { implicit req =>
+	def deleteGroup(uuid: UUID) = aclAction.async { implicit req =>
 		withGroupFlush(uuid) {
 			AclGroups.filter(_.uuid === uuid).delete andThen Redirect(routes.AclController.groups())
 		}
 	}
 
-	def keys = userAction.authenticated.async { implicit req =>
+	def keys = aclAction.async { implicit req =>
 		AclKeys.sortBy(_.key).run.map(keys => Ok(views.html.admin.aclKeys(keys)))
 	}
 
-	def createKey = userAction.authenticated(parse.json).async { implicit req =>
+	def createKey = aclAction(parse.json).async { implicit req =>
 		val key = req.param("key").validate[String](_.matches("^[a-z\\.]{3,}$"), "Nom de permission invalide.")
 		val entry = AclKey(UUID.random, key, req.param("desc").asString)
 		(AclKeys insertOrUpdate entry) andThen Redirect(routes.AclController.keys())
 	}
 
-	def deleteKey(id: UUID) = userAction.authenticated.async { implicit req =>
+	def deleteKey(id: UUID) = aclAction.async { implicit req =>
 		AclKeys.filter(_.id === id).delete andThen Redirect(routes.AclController.keys())
 	}
 }

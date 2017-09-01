@@ -16,4 +16,6 @@ trait BrowserWindow extends EventEmitter {
 	def isMaximized(): Boolean = js.native
 
 	def loadURL(url: String): Unit = js.native
+
+	def webContents: WebContent
 }

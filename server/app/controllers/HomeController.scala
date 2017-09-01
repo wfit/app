@@ -23,7 +23,7 @@ class HomeController @Inject()(userAction: UserAction)
 		Ok(views.html.home.login())
 	}
 
-	def performLogin = userAction.unauthenticated(parse.json).async { req =>
+	def performLogin = userAction.unauthenticated(parse.json).async { implicit req =>
 		val id = (req.body \ "id").as[String]
 		val pass = (req.body \ "pass").as[String]
 		authService.login(id, pass).flatMap(authService.createSession).map { id =>

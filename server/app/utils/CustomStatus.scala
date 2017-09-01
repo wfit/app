@@ -1,5 +1,7 @@
 package utils
 
+import base.UserRequest
+
 object CustomStatus {
-	final val FullRedirect = 392
+	def FullRedirect(implicit request: UserRequest[_]): Int = if (request.isFetch) 392 else 303
 }

@@ -1,15 +1,15 @@
 package base
 
-import akka.http.scaladsl.model.StatusCodes.Redirection
 import controllers.routes
-import javax.inject.Inject
+import javax.inject.{Inject, Singleton}
 import models.{Toon, User}
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 import services.{AuthService, RosterService}
-import utils.{UserAcl, UUID}
+import utils.{CustomStatus, UserAcl, UUID}
 
+@Singleton
 class UserAction @Inject()(authService: AuthService, rosterService: RosterService)
                           (val parser: BodyParsers.Default)
                           (implicit val executionContext: ExecutionContext)
@@ -44,7 +44,7 @@ class UserAction @Inject()(authService: AuthService, rosterService: RosterServic
 		protected def filter[A](request: UserRequest[A]): Future[Option[Result]] = {
 			if (request.authenticated) Future.successful(None)
 			else Future.successful {
-				Some(Results.Redirect(routes.HomeController.login(Some(request.path))))
+				Some(Results.Redirect(routes.HomeController.login(Some(request.path)), CustomStatus.FullRedirect(request)))
 			}
 		}
 	}
@@ -54,7 +54,7 @@ class UserAction @Inject()(authService: AuthService, rosterService: RosterServic
 		protected def filter[A](request: UserRequest[A]): Future[Option[Result]] = {
 			if (!request.authenticated) Future.successful(None)
 			else Future.successful {
-				Some(Results.Redirect(routes.DashboardController.dashboard()))
+				Some(Results.Redirect(routes.DashboardController.dashboard(), CustomStatus.FullRedirect(request)))
 			}
 		}
 	}

@@ -1,10 +1,10 @@
 @import _root_.utils.UserAcl
 @(user: User, acl: UserAcl, groups: Seq[(AclGroup, Boolean)])(implicit request: UserRequest[_])
 
-@admin.layout(user.name, "acl-users") {
+@admin.layout("Utilisateur: " + user.name, "acl-users") {
 	<div class="row">
 		<div class="flex">
-			<h3>@user.name</h3>
+			<h3>Permissions</h3>
 			<table class="box full">
 				<tr>
 					<th>Permission</th>

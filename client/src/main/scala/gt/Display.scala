@@ -17,7 +17,35 @@ object Display {
 	private var activeStyles: Set[html.Link] = Set.empty
 	private var navigationInProgress: Boolean = false
 
+	private var loading: Int = 0
+	private var loadingStopTimer: js.timers.SetTimeoutHandle = null
+
 	private val container = dom.document.querySelector("section#content")
+
+	def beginLoading(): Unit = {
+		loading += 1
+		dom.document.body.classList.add("loading")
+		cancelLoadStop()
+	}
+
+	private def cancelLoadStop(): Unit = {
+		if (loadingStopTimer != null) {
+			js.timers.clearTimeout(loadingStopTimer)
+			loadingStopTimer = null
+		}
+	}
+
+	def endLoading(): Unit = {
+		loading = (loading - 1) max 0
+		if (loading == 0) {
+			cancelLoadStop()
+			loadingStopTimer = js.timers.setTimeout(250) {
+				if (loading == 0) {
+					dom.document.body.classList.remove("loading")
+				}
+			}
+		}
+	}
 
 	def init(): Unit = {
 		loadSnippet(container.innerHTML, None)
@@ -65,12 +93,13 @@ object Display {
 
 	def navigate(url: String, method: String = "get"): Unit = if (!navigationInProgress) {
 		navigationInProgress = true
+		beginLoading()
 		val req = method match {
 			case "post" => Http.post(url)
 			case "delete" => Http.delete(url)
 			case _ => Http.get(url)
 		}
-		req.foreach { res =>
+		req.andThen { case _ => endLoading() }.foreach { res =>
 			navigationInProgress = false
 			handleResponse(res)
 		}

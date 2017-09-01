@@ -55,7 +55,8 @@ object Interceptor {
 				node.textContent = ""
 			}
 
-			Http.post(form.action, JsObject(params)).foreach { result =>
+			Display.beginLoading()
+			Http.post(form.action, JsObject(params)).andThen { case _ => Display.endLoading() }.foreach { result =>
 				enableForm(form)
 				result match {
 					case Http.Failure(code, err) =>
