@@ -26,8 +26,7 @@ lazy val root = project.in(file(".")).aggregate(server).settings(
 lazy val server = (project in file("server"))
 	.settings(
 		name := "wfit-server",
-		version := "latest",
-		isSnapshot := true,
+		version := "1.0.0-SNAPSHOT",
 		commonSettings,
 		libraryDependencies ++= Seq(
 			guice,
