@@ -17,6 +17,7 @@ object GuildTools {
 
 	def init(): Unit = {
 		setupWindowControls()
+		setupCacheClearOnHide()
 		Interceptor.setup()
 		Display.init()
 	}
@@ -33,6 +34,12 @@ object GuildTools {
 					case "close" => window.close()
 				}
 			}
+		})
+	}
+
+	private def setupCacheClearOnHide(): Unit = {
+		dom.document.addEventListener("visibilitychange", (e: dom.Event) => {
+			if (dom.document.hidden) electron.webFrame.clearCache()
 		})
 	}
 

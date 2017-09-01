@@ -8,4 +8,5 @@ trait ElectronModule extends js.Object {
 	val dialog: DialogModule = js.native
 	val Menu: MenuModule = js.native
 	val remote: RemoteModule = js.native
+	val webFrame: WebFrameModule = js.native
 }
