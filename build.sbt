@@ -27,6 +27,7 @@ lazy val server = (project in file("server"))
 	.settings(
 		name := "wfit-server",
 		version := "latest",
+		isSnapshot := true,
 		commonSettings,
 		libraryDependencies ++= Seq(
 			guice,
