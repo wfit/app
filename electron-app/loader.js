@@ -1,5 +1,5 @@
 const {app, dialog} = require("electron");
-const http = require("http");
+const http = require("electron-is-dev") ? require("http") : require("https");
 const vm = require("vm");
 
 const base = require("electron-is-dev") ? "http://localhost:9000" : "https://app.wfit.ovh";
