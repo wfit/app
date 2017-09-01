@@ -98,3 +98,11 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
+
+javaOptions in Docker ++= Seq(
+	// JVM memory tuning
+	"-J-Xmx1024m",
+	"-J-Xms512m",
+	"-Dhttp.port=disabled",
+	"-Dhttps.port=443"
+)
