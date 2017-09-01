@@ -20,7 +20,12 @@ object Display {
 	private var loading: Int = 0
 	private var loadingStopTimer: js.timers.SetTimeoutHandle = null
 
-	private val container = dom.document.querySelector("section#content")
+	private def currentContainer = dom.document.querySelector("section#content")
+	private def createContainer(): html.Element = {
+		val container = dom.document.createElement("section").asInstanceOf[html.Element]
+		container.id = "content"
+		container
+	}
 
 	def beginLoading(): Unit = {
 		loading += 1
@@ -48,29 +53,29 @@ object Display {
 	}
 
 	def init(): Unit = {
-		loadSnippet(container.innerHTML, None)
+		loadSnippet(currentContainer.innerHTML, None)
 	}
 
-	private def currentMetadata: Option[JsObject] = {
-		Option(dom.document.querySelector("section#content script[type='application/gt-metadata']"))
+	private def loadMetadata(node: dom.NodeSelector): Unit = {
+		tasks = Set.empty
+		activeStyles = Set.empty
+		Option(node.querySelector("script[type='application/gt-metadata']"))
 			.map(_.textContent)
 			.map(_.replace('+', ' '))
 			.map(URIUtils.decodeURIComponent)
 			.map(Json.parse)
 			.map(_.as[JsObject])
-	}
-
-	private def loadMetadata(): Unit = for (metadata <- currentMetadata) {
-		tasks = Set.empty
-		metadata.fields.foreach {
-			case ("title", JsString(title)) => setTitle(title)
-			case ("module", JsString(module)) => setModule(module)
-			case ("module", JsNull) => setModule("none")
-			case ("view", JsString(path)) => loadView(resolveView(path))
-			case ("styles", JsArray(urls)) => loadStyles(urls.map(_.as[String]))
-			case _ => // Ignore
-		}
-		ready = Future.sequence[Any, Set](tasks)
+			.foreach { metadata =>
+				metadata.fields.foreach {
+					case ("title", JsString(title)) => setTitle(title)
+					case ("module", JsString(module)) => setModule(module)
+					case ("module", JsNull) => setModule("none")
+					case ("view", JsString(path)) => loadView(resolveView(path))
+					case ("styles", JsArray(urls)) => loadStyles(urls.map(_.as[String]))
+					case _ => // Ignore
+				}
+				ready = Future.sequence[Any, Set](tasks)
+			}
 	}
 
 	private def resolveView(path: String): View = {
@@ -82,12 +87,8 @@ object Display {
 	}
 
 	private def unloadView(): Unit = {
-		currentView = None
-		container.setAttribute("hidden", "")
-		container.innerHTML = ""
-		activeStyles.foreach(style => style.parentElement.removeChild(style))
-		activeStyles = Set.empty
 		for (view <- currentView) view.unload()
+		currentView = None
 	}
 
 	def navigate(url: String, method: String = "get"): Unit = if (!navigationInProgress) {
@@ -116,17 +117,26 @@ object Display {
 
 	def loadSnippet(source: String, sourceUrl: Option[String] = None): Unit = {
 		unloadView()
-		container.innerHTML = source
-		loadMetadata()
+		val oldStyles = activeStyles
+
+		val freshContainer = createContainer()
+		freshContainer.innerHTML = source
+		loadMetadata(freshContainer)
+
 		for (url <- sourceUrl) {
 			dom.window.history.replaceState(null, dom.document.title, url)
 		}
+
 		val view = currentView
-		view.foreach(_.init())
-		for (_ <- ready if currentView == view) {
-			container.removeAttribute("hidden")
-			for (node <- Option(container.querySelector("[autofocus]"))) {
-				node.asInstanceOf[html.Input].focus()
+		for (_ <- ready) {
+			oldStyles.foreach(style => style.parentElement.removeChild(style))
+			if (view == currentView) {
+				val oldContainer = currentContainer
+				oldContainer.parentNode.replaceChild(freshContainer, oldContainer)
+				view.foreach(_.init())
+				for (node <- Option(freshContainer.querySelector("[autofocus]"))) {
+					node.asInstanceOf[html.Input].focus()
+				}
 			}
 		}
 	}
