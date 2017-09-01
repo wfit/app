@@ -1,7 +1,7 @@
 const {app, dialog, BrowserWindow} = require("electron");
 const load = () => require("./loader");
 
-//app.setAppUserModelId("fr.waitforit.app");
+app.setAppUserModelId("fr.waitforit.app");
 
 const isSecondInstance = app.makeSingleInstance(() => {});
 if (isSecondInstance) app.quit();

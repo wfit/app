@@ -15,6 +15,7 @@ object AppTray {
 	private val menu = Electron.menu.buildFromTemplate(js.Array(
 		lit(label = "DevTools", click = openDevTools),
 		lit(label = "Recharger", click = reloadWindow),
+		lit(`type` = "separator"),
 		lit(label = "Quitter", role = "quit")
 	))
 

@@ -28,7 +28,7 @@
 		"nsis": {
 			"oneClick": true,
 			"createDesktopShortcut": false,
-			"deleteAppDataOnUninstall": true,
+			"deleteAppDataOnUninstall": false,
 			"artifactName": "${productName} Setup.${ext}"
 		}
 	}
