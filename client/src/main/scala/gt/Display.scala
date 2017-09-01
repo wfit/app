@@ -51,7 +51,7 @@ object Display {
 		loadSnippet(container.innerHTML, None)
 	}
 
-	def currentMetadata: Option[JsObject] = {
+	private def currentMetadata: Option[JsObject] = {
 		Option(dom.document.querySelector("section#content script[type='application/gt-metadata']"))
 			.map(_.textContent)
 			.map(_.replace('+', ' '))
@@ -60,7 +60,7 @@ object Display {
 			.map(_.as[JsObject])
 	}
 
-	def loadMetadata(): Unit = for (metadata <- currentMetadata) {
+	private def loadMetadata(): Unit = for (metadata <- currentMetadata) {
 		tasks = Set.empty
 		metadata.fields.foreach {
 			case ("title", JsString(title)) => setTitle(title)
@@ -73,22 +73,21 @@ object Display {
 		ready = Future.sequence[Any, Set](tasks)
 	}
 
-	def resolveView(path: String): View = {
+	private def resolveView(path: String): View = {
 		path.split('.').foldLeft(js.Dynamic.global)((scope, key) => scope.selectDynamic(key)).asInstanceOf[View]
 	}
 
-	def loadView(view: View): Unit = {
-		unloadView()
+	private def loadView(view: View): Unit = {
 		currentView = Some(view)
 	}
 
-	def unloadView(): Unit = for (view <- currentView) {
-		view.unload()
+	private def unloadView(): Unit = {
 		currentView = None
 		container.setAttribute("hidden", "")
 		container.innerHTML = ""
 		activeStyles.foreach(style => style.parentElement.removeChild(style))
 		activeStyles = Set.empty
+		for (view <- currentView) view.unload()
 	}
 
 	def navigate(url: String, method: String = "get"): Unit = if (!navigationInProgress) {
@@ -123,8 +122,8 @@ object Display {
 			dom.window.history.replaceState(null, dom.document.title, url)
 		}
 		val view = currentView
+		view.foreach(_.init())
 		for (_ <- ready if currentView == view) {
-			view.foreach(_.init())
 			container.removeAttribute("hidden")
 			for (node <- Option(container.querySelector("[autofocus]"))) {
 				node.asInstanceOf[html.Input].focus()
@@ -132,7 +131,7 @@ object Display {
 		}
 	}
 
-	def loadStyles(urls: Seq[String]): Unit = {
+	private def loadStyles(urls: Seq[String]): Unit = {
 		for (url <- urls) {
 			val style = dom.document.createElement("link").asInstanceOf[html.Link]
 			style.rel = "stylesheet"
@@ -150,12 +149,12 @@ object Display {
 		}
 	}
 
-	def setTitle(title: String): Unit = {
+	private def setTitle(title: String): Unit = {
 		dom.document.title = title
 		dom.document.querySelector("header h2").textContent = title
 	}
 
-	def setModule(module: String): Unit = {
+	private def setModule(module: String): Unit = {
 		for (node <- dom.document.querySelectorAll("body > nav .active")) {
 			node.asInstanceOf[html.Element].classList.remove("active")
 		}
