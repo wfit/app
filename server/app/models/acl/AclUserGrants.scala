@@ -1,6 +1,5 @@
-package models
+package models.acl
 
-import models.acl.AclUserGrant
 import utils.UUID
 import utils.SlickAPI._
 

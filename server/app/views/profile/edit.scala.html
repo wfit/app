@@ -1,5 +1,42 @@
-@()(implicit req: UserRequest[_])
+@(target: UUID, profile: Profile)(implicit req: UserRequest[_])
+
+@visibilityOptions = @{ Seq("Friends", "Apply", "Members", "Officers").zipWithIndex }
+
+@field(label: String, key: String, value: Option[String], visibility: Int, tpe: String = null, length: Int = 50) = {
+	<div class="row mb" style="align-items: flex-end">
+		<label class="flex">
+			@label
+			<input name="@key" @if(tpe != null) { type="@tpe" } else { maxlength="@length" } value="@value">
+		</label>
+		<label>
+			@if(key == "name") { Visibilité }
+			<select name="@{key}Visibility" typed="number">
+				@for((txt, idx) <- visibilityOptions; value = idx + 1) {
+					<option value="@value" @if(value == visibility) { selected="selected" }>@txt</option>
+				}
+			</select>
+		</label>
+	</div>
+}
 
 @view("Edition du profil", "profile", styles = Seq("profile/profile")) {
-	Profile edit
+	<div class="layout-center">
+		<section style="width: 500px;">
+			<h3>Edition du profil</h3>
+			<form class="box" action="@routes.ProfileController.editSubmit(target)">
+				@field("Prénom", "name", profile.name, profile.nameVisibility)
+				@field("Date de naissance", "birthday", profile.birthday.map(_.toString), profile.birthdayVisibility, "date")
+				@field("Région", "location", profile.location, profile.locationVisibility)
+				@field("BattleTag", "btag", profile.btag, profile.btagVisibility)
+				@field("E-mail", "mail", profile.mail, profile.mailVisibility, length = 255)
+				@field("Téléphone", "phone", profile.phone, profile.phoneVisibility)
+				<div class="mb gray small">
+					Les informations saisies ci-dessus seront accessibles à toutes les personnes dont le rang est au moins le rang
+					indiqué dans le champ Visibilité. La date de naissance est utilisée pour calculer l'age et n'est pas directement accessible.
+				</div>
+				<button>Sauvegarder</button>
+				<a href="@routes.ProfileController.profile(target)" class="btn alternate">Annuler</a>
+			</form>
+		</section>
+	</div>
 }

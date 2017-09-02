@@ -11,6 +11,7 @@ GET           /dashboard                                  controllers.DashboardC
 GET           /profile                                    controllers.ProfileController.autoProfile
 GET           /profile/:user                              controllers.ProfileController.profile(user: utils.UUID)
 GET           /profile/:user/edit                         controllers.ProfileController.edit(user: utils.UUID)
+POST          /profile/:user/edit                         controllers.ProfileController.editSubmit(user: utils.UUID)
 GET           /profile/:user/bind                         controllers.ProfileController.bind(user: utils.UUID)
 POST          /profile/:user/bind                         controllers.ProfileController.bindPost(user: utils.UUID)
 POST          /profile/:user/toon/:toon/disable           controllers.ProfileController.toonDisable(user: utils.UUID, toon: utils.UUID)

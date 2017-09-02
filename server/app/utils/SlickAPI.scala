@@ -1,7 +1,7 @@
 package utils
 
-import java.sql.Timestamp
-import java.time.Instant
+import java.sql.{Date, Timestamp}
+import java.time.{Instant, LocalDate}
 import java.util.{UUID => JUUID}
 import javax.inject.Inject
 import models.wow.{Class, Spec}
@@ -52,6 +52,11 @@ object SlickAPI extends MySQLProfile.API {
 	implicit val instantColumnType: BaseColumnType[Instant] = MappedColumnType.base[Instant, Timestamp](
 		Timestamp.from,
 		ts => ts.toInstant
+	)
+
+	implicit val localDateColumnType: BaseColumnType[LocalDate] = MappedColumnType.base[LocalDate, Date](
+		Date.valueOf,
+		date => date.toLocalDate
 	)
 
 	implicit val classColumnType: BaseColumnType[Class] = MappedColumnType.base[Class, Int](

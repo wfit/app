@@ -2,10 +2,11 @@ package controllers
 
 import base.{UserAction, UserRequest}
 import java.sql.Timestamp
-import java.time.{Instant, LocalDateTime, OffsetDateTime, ZoneId}
+import java.time._
+import java.time.temporal.TemporalUnit
 import java.util.TimeZone
 import javax.inject.{Inject, Singleton}
-import models.{Toon, Toons}
+import models.{Profile, Profiles, Toon, Toons}
 import models.wow.Spec
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,6 +33,10 @@ class ProfileController @Inject()(userAction: UserAction)
 
 	private def editAction(user: UUID) = userAction.authenticated andThen EditPermissionFilter(user)
 
+	private def profileForUser(user: UUID): Future[Profile] = {
+		Profiles.filter(_.user === user).result.headOption.map(_ getOrElse Profile.empty)
+	}
+
 	def autoProfile = userAction.authenticated { req =>
 		Redirect(routes.ProfileController.profile(req.user.uuid))
 	}
@@ -42,13 +47,36 @@ class ProfileController @Inject()(userAction: UserAction)
 			case None => throw unknownUser
 		}
 		val toons = rosterService.toonsForUser(user)
-		for (d <- data; t <- toons; m <- rosterService.mainForUser(d)) yield {
-			Ok(views.html.profile.profile(d, m, t))
+		val profile = profileForUser(user)
+		for (d <- data; t <- toons; m <- rosterService.mainForUser(d); p <- profile) yield {
+			val editable = user == req.user.uuid || req.acl.can("profile.edit")
+			val profileView = if (editable) p else p.viewForRank(req.acl.get("rank"))
+			val age = profileView.birthday.map { birthday =>
+				(Duration.between(birthday.atStartOfDay, LocalDate.now.atStartOfDay).toDays / 365.25).toInt
+			}.filter(_ > 0)
+			Ok(views.html.profile.profile(d, m, t, p, age))
 		}
 	}
 
-	def edit(user: UUID) = editAction(user) { implicit req =>
-		Ok(views.html.profile.edit())
+	def edit(user: UUID) = editAction(user).async { implicit req =>
+		profileForUser(user).map { profile =>
+			Ok(views.html.profile.edit(user, profile))
+		}
+	}
+
+	def editSubmit(user: UUID) = editAction(user)(parse.json).async { implicit req =>
+		def field(name: String): Option[String] = req.param(name).asOpt[String].map(_.trim).filter(_.nonEmpty)
+		def fieldVisiblity(name: String): Int = req.param(name + "Visibility").asInt
+		val profile = Profile(
+			user = user,
+			name = field("name"), nameVisibility = fieldVisiblity("name"),
+			birthday = field("birthday").map(LocalDate.parse), birthdayVisibility = fieldVisiblity("birthday"),
+			location = field("location"), locationVisibility = fieldVisiblity("location"),
+			btag = field("btag"), btagVisibility = fieldVisiblity("btag"),
+			mail = field("mail"), mailVisibility = fieldVisiblity("mail"),
+			phone = field("phone"), phoneVisibility = fieldVisiblity("phone")
+		)
+		(Profiles insertOrUpdate profile) andThen Redirect(routes.ProfileController.profile(user))
 	}
 
 	def bind(user: UUID) = editAction(user) { implicit req =>

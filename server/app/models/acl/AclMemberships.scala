@@ -1,6 +1,5 @@
-package models
+package models.acl
 
-import models.acl.AclMembership
 import utils.UUID
 import utils.SlickAPI._
 

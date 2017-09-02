@@ -2,7 +2,8 @@
 
 @view("Ajout d'un personnage", "profile", styles = Seq("profile/profile")) {
 	<div class="layout-center">
-		<div class="column" style="width: 300px;">
+		<div style="width: 300px;">
+			<h3>Associer un personnage</h3>
 			<form class="box" action="@routes.ProfileController.bindPost(target)" error-display="bind-error">
 				<label>
 					Serveur

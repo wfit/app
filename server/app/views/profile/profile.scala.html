@@ -1,4 +1,4 @@
-@(user: User, main: Toon, toons: Seq[Toon])(implicit request: UserRequest[_])
+@(user: User, main: Toon, toons: Seq[Toon], profile: Profile, age: Option[Int])(implicit request: UserRequest[_])
 
 @editable = @{ request.acl.can("profile.edit") || request.user.uuid == user.uuid }
 
@@ -19,14 +19,26 @@
 			</div>
 			<hr>
 			<table>
-				<tr><th><i>face</i> Prénom</th><td>&ndash;</td></tr>
-				<tr><th><i>cake</i> Age</th><td>&ndash;</td></tr>
-				<tr><th><i>public</i> Région</th><td>&ndash;</td></tr>
+				<tr><th><i>face</i> Prénom</th><td class="selectable">@profile.name.getOrElse("—")</td></tr>
+				<tr><th><i>cake</i> Age</th><td>@age.getOrElse("—")</td></tr>
+				<tr><th><i>public</i> Région</th><td class="selectable">@profile.location.getOrElse("—")</td></tr>
 			</table>
 			<table>
-				<tr><th><i>gamepad</i> BattleTag</th><td>&ndash;</td></tr>
-				<tr><th><i>local_post_office</i> E-mail</th><td>&ndash;</td></tr>
-				<tr><th><i>local_phone</i> Téléphone</th><td>&ndash;</td></tr>
+				<tr><th><i>gamepad</i> BattleTag</th><td class="selectable">@profile.btag.getOrElse("—")</td></tr>
+				<tr><th><i>local_post_office</i> E-mail</th><td class="selectable">
+					@profile.mail.map { mail =>
+						<a href="mailto:@mail">@mail</a>
+					}.getOrElse {
+						—
+					}
+				</td></tr>
+				<tr><th><i>local_phone</i> Téléphone</th><td class="selectable">
+					@profile.phone.map { phone =>
+						<a href="tel:@phone.replaceAll("[^0-9+]+", "")">@phone</a>
+					}.getOrElse {
+						—
+					}
+				</td></tr>
 			</table>
 			<hr>
 			@if(editable) {
