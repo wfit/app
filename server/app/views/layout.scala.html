@@ -1,7 +1,9 @@
 @(title: String)(content: Html)(implicit request: UserRequest[_])
 
-@nav(icon: String, module: String, target: String) = {
-	<li data-module="@module"><a href="@target"><i>@icon</i></a></li>
+@nav(icon: String, module: String, target: String, aclKey: Option[String] = None) = {
+	@if(aclKey.forall(key => request.acl.can(key))) {
+		<li data-module="@module"><a href="@target"><i>@icon</i></a></li>
+	}
 }
 
 @if(request.isFetch) {
@@ -59,17 +61,17 @@
 				<ul>
 					@nav("dashboard", "dashboard", routes.DashboardController.dashboard().url)
 					@nav("account_circle", "profile", routes.ProfileController.autoProfile().url)
-					@nav("event", "calendar", null)
-					@nav("flash_on", "slacks", null)
-					@nav("pages", "composer", null)
-					@nav("group", "roster", null)
+					@nav("event", "calendar", null, Some("calendar.access"))
+					@nav("flash_on", "slacks", null, Some("slacks.access"))
+					@nav("pages", "composer", null, Some("composer.access"))
+					@nav("group", "roster", null, Some("roster.access"))
 					@if(request.isElectron) {
-						@nav("extension", "addons", null)
-						@nav("screen_share", "tv", null)
+						@nav("extension", "addons", null, Some("addons.access"))
+						@nav("screen_share", "tv", null, Some("tv.access"))
 					} else {
 						@nav("forum", "forum", "http://waitforit.fr/forum/")
 					}
-					@nav("settings", "admin", manage.routes.AdminController.home().url)
+					@nav("settings", "admin", manage.routes.AdminController.home().url, Some("admin.access"))
 				</ul>
 			</nav>
 		}

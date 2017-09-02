@@ -1,7 +1,7 @@
 package gt
 
 import facades.html5
-import facades.electron.ElectronModule
+import facades.electron.{ElectronModule, RemoteModule}
 import org.scalajs.dom
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{global => g}
@@ -9,20 +9,22 @@ import scala.scalajs.js.Dynamic.{global => g}
 @JSExportAll
 @JSExportTopLevel("gt")
 object GuildTools {
-	val app: Boolean = g.GT_APP.asInstanceOf[Boolean]
-	val authenticated: Boolean = g.GT_AUTHENTICATED.asInstanceOf[Boolean]
+	val isApp: Boolean = g.GT_APP.asInstanceOf[Boolean]
+	val isAuthenticated: Boolean = g.GT_AUTHENTICATED.asInstanceOf[Boolean]
 
-	private lazy val electron = g.require("electron").asInstanceOf[ElectronModule]
-	private lazy val remote = electron.remote
+	lazy val electron: ElectronModule = g.require("electron").asInstanceOf[ElectronModule]
+	lazy val remote: RemoteModule = electron.remote
 
 	def init(): Unit = {
-		setupWindowControls()
-		setupCacheClearOnHide()
+		if (isApp) {
+			setupWindowControls()
+			setupCacheClearOnHide()
+		}
 		Interceptor.setup()
 		Display.init()
 	}
 
-	private def setupWindowControls(): Unit = if (app) {
+	private def setupWindowControls(): Unit = {
 		dom.document.getElementById("app-buttons").addEventListener("click", (e: dom.MouseEvent) => {
 			lazy val window = remote.getCurrentWindow()
 			val target = e.target.asInstanceOf[html5.Element].closest("[data-action]")

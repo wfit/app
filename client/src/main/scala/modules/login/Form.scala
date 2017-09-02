@@ -15,7 +15,7 @@ object Form extends View {
 
 	override def init(): Unit = {
 		// Handle situation where user get unexpectedly disconnected
-		if (GuildTools.authenticated) {
+		if (GuildTools.isAuthenticated) {
 			dom.document.location.reload()
 		}
 

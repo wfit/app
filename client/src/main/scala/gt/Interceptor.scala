@@ -109,6 +109,10 @@ object Interceptor {
 			case Some(href) if href startsWith "/" =>
 				event.preventDefault()
 				Display.navigate(href, Option(link.getAttribute("method")).getOrElse("get"))
+			case Some(external) =>
+				event.preventDefault()
+				if (GuildTools.isApp) GuildTools.electron.shell.openExternal(external)
+				else dom.window.open(external)
 			case _ =>
 			// ignore
 		}

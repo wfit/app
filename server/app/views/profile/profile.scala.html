@@ -41,7 +41,11 @@
 				@for(toon <- toons) {
 					<div class="toon box">
 						@if(toon.active) {
-							<div class="render cls@toon.race-@toon.gender" style="background-image: url('@toon.renderUrl');"></div>
+							<div class="render cls@toon.race-@toon.gender" style="background-image: url('@toon.renderUrl');">
+								<a href="@toon.armoryUrl">
+									<i>open_in_new</i>
+								</a>
+							</div>
 						}
 						<div class="row">
 							<div class="info flex">
@@ -49,11 +53,13 @@
 									<span class="name" wow-class="@toon.cls.id">@toon.name</span>
 									<span class="realm light gray">@toon.realm</span>
 								</div>
-								<div>
-									<span class="ilvl">@toon.ilvl ilvl</span>
-									<span class="darkgray">&mdash;</span>
-									<span class="timestamp">@toon.lastUpdate.ago.capitalize</span>
-								</div>
+								@if(toon.active) {
+									<div>
+										<span class="ilvl">@toon.ilvl ilvl</span>
+										<span class="darkgray">&mdash;</span>
+										<span class="timestamp">@toon.lastUpdate.ago.capitalize</span>
+									</div>
+								}
 							</div>
 							@if(editable && toon.active) {
 								<div class="specs">

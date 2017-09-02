@@ -5,6 +5,7 @@ import base.{CheckAcl, UserAction}
 import javax.inject.{Inject, Singleton}
 import models._
 import models.acl.{AclGroup, AclGroupGrant, AclKey, AclMembership}
+import play.api.cache.AsyncCacheApi
 import play.api.mvc.{InjectedController, Result}
 import scala.concurrent.{ExecutionContext, Future}
 import services.AuthService
@@ -14,6 +15,7 @@ import utils.FutureOps
 
 @Singleton
 class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authService: AuthService)
+                             (cache: AsyncCacheApi)
                              (implicit executionContext: ExecutionContext)
 	extends InjectedController {
 

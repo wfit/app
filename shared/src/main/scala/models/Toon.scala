@@ -18,6 +18,8 @@ case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boo
 	def renderUrl: String = thumbnailUrl.replaceFirst("avatar", "main")
 
 	def raceName: String = wow.Strings.raceName(race)
+
+	def armoryUrl: String = s"https://worldofwarcraft.com/en-gb/character/$realm/$name".toLowerCase
 }
 
 object Toon {
