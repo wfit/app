@@ -1,3 +1,4 @@
+@import models.acl.AclKey
 @(keys: Seq[AclKey])(implicit request: UserRequest[_])
 
 @admin.layout("Permissions", "acl-keys") {

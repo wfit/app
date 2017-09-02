@@ -97,6 +97,7 @@ object Display {
 		val req = method match {
 			case "post" => Http.post(url)
 			case "delete" => Http.delete(url)
+			case "put" => Http.put(url)
 			case _ => Http.get(url)
 		}
 		req.andThen { case _ => endLoading() }.foreach { res =>

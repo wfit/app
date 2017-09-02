@@ -1,8 +1,9 @@
 package services
 
+import java.time.Instant
 import javax.inject.{Inject, Singleton}
 import models.Toon
-import models.wow.WClass
+import models.wow.Class
 import play.api.Configuration
 import play.api.libs.ws.WSClient
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,7 +17,7 @@ class BnetService @Inject()(conf: Configuration, ws: WSClient)
 	private val secret = conf.get[String]("bnet.secret")
 
 	def fetchToon(realm: String, name: String): Future[Toon] = {
-		ws.url(s"$base/wow/character/$realm/$name")
+		ws.url(s"$base/wow/character/$realm/$name".toLowerCase)
 			.addQueryStringParameters("apikey" -> key, "fields" -> "items")
 			.get()
 			.collect {
@@ -24,6 +25,8 @@ class BnetService @Inject()(conf: Configuration, ws: WSClient)
 				case _ => throw UserError("Ce personnage est introuvable.")
 			}
 			.map { data =>
+				val clss = Class.fromId((data \ "class").as[Int])
+				val spec = clss.specs.head
 				Toon(
 					uuid = UUID.random,
 					name = (data \ "name").as[String],
@@ -31,12 +34,15 @@ class BnetService @Inject()(conf: Configuration, ws: WSClient)
 					owner = UUID.zero,
 					main = false,
 					active = true,
-					cls = WClass.fromId((data \ "class").as[Int]),
+					cls = clss,
+					spec = spec,
 					race = (data \ "race").as[Int],
 					gender = (data \ "gender").as[Int],
 					level = (data \ "level").as[Int],
 					thumbnail = (data \ "thumbnail").asOpt[String],
-					ilvl = (data \ "items" \ "averageItemLevelEquipped").as[Int]
+					ilvl = (data \ "items" \ "averageItemLevelEquipped").as[Int],
+					lastUpdate = Instant.now,
+					invalid = false
 				)
 			}
 	}

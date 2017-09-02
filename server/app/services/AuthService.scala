@@ -1,6 +1,7 @@
 package services
 
 import akka.Done
+import java.time.Instant
 import javax.inject.{Inject, Singleton}
 import models._
 import org.mindrot.jbcrypt.BCrypt
@@ -48,16 +49,17 @@ class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
 			case (fid, None) =>
 				val uuid = UUID.random
 				(Users.map(u => (u.uuid, u.fid)) += (uuid, fid)) andThen DBIO.successful(uuid)
-		}.transactionally.run
+		}.transactionally
 	}
 
 	def createSession(user: UUID): Future[UUID] = {
 		val session = UUID.random
-		((Sessions += Session(session, user)) andThen DBIO.successful(session)).run
+		(Sessions += Session(session, user)) andThen DBIO.successful(session)
 	}
 
-	def loadSession(id: UUID): Future[Option[UUID]] = {
-		Sessions.filter(s => s.id === id).map(_.user).headOption
+	def loadSession(id: UUID): Future[Option[UUID]] = cache.getOrElseUpdate(s"auth:session:$id", 5.minute) {
+		val session = Sessions.filter(s => s.id === id)
+		session.map(_.lastAccess).update(Instant.now) andThen session.map(_.user).result.headOption
 	}
 
 	def loadAcl(userId: UUID): Future[UserAcl] = {
@@ -82,7 +84,7 @@ class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
 		}.map(_.uuid)
 
 		val grantsQuery = AclGroupGrants.filter(_.subject in groups).join(AclKeys).on((g, k) => g.key === k.id)
-		for (grants <- grantsQuery.run) yield {
+		for (grants <- grantsQuery.result) yield {
 			UserAcl(grants.groupBy { case (g, k) => k.key }
 				.mapValues { grantsAndKey => grantsAndKey.map { case (grant, key) => grant } }
 				.map { case (key, keyGrants) =>

@@ -1,4 +1,4 @@
-package models
+package models.acl
 
 import utils.UUID
 

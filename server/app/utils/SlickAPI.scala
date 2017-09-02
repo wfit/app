@@ -1,12 +1,15 @@
 package utils
 
+import java.sql.Timestamp
+import java.time.Instant
 import java.util.{UUID => JUUID}
 import javax.inject.Inject
-import models.wow.WClass
+import models.wow.{Class, Spec}
 import org.apache.commons.codec.binary.Hex
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.mvc.Result
 import scala.concurrent.{ExecutionContext, Future}
+import slick.dbio
 import slick.jdbc.{JdbcProfile, MySQLProfile}
 import slick.lifted.AppliedCompiledFunction
 
@@ -16,27 +19,11 @@ object SlickAPI extends MySQLProfile.API {
 
 	@Inject protected implicit var ec: ExecutionContext = _
 
-	implicit class DBQueryExecutor[A](val q: Query[_, A, Seq]) extends AnyVal {
-		@inline final def run: Future[Seq[A]] = DB.run(q.result)
-		@inline final def head: Future[A] = DB.run(q.result.head)
-		@inline final def headOption: Future[Option[A]] = DB.run(q.result.headOption)
-	}
-
-	implicit class DBCompiledExecutor[A, B](val q: AppliedCompiledFunction[_, Query[A, B, Seq], _]) extends AnyVal {
-		@inline final def run: Future[Any] = DB.run(q.result)
-		@inline final def head: Future[B] = DB.run(q.result.head)
-		@inline final def headOption: Future[Option[B]] = DB.run(q.result.headOption)
-	}
-
-	implicit class DBRepExecutor[A](val q: Rep[A]) extends AnyVal {
-		//@inline final def run: Future[A] = DB.run(q.result)
-	}
-
 	implicit class DBIOActionExecutor[R](val q: DBIOAction[R, NoStream, Nothing]) extends AnyVal {
 		@inline final def run: Future[R] = DB.run(q)
 	}
 
-	implicit def ResultFromDBIO(dbio: DBIOAction[Result, NoStream, Nothing]): Future[Result] = dbio.run
+	implicit def ResultFromDBIO[R](dbio: DBIOAction[R, NoStream, Nothing]): Future[R] = DB.run(dbio)
 	implicit def ValueToDBIO[R](value: R): DBIOAction[R, NoStream, Effect] = DBIO.successful(value)
 
 	val uuidToBin: (Rep[String]) => Rep[Array[Byte]] = SimpleFunction.unary[String, Array[Byte]]("uuid_to_bin")
@@ -58,10 +45,22 @@ object SlickAPI extends MySQLProfile.API {
 	}
 
 	implicit val customUuidColumnType: BaseColumnType[UUID] = MappedColumnType.base[UUID, Array[Byte]](
-		{ uuid => scalaUuidToBin(uuid.value) }, { bin => UUID(scalaBinToUuid(bin)) }
+		uuid => scalaUuidToBin(uuid.value),
+		bin => UUID(scalaBinToUuid(bin))
 	)
 
-	implicit val classColumnType: BaseColumnType[WClass] = MappedColumnType.base[WClass, Int](
-		{ cls => cls.id }, { id => WClass.fromId(id) }
+	implicit val instantColumnType: BaseColumnType[Instant] = MappedColumnType.base[Instant, Timestamp](
+		Timestamp.from,
+		ts => ts.toInstant
+	)
+
+	implicit val classColumnType: BaseColumnType[Class] = MappedColumnType.base[Class, Int](
+		cls => cls.id,
+		Class.fromId
+	)
+
+	implicit val specColumnType: BaseColumnType[Spec] = MappedColumnType.base[Spec, Int](
+		spec => spec.id,
+		Spec.fromId
 	)
 }

@@ -1,38 +1,44 @@
 # Base
-GET           /                                      controllers.HomeController.index
-GET           /login                                 controllers.HomeController.login(continue: Option[String] ?= None)
-POST          /login                                 controllers.HomeController.performLogin
-GET           /logout                                controllers.HomeController.logout
+GET           /                                           controllers.HomeController.index
+GET           /login                                      controllers.HomeController.login(continue: Option[String] ?= None)
+POST          /login                                      controllers.HomeController.performLogin
+GET           /logout                                     controllers.HomeController.logout
 
 # Dashboard
-GET           /dashboard                             controllers.DashboardController.dashboard
+GET           /dashboard                                  controllers.DashboardController.dashboard
 
 # Profile
-GET           /profile                               controllers.ProfileController.autoProfile
-GET           /profile/:user                         controllers.ProfileController.profile(user: utils.UUID)
-GET           /profile/:user/edit                    controllers.ProfileController.edit(user: utils.UUID)
-GET           /profile/:user/bind                    controllers.ProfileController.bind(user: utils.UUID)
-POST          /profile/:user/bind                    controllers.ProfileController.bindPost(user: utils.UUID)
+GET           /profile                                    controllers.ProfileController.autoProfile
+GET           /profile/:user                              controllers.ProfileController.profile(user: utils.UUID)
+GET           /profile/:user/edit                         controllers.ProfileController.edit(user: utils.UUID)
+GET           /profile/:user/bind                         controllers.ProfileController.bind(user: utils.UUID)
+POST          /profile/:user/bind                         controllers.ProfileController.bindPost(user: utils.UUID)
+POST          /profile/:user/toon/:toon/disable           controllers.ProfileController.toonDisable(user: utils.UUID, toon: utils.UUID)
+POST          /profile/:user/toon/:toon/enable            controllers.ProfileController.toonEnable(user: utils.UUID, toon: utils.UUID)
+POST          /profile/:user/toon/:toon/promote           controllers.ProfileController.toonPromote(user: utils.UUID, toon: utils.UUID)
+POST          /profile/:user/toon/:toon/update            controllers.ProfileController.toonUpdate(user: utils.UUID, toon: utils.UUID)
+POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: utils.UUID, toon: utils.UUID)
+PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: utils.UUID, toon: utils.UUID, spec: Int)
 
 # Admin
-GET           /admin                                 controllers.manage.AdminController.home
-GET           /admin/acl/users                       controllers.manage.AclController.users
-GET           /admin/acl/users/:user                 controllers.manage.AclController.user(user: utils.UUID)
-POST          /admin/acl/users/:user/invite          controllers.manage.AclController.userInvite(user: utils.UUID)
-DELETE        /admin/acl/users/:user/kick            controllers.manage.AclController.userKick(user: utils.UUID, group: utils.UUID, backToGroup: Boolean ?= false)
-GET           /admin/acl/groups                      controllers.manage.AclController.groups
-POST          /admin/acl/groups                      controllers.manage.AclController.createGroup
-GET           /admin/acl/groups/:group               controllers.manage.AclController.group(group: utils.UUID)
-POST          /admin/acl/groups/:group/grant         controllers.manage.AclController.groupGrant(group: utils.UUID)
-DELETE        /admin/acl/groups/:group/revoke        controllers.manage.AclController.groupRevoke(group: utils.UUID, key: utils.UUID)
-DELETE        /admin/acl/groups/:group               controllers.manage.AclController.deleteGroup(group: utils.UUID)
-GET           /admin/acl/keys                        controllers.manage.AclController.keys
-POST          /admin/acl/keys                        controllers.manage.AclController.createKey
-DELETE        /admin/acl/keys/:key                   controllers.manage.AclController.deleteKey(key: utils.UUID)
+GET           /admin                                      controllers.manage.AdminController.home
+GET           /admin/acl/users                            controllers.manage.AclController.users
+GET           /admin/acl/users/:user                      controllers.manage.AclController.user(user: utils.UUID)
+POST          /admin/acl/users/:user/invite               controllers.manage.AclController.userInvite(user: utils.UUID)
+DELETE        /admin/acl/users/:user/kick                 controllers.manage.AclController.userKick(user: utils.UUID, group: utils.UUID, backToGroup: Boolean ?= false)
+GET           /admin/acl/groups                           controllers.manage.AclController.groups
+POST          /admin/acl/groups                           controllers.manage.AclController.createGroup
+GET           /admin/acl/groups/:group                    controllers.manage.AclController.group(group: utils.UUID)
+POST          /admin/acl/groups/:group/grant              controllers.manage.AclController.groupGrant(group: utils.UUID)
+DELETE        /admin/acl/groups/:group/revoke             controllers.manage.AclController.groupRevoke(group: utils.UUID, key: utils.UUID)
+DELETE        /admin/acl/groups/:group                    controllers.manage.AclController.deleteGroup(group: utils.UUID)
+GET           /admin/acl/keys                             controllers.manage.AclController.keys
+POST          /admin/acl/keys                             controllers.manage.AclController.createKey
+DELETE        /admin/acl/keys/:key                        controllers.manage.AclController.deleteKey(key: utils.UUID)
 
 # Electron support
-GET           /electron/bootstrap                    controllers.ElectronController.bootstrap
+GET           /electron/bootstrap                         controllers.ElectronController.bootstrap
 
 # Assets
-GET           /assets/*file                          controllers.Assets.versioned(path="/public", file: Asset)
+GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 

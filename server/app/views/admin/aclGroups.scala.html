@@ -1,3 +1,4 @@
+@import models.acl.AclGroup
 @(groups: Seq[AclGroup], forumGroups: Map[Int, String])(implicit request: UserRequest[_])
 
 @admin.layout("Groupes", "acl-groups") {

@@ -1,5 +1,6 @@
 package models
 
+import models.acl.AclKey
 import utils.UUID
 import utils.SlickAPI._
 

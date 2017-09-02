@@ -1,3 +1,6 @@
+@import models.acl.AclGroupGrant
+@import models.acl.AclKey
+@import models.acl.AclGroup
 @(group: AclGroup, keys: Seq[AclKey], grants: Seq[(AclGroupGrant, String)], members: Seq[User])(implicit request: UserRequest[_])
 
 @admin.layout("Groupe: " + group.title, "acl-groups") {

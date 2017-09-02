@@ -4,6 +4,7 @@ import akka.Done
 import base.{CheckAcl, UserAction}
 import javax.inject.{Inject, Singleton}
 import models._
+import models.acl.{AclGroup, AclGroupGrant, AclKey, AclMembership}
 import play.api.mvc.{InjectedController, Result}
 import scala.concurrent.{ExecutionContext, Future}
 import services.AuthService
@@ -23,7 +24,7 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 			val explicitly = AclMemberships.filter(m => m.group === group && m.user === u.uuid).exists
 			val implicitly = AclGroups.filter(g => g.uuid === group && g.forumGroup === u.group).exists
 			explicitly || implicitly
-		}.map(_.uuid).run
+		}.map(_.uuid).result
 	}
 
 	private def flushMultipleCaches(users: Seq[UUID]): Future[Done] = {
@@ -37,18 +38,18 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	}
 
 	def users = aclAction.async { implicit req =>
-		Users.sortBy(_.name).run.map(users => Ok(views.html.admin.aclUsers(users)))
+		Users.sortBy(_.name).result.map(users => Ok(views.html.admin.aclUsers(users)))
 	}
 
 	def user(uuid: UUID) = aclAction.async { implicit req =>
 		for {
-			user <- Users.filter(_.uuid === uuid).head
+			user <- Users.filter(_.uuid === uuid).result.head.run
 			acl <- authService.loadAcl(uuid)
 			groups <- AclGroups.sortBy(_.title).map { group =>
 				val explicitly = AclMemberships.filter(m => group.uuid === m.group && m.user === uuid).exists
 				val implicitly = group.forumGroup === user.group
 				(group, (explicitly || implicitly) getOrElse false)
-			}.run
+			}.result
 		} yield Ok(views.html.admin.aclUser(user, acl, groups))
 	}
 
@@ -67,9 +68,10 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	}
 
 	def groups = aclAction.async { implicit req =>
-		val groups = AclGroups.sortBy(_.title).run
-		val forumGroups = sql"SELECT group_id, group_name FROM milbb_groups WHERE group_id > 7".as[(Int, String)].run
-		for (gs <- groups; fgs <- forumGroups) yield Ok(views.html.admin.aclGroups(gs, fgs.toMap))
+		for {
+			groups <- AclGroups.sortBy(_.title).result
+			forumGroups <- sql"SELECT group_id, group_name FROM milbb_groups WHERE group_id > 7".as[(Int, String)]
+		} yield Ok(views.html.admin.aclGroups(groups, forumGroups.toMap))
 	}
 
 	def createGroup = aclAction(parse.json).async { implicit req =>
@@ -80,14 +82,14 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 
 	def group(uuid: UUID) = aclAction.async { implicit req =>
 		for {
-			grp <- AclGroups.filter(_.uuid === uuid).head
-			ks <- AclKeys.sortBy(_.key).run
-			gs <- AclGroupGrants.filter(_.subject === uuid).sortBy(_.key).run
+			grp <- AclGroups.filter(_.uuid === uuid).result.head
+			ks <- AclKeys.sortBy(_.key).result
+			gs <- AclGroupGrants.filter(_.subject === uuid).sortBy(_.key).result
 			membersQuery = grp.forumGroup match {
 				case Some(id) => Users.filter(_.group === id)
 				case None => Users.filter(u => AclMemberships.filter(m => m.user === u.uuid && m.group === uuid).exists)
 			}
-			ms <- membersQuery.sortBy(_.name).run
+			ms <- membersQuery.sortBy(_.name).result
 		} yield {
 			val keyset = ks.map(k => (k.id, k)).toMap
 			val fullGrants = gs.map(g => (g, keyset(g.key).key))
@@ -115,7 +117,7 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	}
 
 	def keys = aclAction.async { implicit req =>
-		AclKeys.sortBy(_.key).run.map(keys => Ok(views.html.admin.aclKeys(keys)))
+		AclKeys.sortBy(_.key).result.map(keys => Ok(views.html.admin.aclKeys(keys)))
 	}
 
 	def createKey = aclAction(parse.json).async { implicit req =>

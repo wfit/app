@@ -35,7 +35,8 @@ lazy val server = (project in file("server"))
 			"org.mindrot" % "jbcrypt" % "0.4",
 			"com.typesafe.slick" %% "slick" % "3.2.1",
 			"com.typesafe.play" %% "play-slick" % "3.0.1",
-			"mysql" % "mysql-connector-java" % "5.1.23"
+			"mysql" % "mysql-connector-java" % "5.1.23",
+			"org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final"
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -45,7 +46,8 @@ lazy val server = (project in file("server"))
 		excludeFilter in (Assets, LessKeys.less) := "_*.less",
 		TwirlKeys.templateImports ++= Seq(
 			"_root_.base.UserRequest",
-			"_root_.utils.UUID"
+			"_root_.utils.UUID",
+			"_root_.utils.Timeago.Implicitly"
 		)
 	)
 	.enablePlugins(PlayScala, DockerPlugin)

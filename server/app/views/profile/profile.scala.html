@@ -1,4 +1,6 @@
-@(user: User, main: Toon, toons: Seq[Toon])(implicit req: UserRequest[_])
+@(user: User, main: Toon, toons: Seq[Toon])(implicit request: UserRequest[_])
+
+@editable = @{ request.acl.can("profile.edit") || request.user.uuid == user.uuid }
 
 @view("Profil et personnages", "profile", styles = Seq("profile/profile")) {
 	<div class="layout-columns" id="profile">
@@ -6,12 +8,13 @@
 			<div id="profile-card">
 				<img src="@main.thumbnailUrl">
 				<div class="text">
-					<span class="name" wow-class="2">@main.name</span>
+					<span class="name" wow-class="@main.cls.id">@main.name</span>
 					<span class="info">
 						@main.level
-						@main.race
+						@main.raceName
 						@main.cls
 					</span>
+					<span class="id gray">@user.name</span>
 				</div>
 			</div>
 			<hr>
@@ -26,26 +29,57 @@
 				<tr><th><i>local_phone</i> Téléphone</th><td>&ndash;</td></tr>
 			</table>
 			<hr>
-			<div class="pack">
-				<a href="@routes.ProfileController.edit(req.user)" class="btn alternate"><i>edit</i> Editer le profil</a>
-				<a href="@routes.ProfileController.bind(req.user)" class="btn alternate"><i>link</i> Associer un personnage</a>
-			</div>
+			@if(editable) {
+				<div class="pack">
+					<a href="@routes.ProfileController.edit(user)" class="btn alternate"><i>edit</i> Editer le profil</a>
+					<a href="@routes.ProfileController.bind(user)" class="btn alternate"><i>link</i> Associer un personnage</a>
+				</div>
+			}
 		</div>
 		<div class="right">
 			<div id="profile-toons">
 				@for(toon <- toons) {
 					<div class="toon box">
-						<div class="render cls@toon.race-@toon.gender" style="background-image: url('@toon.renderUrl');"></div>
-						<div class="info">
-							<span class="name" wow-class="@toon.cls.id">@toon.name</span>
-							<span>5 jours - @toon.ilvl ilvl</span>
+						@if(toon.active) {
+							<div class="render cls@toon.race-@toon.gender" style="background-image: url('@toon.renderUrl');"></div>
+						}
+						<div class="row">
+							<div class="info flex">
+								<div>
+									<span class="name" wow-class="@toon.cls.id">@toon.name</span>
+									<span class="realm light gray">@toon.realm</span>
+								</div>
+								<div>
+									<span class="ilvl">@toon.ilvl ilvl</span>
+									<span class="darkgray">&mdash;</span>
+									<span class="timestamp">@toon.lastUpdate.ago.capitalize</span>
+								</div>
+							</div>
+							@if(editable) {
+								<div class="specs">
+								@for(spec <- toon.cls.specs; icon = spec.icon) {
+									<a href="@routes.ProfileController.toonSetSpec(user, toon.uuid, spec.id)" method="put"
+										class="spec @if(toon.spec == spec) { active }" title="@spec.name">
+										<img src="@routes.Assets.versioned(s"images/specs/$icon.jpg")">
+									</a>
+								}
+								</div>
+							}
 						</div>
-						<div class="specs">
-
-						</div>
-						<div class="actions">
-
-						</div>
+						@if(editable) {
+							<div class="actions">
+							@if(toon.active) {
+								@if(!toon.main) {
+									<a href="@routes.ProfileController.toonPromote(user, toon.uuid)" method="post" class="btn alternate">Main</a>
+									<a href="@routes.ProfileController.toonDisable(user, toon.uuid)" method="post" class="btn alternate">Désactiver</a>
+								}
+								<a href="@routes.ProfileController.toonUpdate(user, toon.uuid)" method="post" class="btn alternate">Mettre à jour</a>
+							} else {
+								<a href="@routes.ProfileController.toonEnable(user, toon.uuid)" method="post" class="btn alternate">Activer</a>
+								<a href="@routes.ProfileController.toonRemove(user, toon.uuid)" method="post" class="btn alternate">Supprimer</a>
+							}
+							</div>
+						}
 					</div>
 				}
 				@for(i <- 1 to 3) {

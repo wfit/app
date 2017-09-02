@@ -1,6 +1,7 @@
 package models
 
-import models.wow.WClass
+import java.time.Instant
+import models.wow.{Class, Spec}
 import utils.UUID
 import utils.SlickAPI._
 
@@ -13,7 +14,8 @@ class Toons (tag: Tag) extends Table[Toon](tag, "gt_toons") {
 	def main = column[Boolean]("main")
 	def active = column[Boolean]("active")
 
-	def cls = column[WClass]("class")
+	def cls = column[Class]("class")
+	def spec = column[Spec]("spec")
 	def race = column[Int]("race")
 	def gender = column[Int]("gender")
 	def level = column[Int]("level")
@@ -21,7 +23,11 @@ class Toons (tag: Tag) extends Table[Toon](tag, "gt_toons") {
 	def thumbnail = column[Option[String]]("thumbnail")
 	def ilvl = column[Int]("ilvl")
 
-	def * = (uuid, name, realm, owner, main, active, cls, race, gender, level, thumbnail, ilvl) <> ((Toon.apply _).tupled, Toon.unapply)
+	def lastUpdate = column[Instant]("last_update")
+	def invalid = column[Boolean]("invalid")
+	def failures = column[Int]("failures")
+
+	def * = (uuid, name, realm, owner, main, active, cls, spec, race, gender, level, thumbnail, ilvl, lastUpdate, invalid) <> ((Toon.apply _).tupled, Toon.unapply)
 }
 
 object Toons extends TableQuery(new Toons(_))

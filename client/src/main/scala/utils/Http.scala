@@ -115,9 +115,10 @@ object Http {
 		).asInstanceOf[RequestInit]
 
 		Fetch.fetch(url, settings).toFuture.flatMap { response =>
-			val instance = response.headers.get("gt-instance").asInstanceOf[String]
-			if (serverInstance.isEmpty) serverInstance = instance
-			else if (serverInstance.asInstanceOf[String] != instance) Toast.serverUpdated()
+			for (instance <- Option(response.headers.get("gt-instance").asInstanceOf[String])) {
+				if (serverInstance.isEmpty) serverInstance = instance
+				else if (serverInstance.asInstanceOf[String] != instance) Toast.serverUpdated()
+			}
 
 			if (300 <= response.status && response.status < 400) {
 				Future.successful(new Response(Some(response), null))
