@@ -54,7 +54,7 @@ class ProfileController @Inject()(userAction: UserAction)
 			val age = profileView.birthday.map { birthday =>
 				(Duration.between(birthday.atStartOfDay, LocalDate.now.atStartOfDay).toDays / 365.25).toInt
 			}.filter(_ > 0)
-			Ok(views.html.profile.profile(d, m, t, p, age))
+			Ok(views.html.profile.profile(d, m, t, profileView, age))
 		}
 	}
 
