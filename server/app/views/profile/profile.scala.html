@@ -55,7 +55,7 @@
 									<span class="timestamp">@toon.lastUpdate.ago.capitalize</span>
 								</div>
 							</div>
-							@if(editable) {
+							@if(editable && toon.active) {
 								<div class="specs">
 								@for(spec <- toon.cls.specs; icon = spec.icon) {
 									<a href="@routes.ProfileController.toonSetSpec(user, toon.uuid, spec.id)" method="put"
