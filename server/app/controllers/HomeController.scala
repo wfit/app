@@ -27,7 +27,7 @@ class HomeController @Inject()(userAction: UserAction)
 		val id = (req.body \ "id").as[String]
 		val pass = (req.body \ "pass").as[String]
 		authService.login(id, pass).flatMap(authService.createSession).map { id =>
-			Redirect(routes.DashboardController.dashboard(), CustomStatus.FullRedirect).withSession("key" -> id.value)
+			Redirect(routes.DashboardController.dashboard(), CustomStatus.FullRedirect).withSession("key" -> id.toString)
 		}
 	}
 

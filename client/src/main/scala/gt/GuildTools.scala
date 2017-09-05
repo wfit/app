@@ -3,6 +3,7 @@ package gt
 import facades.html5
 import facades.electron.{ElectronModule, RemoteModule}
 import org.scalajs.dom
+import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{global => g}
 
@@ -11,6 +12,8 @@ import scala.scalajs.js.Dynamic.{global => g}
 object GuildTools {
 	val isApp: Boolean = g.GT_APP.asInstanceOf[Boolean]
 	val isAuthenticated: Boolean = g.GT_AUTHENTICATED.asInstanceOf[Boolean]
+	val stateHash: String = g.STATE_HASH.asInstanceOf[String]
+	val instanceUUID: String = g.INSTANCE_UUID.asInstanceOf[String]
 
 	lazy val electron: ElectronModule = g.require("electron").asInstanceOf[ElectronModule]
 	lazy val remote: RemoteModule = electron.remote
@@ -45,8 +48,11 @@ object GuildTools {
 		})
 	}
 
-	def reload(): Unit = {
+	def reload(target: js.UndefOr[String] = js.undefined): Unit = {
 		Display.beginLoading()
-		dom.document.location.reload()
+		target.toOption match {
+			case Some(path) => dom.document.location.href = path
+			case None => dom.document.location.reload()
+		}
 	}
 }

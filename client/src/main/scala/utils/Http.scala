@@ -1,6 +1,6 @@
 package utils
 
-import gt.Toast
+import gt.{GuildTools, Toast}
 import org.scalajs.dom
 import org.scalajs.dom.experimental.{RequestInit, Response => JSResponse, _}
 import play.api.libs.json.{Json, JsValue}
@@ -10,7 +10,6 @@ import scala.scalajs.js
 import scala.scalajs.js.URIUtils
 
 object Http {
-	private var serverInstance: js.UndefOr[String] = js.undefined
 	val defaultHeaders = Map("Gt-Fetch" -> "1")
 	val emptyHeaders = new Headers()
 
@@ -97,6 +96,25 @@ object Http {
 		}
 	}
 
+	private def handleHttpHooks(response: dom.experimental.Response): Boolean = {
+		// Reads a header from response
+		def header(name: String): Option[String] = Option(response.headers.get(name).asInstanceOf[String])
+
+		val stateHash = header("gt-statehash")
+		val instance = header("gt-instance")
+		val method = header("gt-method")
+
+		if (stateHash.exists(_ != GuildTools.stateHash) && method.contains("GET")) {
+			GuildTools.reload(response.url)
+			false
+		} else if (instance.exists(_ != GuildTools.instanceUUID)) {
+			Toast.serverUpdated()
+			true
+		} else {
+			true
+		}
+	}
+
 	def fetch[B](url: String, method: HttpMethod, body: B = EmptyBody,
 	             headers: Map[String, String] = Map.empty)
 	            (implicit format: HttpBody[B]): Future[Response] = {
@@ -115,15 +133,15 @@ object Http {
 		).asInstanceOf[RequestInit]
 
 		Fetch.fetch(url, settings).toFuture.flatMap { response =>
-			for (instance <- Option(response.headers.get("gt-instance").asInstanceOf[String])) {
-				if (serverInstance.isEmpty) serverInstance = instance
-				else if (serverInstance.asInstanceOf[String] != instance) Toast.serverUpdated()
-			}
-
-			if (300 <= response.status && response.status < 400) {
-				Future.successful(new Response(Some(response), null))
+			if (handleHttpHooks(response)) {
+				// Handle response
+				if (300 <= response.status && response.status < 400) {
+					Future.successful(new Response(Some(response), null))
+				} else {
+					response.text().toFuture.map(text => new Response(Some(response), text))
+				}
 			} else {
-				response.text().toFuture.map(text => new Response(Some(response), text))
+				Future.never
 			}
 		}.recover {
 			case err => new Response(None, err.getMessage)

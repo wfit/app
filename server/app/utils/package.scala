@@ -6,7 +6,7 @@ import scala.util.control.NonFatal
 package object utils {
 	implicit def UUIDPathBinder(implicit sb: PathBindable[String]): PathBindable[UUID] = new PathBindable[UUID] {
 		def bind(key: String, value: String): Either[String, UUID] = sb.bind(key, value).map(UUID.apply)
-		def unbind(key: String, value: UUID): String = sb.unbind(key, value.value)
+		def unbind(key: String, value: UUID): String = sb.unbind(key, value.toString)
 	}
 
 	implicit def UUIDQueryBinder(implicit sb: QueryStringBindable[String]): QueryStringBindable[UUID] = new QueryStringBindable[UUID] {
@@ -14,7 +14,7 @@ package object utils {
 			sb.bind(key, params).map(res => res.map(UUID.apply))
 		}
 		def unbind(key: String, value: UUID): String = {
-			sb.unbind(key, value.value)
+			sb.unbind(key, value.toString)
 		}
 	}
 

@@ -26,6 +26,8 @@
 			GT_LOADED = true;
 			GT_APP = @if(request.isElectron) { true; } else { false; }
 			GT_AUTHENTICATED = @if(request.authenticated) { true; } else { false; }
+			INSTANCE_UUID = "@{request.instanceUUID.toString}";
+			STATE_HASH = "@{request.stateHash.toString}";
 		</script>
 		@scalajs.html.scripts(
 			"client",

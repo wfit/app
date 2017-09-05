@@ -45,7 +45,7 @@ object SlickAPI extends MySQLProfile.API {
 	}
 
 	implicit val customUuidColumnType: BaseColumnType[UUID] = MappedColumnType.base[UUID, Array[Byte]](
-		uuid => scalaUuidToBin(uuid.value),
+		uuid => scalaUuidToBin(uuid.toString),
 		bin => UUID(scalaBinToUuid(bin))
 	)
 

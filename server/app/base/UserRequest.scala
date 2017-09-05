@@ -7,7 +7,7 @@ import play.api.mvc.{Request, WrappedRequest}
 import utils.{UserAcl, UserError, UUID}
 
 case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, acl: UserAcl,
-                           request: Request[A]) extends WrappedRequest[A](request) {
+                           instanceUUID: UUID, request: Request[A]) extends WrappedRequest[A](request) {
 	def authenticated: Boolean = optUser.isDefined
 
 	val user: User = optUser.orNull
@@ -18,6 +18,8 @@ case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, 
 	def param(key: String)(implicit aIsJsValue: A =:= JsValue): Parameter = {
 		Parameter(aIsJsValue(request.body) \ key)
 	}
+
+	val stateHash: Int = (main.uuid, acl.grants).##
 }
 
 object UserRequest {

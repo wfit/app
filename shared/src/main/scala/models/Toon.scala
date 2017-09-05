@@ -20,6 +20,8 @@ case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boo
 	def raceName: String = wow.Strings.raceName(race)
 
 	def armoryUrl: String = s"https://worldofwarcraft.com/en-gb/character/$realm/$name".toLowerCase
+
+	def synthetic: Boolean = uuid == UUID.zero
 }
 
 object Toon {
