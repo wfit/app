@@ -9,12 +9,14 @@
 				<img src="@main.thumbnailUrl">
 				<div class="text">
 					<span class="name" wow-class="@main.cls.id">@main.name</span>
-					<span class="info">
-						@main.level
-						@main.raceName
-						@main.cls
-					</span>
-					<span class="id gray">@user.name</span>
+					@if(!main.synthetic) {
+						<span class="info">
+							@main.level
+							@main.raceName
+							@main.cls
+						</span>
+						<span class="id gray">@user.name</span>
+					}
 				</div>
 			</div>
 			<hr>
