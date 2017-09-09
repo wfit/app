@@ -29,10 +29,10 @@
 				</tr>
 				@for((group, member) <- groups if member) {
 					<tr>
-						<td><a href="@manage.routes.AclController.group(group.uuid)">@group.title</a></td>
+						<td><a href="@routes.AclController.group(group.uuid)">@group.title</a></td>
 						<td>
 							@if(group.forumGroup.isEmpty) {
-								<a href="@manage.routes.AclController.userKick(user.uuid, group.uuid)" method="delete">Kick</a>
+								<a @href(routes.AclController.userKick(user.uuid, group.uuid))>Kick</a>
 							}
 						</td>
 					</tr>
@@ -42,7 +42,7 @@
 			@defining(groups.filter { case (g, m) => !m && g.forumGroup.isEmpty }) { addable =>
 				@if(addable.nonEmpty) {
 					<h3>Ajouter au groupe</h3>
-					<form class="row box" action="@manage.routes.AclController.userInvite(user.uuid)" error-toast>
+					<form class="row box" action="@routes.AclController.userInvite(user.uuid)" error-toast>
 						<label class="flex">
 							Groupe
 							<select name="group">

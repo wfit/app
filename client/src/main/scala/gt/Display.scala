@@ -8,7 +8,7 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.scalajs.js.URIUtils
-import utils.{Http, View}
+import tools.{Http, View}
 
 object Display {
 	private var currentView: Option[View] = None
@@ -91,13 +91,13 @@ object Display {
 		currentView = None
 	}
 
-	def navigate(url: String, method: String = "get"): Unit = if (!navigationInProgress) {
+	def navigate(url: String, method: String = "GET"): Unit = if (!navigationInProgress) {
 		navigationInProgress = true
 		beginLoading()
 		val req = method match {
-			case "post" => Http.post(url)
-			case "delete" => Http.delete(url)
-			case "put" => Http.put(url)
+			case "POST" => Http.post(url)
+			case "DELETE" => Http.delete(url)
+			case "PUT" => Http.put(url)
 			case _ => Http.get(url)
 		}
 		req.andThen { case _ => endLoading() }.foreach { res =>
@@ -123,6 +123,10 @@ object Display {
 		val freshContainer = createContainer()
 		freshContainer.innerHTML = source
 		loadMetadata(freshContainer)
+
+		for (script <- freshContainer.querySelectorAll("script")) {
+			script.parentNode.removeChild(script)
+		}
 
 		for (url <- sourceUrl) {
 			dom.window.history.replaceState(null, dom.document.title, url)

@@ -11,7 +11,7 @@
 		</tr>
 		@for(group <- groups) {
 			<tr>
-				<td><a href="@manage.routes.AclController.group(group.uuid)">@group.title</a></td>
+				<td><a href="@routes.AclController.group(group.uuid)">@group.title</a></td>
 				<td>@group.forumGroup.flatMap(forumGroups.get).getOrElse("—")</td>
 				<td class="selectable">@group.uuid</td>
 			</tr>
@@ -19,7 +19,7 @@
 	</table>
 
 	<h3>Nouveau groupe</h3>
-	<form class="row box inline" action="@manage.routes.AclController.createGroup()" error-toast>
+	<form class="row box inline" action="@routes.AclController.createGroup()" error-toast>
 		<label>
 			Nom
 			<input name="title">

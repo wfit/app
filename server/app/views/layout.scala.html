@@ -1,3 +1,4 @@
+@import play.api.libs.json.{JsString, JsBoolean, JsArray}
 @(title: String)(content: Html)(implicit request: UserRequest[_])
 
 @nav(icon: String, module: String, target: String, aclKey: Option[String] = None) = {
@@ -24,16 +25,16 @@
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/window.css")">
 		<script>
 			GT_LOADED = true;
-			GT_APP = @if(request.isElectron) { true; } else { false; }
-			GT_AUTHENTICATED = @if(request.authenticated) { true; } else { false; }
-			INSTANCE_UUID = "@{request.instanceUUID.toString}";
-			STATE_HASH = "@{request.stateHash.toString}";
+			GT_MAIN = true;
+			GT_APP = @Html(JsBoolean(request.isElectron).toString);
+			GT_AUTHENTICATED = @Html(JsBoolean(request.authenticated).toString);
+			INSTANCE_UUID = @Html(JsString(request.meta.instanceUUID.toString).toString);
+			STATE_HASH = @Html(JsString(request.stateHash.toString).toString);
+			CLIENT_SCRIPTS = @Html(JsArray(request.meta.clientScripts.map(JsString.apply)).toString);
 		</script>
-		@scalajs.html.scripts(
-			"client",
-			name => routes.Assets.versioned(name).toString,
-			name => getClass.getResource(s"/public/$name") != null
-		)
+		@for(script <- request.meta.clientScripts) {
+			<script type="text/javascript" src="@script"></script>
+		}
 	</head>
 	<body>
 		<header>
@@ -62,18 +63,18 @@
 			<nav>
 				<ul>
 					@nav("dashboard", "dashboard", routes.DashboardController.dashboard().url)
-					@nav("account_circle", "profile", routes.ProfileController.autoProfile().url)
+					@nav("account_circle", "profile", routes.ProfileController.profile(request.user.uuid).url)
 					@nav("event", "calendar", null, Some("calendar.access"))
 					@nav("flash_on", "slacks", null, Some("slacks.access"))
 					@nav("pages", "composer", null, Some("composer.access"))
 					@nav("group", "roster", null, Some("roster.access"))
 					@if(request.isElectron) {
-						@nav("extension", "addons", null, Some("addons.access"))
+						@nav("extension", "addons", routes.AddonsController.list().url, Some("addons.access"))
 						@nav("screen_share", "tv", null, Some("tv.access"))
 					} else {
 						@nav("forum", "forum", "http://waitforit.fr/forum/")
 					}
-					@nav("settings", "admin", manage.routes.AdminController.home().url, Some("admin.access"))
+					@nav("settings", "admin", routes.AdminController.home().url, Some("admin.access"))
 				</ul>
 			</nav>
 		}

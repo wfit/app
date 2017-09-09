@@ -14,14 +14,14 @@
 				<td><a>@key.key</a></td>
 				<td>@key.desc</td>
 				<td>
-					<a href="@manage.routes.AclController.deleteKey(key.id)" method="delete">Supprimer</a>
+					<a @href(routes.AclController.deleteKey(key.id))>Supprimer</a>
 				</td>
 			</tr>
 		}
 	</table>
 
 	<h3>Nouvelle permission</h3>
-	<form class="row box inline" action="@manage.routes.AclController.createKey()" error-toast>
+	<form class="row box inline" action="@routes.AclController.createKey()" error-toast>
 		<label>
 			Permission
 			<input name="key">

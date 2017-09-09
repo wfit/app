@@ -1,8 +1,11 @@
+import org.scalajs.sbtplugin.cross.CrossClasspathDependency
+
 name := "wfit"
+
 version in ThisBuild := "latest-SNAPSHOT"
+scalaVersion in ThisBuild := "2.12.3"
 
 lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
-	scalaVersion := "2.12.3",
 	scalacOptions ++= Seq(
 		//"-Xlog-implicits",
 		"-deprecation",
@@ -45,8 +48,8 @@ lazy val server = (project in file("server"))
 		includeFilter in (Assets, LessKeys.less) := "*.less",
 		excludeFilter in (Assets, LessKeys.less) := "_*.less",
 		TwirlKeys.templateImports ++= Seq(
-			"_root_.base.UserRequest",
-			"_root_.utils.UUID",
+			"_root_.controllers.base._",
+			"_root_.utils._",
 			"_root_.utils.Timeago.Implicitly"
 		)
 	)
@@ -60,11 +63,16 @@ lazy val client = (project in file("client"))
 		//scalaJSUseMainModuleInitializer := true,
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
-			"com.typesafe.play" %%% "play-json" % "2.6.3"
-		)
+			"com.typesafe.play" %%% "play-json" % "2.6.3",
+			"org.webjars.npm" % "dexie" % "1.4.1"
+		),
+		jsDependencies ++= Seq(
+			"org.webjars.npm" % "dexie" % "1.4.1" / "1.4.1/dist/dexie.min.js"
+		),
+		skip in packageJSDependencies := false
 	)
-	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
-	.dependsOn(sharedJs, facades)
+	.enablePlugins(ScalaJSPlugin, ScalaJSWeb, JSDependenciesPlugin)
+	.dependsOn(sharedJs)
 
 lazy val electron = (project in file("electron"))
 	.settings(
@@ -73,19 +81,9 @@ lazy val electron = (project in file("electron"))
 		scalaJSUseMainModuleInitializer := true
 	)
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
-	.dependsOn(sharedJs, facades)
+	.dependsOn(sharedJs)
 
-lazy val facades = (project in file("facades"))
-	.settings(
-		commonSettings,
-		commonScalaJsSettings,
-		libraryDependencies ++= Seq(
-			"org.scala-js" %%% "scalajs-dom" % "0.9.3"
-		)
-	)
-	.enablePlugins(ScalaJSPlugin)
-
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
+lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 	.settings(
 		name := "shared",
 		commonSettings,
@@ -93,7 +91,12 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared"))
 			"com.typesafe.play" %%% "play-json" % "2.6.3"
 		)
 	)
-	.jsSettings(commonScalaJsSettings)
+	.jsSettings(
+		commonScalaJsSettings,
+		libraryDependencies ++= Seq(
+			"org.scala-js" %%% "scalajs-dom" % "0.9.3"
+		)
+	)
 	.jvmSettings(
 		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.19" % "provided"
 	)

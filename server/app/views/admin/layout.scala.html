@@ -10,9 +10,9 @@
 			@if(request.acl.can("admin.acl")) {
 				<h3 class="light no-margin">Gestion ACLs</h3>
 				<div class="pack">
-					@nav("Utilisateurs", "acl-users", manage.routes.AclController.users())
-					@nav("Groupes", "acl-groups", manage.routes.AclController.groups())
-					@nav("Permissions", "acl-keys", manage.routes.AclController.keys())
+					@nav("Utilisateurs", "acl-users", routes.AclController.users())
+					@nav("Groupes", "acl-groups", routes.AclController.groups())
+					@nav("Permissions", "acl-keys", routes.AclController.keys())
 				</div>
 			}
 			@*

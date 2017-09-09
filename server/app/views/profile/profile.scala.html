@@ -78,7 +78,7 @@
 							@if(editable && toon.active) {
 								<div class="specs">
 								@for(spec <- toon.cls.specs; icon = spec.icon) {
-									<a href="@routes.ProfileController.toonSetSpec(user, toon.uuid, spec.id)" method="put"
+									<a @href(routes.ProfileController.toonSetSpec(user, toon.uuid, spec.id))
 										class="spec @if(toon.spec == spec) { active }" title="@spec.name">
 										<img src="@routes.Assets.versioned(s"images/specs/$icon.jpg")">
 									</a>
@@ -90,13 +90,13 @@
 							<div class="actions">
 							@if(toon.active) {
 								@if(!toon.main) {
-									<a href="@routes.ProfileController.toonPromote(user, toon.uuid)" method="post" class="btn alternate">Main</a>
-									<a href="@routes.ProfileController.toonDisable(user, toon.uuid)" method="post" class="btn alternate">Désactiver</a>
+									<a @href(routes.ProfileController.toonPromote(user, toon.uuid)) class="btn alternate">Main</a>
+									<a @href(routes.ProfileController.toonDisable(user, toon.uuid)) class="btn alternate">Désactiver</a>
 								}
-								<a href="@routes.ProfileController.toonUpdate(user, toon.uuid)" method="post" class="btn alternate">Mettre à jour</a>
+								<a @href(routes.ProfileController.toonUpdate(user, toon.uuid)) class="btn alternate">Mettre à jour</a>
 							} else {
-								<a href="@routes.ProfileController.toonEnable(user, toon.uuid)" method="post" class="btn alternate">Activer</a>
-								<a href="@routes.ProfileController.toonRemove(user, toon.uuid)" method="post" class="btn alternate">Supprimer</a>
+								<a @href(routes.ProfileController.toonEnable(user, toon.uuid)) class="btn alternate">Activer</a>
+								<a @href(routes.ProfileController.toonRemove(user, toon.uuid)) class="btn alternate">Supprimer</a>
 							}
 							</div>
 						}

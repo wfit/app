@@ -1,12 +1,12 @@
 package gt
 
 import facades.html5
+import gt.tools.{CustomEvent, Http}
 import org.scalajs.dom
-import org.scalajs.dom.{html, NodeListOf}
+import org.scalajs.dom.html
+import org.scalajs.dom.ext._
 import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
-import utils.{CustomEvent, Http}
-import org.scalajs.dom.ext._
 import scala.util.{Failure, Success, Try}
 
 object Interceptor {
@@ -33,14 +33,14 @@ object Interceptor {
 							case Success(number) =>
 								JsNumber(number)
 							case Failure(e) =>
-								Toast.error(s"Impossible d'interpréter '${input.value}' en tant que nombre.")
+								Toast.error(s"Impossible d'interpréter '${ input.value }' en tant que nombre.")
 								throw e
 						}
 					case "boolean" =>
 						JsBoolean(input.value match {
 							case "" | "0" => false
 							case _ => true
- 						})
+						})
 					case _ =>
 						JsString(input.value)
 				}
@@ -108,7 +108,7 @@ object Interceptor {
 				event.preventDefault()
 			case Some(href) if href startsWith "/" =>
 				event.preventDefault()
-				Display.navigate(href, Option(link.getAttribute("method")).getOrElse("get"))
+				Display.navigate(href, Option(link.getAttribute("method")).getOrElse("GET"))
 			case Some(external) if external startsWith "http" =>
 				event.preventDefault()
 				if (GuildTools.isApp) GuildTools.electron.shell.openExternal(external)

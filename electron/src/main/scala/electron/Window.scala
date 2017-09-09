@@ -16,10 +16,13 @@ object Window {
 		frame = false,
 		autoHideMenuBar = true,
 		backgroundColor = "#131313",
-		nodeIntegration = true,
-		nodeIntegrationInWorker = true,
-		devTools = true,
-		textAreasAreResizable = false
+		webPreferences = lit(
+			nodeIntegration = true,
+			nodeIntegrationInWorker = true,
+			devTools = true,
+			textAreasAreResizable = false,
+			defaultEncoding = "UTF-8"
+		)
 	)).asInstanceOf[BrowserWindow]
 
 	private var isVisible = false

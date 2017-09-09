@@ -19,13 +19,13 @@
 						<td><a>@key</a></td>
 						<td>@grant.value</td>
 						<td>@if(grant.negate) { Oui } else { Non }</td>
-						<td><a href="@manage.routes.AclController.groupRevoke(group.uuid, grant.key)" method="delete">Révoquer</a></td>
+						<td><a @href(routes.AclController.groupRevoke(group.uuid, grant.key))>Révoquer</a></td>
 					</tr>
 				}
 			</table>
 
 			<h3>Ajouter une permission</h3>
-			<form class="row box inline" action="@manage.routes.AclController.groupGrant(group.uuid)" error-toast>
+			<form class="row box inline" action="@routes.AclController.groupGrant(group.uuid)" error-toast>
 				<label>
 					Permission
 					<select name="key">
@@ -52,7 +52,7 @@
 
 			<h3>Supprimer ce groupe</h3>
 			<div class="box" style="display: inline-block">
-				<a class="btn" method="delete" href="@manage.routes.AclController.deleteGroup(group.uuid)">
+				<a class="btn" @href(routes.AclController.deleteGroup(group.uuid))>
 					Supprimer
 				</a>
 				<div class="small mt">
@@ -71,9 +71,9 @@
 					</tr>
 					@for(member <- members) {
 						<tr>
-							<td><a href="@manage.routes.AclController.user(member.uuid)">@member.name</a></td>
+							<td><a href="@routes.AclController.user(member.uuid)">@member.name</a></td>
 							@if(!auto) {
-								<td><a method="delete" href="@manage.routes.AclController.userKick(member.uuid, group.uuid, backToGroup = true)">Kick</a></td>
+								<td><a @href(routes.AclController.userKick(member.uuid, group.uuid, backToGroup = true))>Kick</a></td>
 							}
 						</tr>
 					}

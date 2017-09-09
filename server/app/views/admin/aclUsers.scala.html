@@ -10,7 +10,7 @@
 		</tr>
 			@for(user <- users) {
 				<tr>
-					<td><a href="@manage.routes.AclController.user(user)">@user.name</a></td>
+					<td><a href="@routes.AclController.user(user)">@user.name</a></td>
 					<td>@user.group</td>
 					<td class="selectable">@user.uuid</td>
 				</tr>

@@ -21,21 +21,24 @@ POST          /profile/:user/toon/:toon/update            controllers.ProfileCon
 POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: utils.UUID, toon: utils.UUID)
 PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: utils.UUID, toon: utils.UUID, spec: Int)
 
+# Addons
+GET           /addons                                     controllers.AddonsController.list
+
 # Admin
-GET           /admin                                      controllers.manage.AdminController.home
-GET           /admin/acl/users                            controllers.manage.AclController.users
-GET           /admin/acl/users/:user                      controllers.manage.AclController.user(user: utils.UUID)
-POST          /admin/acl/users/:user/invite               controllers.manage.AclController.userInvite(user: utils.UUID)
-DELETE        /admin/acl/users/:user/kick                 controllers.manage.AclController.userKick(user: utils.UUID, group: utils.UUID, backToGroup: Boolean ?= false)
-GET           /admin/acl/groups                           controllers.manage.AclController.groups
-POST          /admin/acl/groups                           controllers.manage.AclController.createGroup
-GET           /admin/acl/groups/:group                    controllers.manage.AclController.group(group: utils.UUID)
-POST          /admin/acl/groups/:group/grant              controllers.manage.AclController.groupGrant(group: utils.UUID)
-DELETE        /admin/acl/groups/:group/revoke             controllers.manage.AclController.groupRevoke(group: utils.UUID, key: utils.UUID)
-DELETE        /admin/acl/groups/:group                    controllers.manage.AclController.deleteGroup(group: utils.UUID)
-GET           /admin/acl/keys                             controllers.manage.AclController.keys
-POST          /admin/acl/keys                             controllers.manage.AclController.createKey
-DELETE        /admin/acl/keys/:key                        controllers.manage.AclController.deleteKey(key: utils.UUID)
+GET           /admin                                      controllers.AdminController.home
+GET           /admin/acl/users                            controllers.AclController.users
+GET           /admin/acl/users/:user                      controllers.AclController.user(user: utils.UUID)
+POST          /admin/acl/users/:user/invite               controllers.AclController.userInvite(user: utils.UUID)
+DELETE        /admin/acl/users/:user/kick                 controllers.AclController.userKick(user: utils.UUID, group: utils.UUID, backToGroup: Boolean ?= false)
+GET           /admin/acl/groups                           controllers.AclController.groups
+POST          /admin/acl/groups                           controllers.AclController.createGroup
+GET           /admin/acl/groups/:group                    controllers.AclController.group(group: utils.UUID)
+POST          /admin/acl/groups/:group/grant              controllers.AclController.groupGrant(group: utils.UUID)
+DELETE        /admin/acl/groups/:group/revoke             controllers.AclController.groupRevoke(group: utils.UUID, key: utils.UUID)
+DELETE        /admin/acl/groups/:group                    controllers.AclController.deleteGroup(group: utils.UUID)
+GET           /admin/acl/keys                             controllers.AclController.keys
+POST          /admin/acl/keys                             controllers.AclController.createKey
+DELETE        /admin/acl/keys/:key                        controllers.AclController.deleteKey(key: utils.UUID)
 
 # Electron support
 GET           /electron/bootstrap                         controllers.ElectronController.bootstrap
