@@ -1,29 +1,8 @@
 @()(implicit request: UserRequest[_])
 
-@view("Addons", "addons") {
+@view("Addons", "addons", "views.addons.list") {
 	<h3>Updater</h3>
-
-	<table class="box inline">
-		<tr>
-			<th>Statut</th>
-			<td>
-				<span class="dot" style="background-color: #999;"></span>
-				Désactivé
-			</td>
-		</tr>
-		<tr>
-			<th>Dossier</th>
-			<td>&mdash;</td>
-		</tr>
-		<tr class="no-hover">
-			<td colspan="2" class="no-padding">
-				<div class="row">
-					<button class="flex alternate">Activer</button>
-				</div>
-			</td>
-		</tr>
-	</table>
-
+	<div id="updater-status-container"></div>
 
 	<h3>Addons</h3>
 }

@@ -64,6 +64,7 @@ lazy val client = (project in file("client"))
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
 			"com.typesafe.play" %%% "play-json" % "2.6.3",
+			"in.nvilla" %%% "monadic-html" % "0.3.2",
 			"org.webjars.npm" % "dexie" % "1.4.1"
 		),
 		jsDependencies ++= Seq(

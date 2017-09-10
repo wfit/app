@@ -1,6 +1,6 @@
 package protocol
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, Json}
 import scala.annotation.unchecked.uncheckedVariance
 
 object CompoundMessage {
@@ -13,8 +13,6 @@ object CompoundMessage {
 	}
 
 	implicit object Serializer extends MessageSerializer[Any ~ Any] {
-
-
 		def serialize(value: ~[Any, Any]): String = {
 			Json.toJson(Seq(
 				value.as.serialize(value.a), value.as.fqcn,
@@ -22,8 +20,8 @@ object CompoundMessage {
 		}
 
 		override def deserialize(body: String, decoder: MessageDecoder): ~[Any, Any] = {
-			val Seq(a, as, b, bs) = Json.parse(body).as[Seq[String]]
-			new ~(decoder.decode(as, a), decoder.decode(bs, b))(decoder.lookupSerializer(as), decoder.lookupSerializer(bs))
+			val Seq(a, Some(as), b, Some(bs)) = Json.parse(body).as[JsArray].value.map(_.asOpt[String])
+			new ~(decoder.decode(as, a.orNull), decoder.decode(bs, b.orNull))(decoder.lookupSerializer(as), decoder.lookupSerializer(bs))
 		}
 
 		def deserialize(value: String): ~[Any, Any] = ???

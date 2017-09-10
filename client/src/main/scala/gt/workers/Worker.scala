@@ -8,6 +8,7 @@ import platform.JsPlatform._
 import play.api.libs.json._
 import protocol.{CompoundMessage, Message, MessageSerializer}
 import protocol.CompoundMessage.CompoundBuilder
+import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.{global => gec}
 import scala.reflect.ClassTag
 import scala.scalajs.js
@@ -25,13 +26,15 @@ abstract class Worker {
 	def receive: Receive
 
 	// Alias compound utilities for worker instances
-	final type ~[A, B] = CompoundMessage.~[A, B]
-	final val ~ : CompoundMessage.~.type = protocol.CompoundMessage.~
-	@inline final implicit def ImplCompoundBuilder[T: MessageSerializer](value: T): CompoundBuilder[T] = new CompoundBuilder(value)
+	protected final type ~[A, B] = CompoundMessage.~[A, B]
+	protected final val ~ : CompoundMessage.~.type = protocol.CompoundMessage.~
+	@inline protected final implicit def ImplCompoundBuilder[T: MessageSerializer](value: T): CompoundBuilder[T] = new CompoundBuilder(value)
+	protected final implicit val executionContext: ExecutionContext = ExecutionContext.global
 
 	// Dispatch
 	private val beforeDispatch: Receive = {
 		case WorkerControl.Terminate => terminate()
+		case WorkerControl.Respawn => respawn()
 	}
 
 	private val afterDispatch: Receive = {
@@ -47,24 +50,36 @@ abstract class Worker {
 	}
 
 	// Worker settings
-	private val uuid: UUID = Worker.newWorkerProperties.value
+	private val (fqcn: String, uuid: UUID) = Worker.newWorkerProperties.value
 	private var behavior: Receive = buildBehavior(receive)
 
 	// References
 	implicit protected lazy val self: WorkerRef.Local = new WorkerRef.Local(uuid)
 
-	private var _sender: WorkerRef = WorkerRef.NoSender
+	private var _sender: WorkerRef = WorkerRef.NoWorker
 	protected def sender: WorkerRef = _sender
 
 	// Control
+	def onTerminate(): Unit = ()
+	def onRespawn(): Unit = onTerminate()
+
 	final def terminate(): Unit = {
+		onTerminate()
 		Worker.terminated(uuid)
+	}
+
+	final def respawn(): Unit = {
+		onRespawn()
+		if (Worker.children contains uuid) {
+			// In case onRespawn called terminated
+			Worker.localWithUUID(fqcn, uuid)
+		}
 	}
 
 	private[workers] final def dispatch(sender: UUID, msg: Any): Unit = {
 		_sender = new WorkerRef(sender)
 		behavior(msg)
-		_sender = WorkerRef.NoSender
+		_sender = WorkerRef.NoWorker
 	}
 }
 
@@ -122,7 +137,7 @@ object Worker {
 	private def localWithUUID(fqcn: String, uuid: UUID): WorkerRef.Local = {
 		Reflect.lookupInstantiatableClass(fqcn) match {
 			case Some(instantiatableClass) =>
-				val instance = newWorkerProperties.withValue(uuid) {
+				val instance = newWorkerProperties.withValue((fqcn, uuid)) {
 					instantiatableClass.newInstance().asInstanceOf[Worker]
 				}
 				registerWorker(uuid, LocalWorker(instance))
@@ -133,8 +148,9 @@ object Worker {
 	}
 
 	private def registerWorker(uuid: UUID, worker: ChildWorker): Unit = {
+		val respawn = children contains uuid
 		children += (uuid -> worker)
-		if (GuildTools.isWorker) {
+		if (!respawn && GuildTools.isWorker) {
 			send(UUID.zero, uuid, WorkerControl.Spawned)
 		}
 	}
@@ -161,7 +177,6 @@ object Worker {
 			case None => dom.console.warn(s"Unable to deliver message to worker '${ msg.dest }': ", msg.toString)
 		}
 	}
-
 
 	private[workers] def sendLocal(dest: UUID, sender: UUID, msg: Any): Unit = {
 		children.get(dest) match {
@@ -205,5 +220,5 @@ object Worker {
 		}
 	}
 
-	private val newWorkerProperties = new DynamicVariable[UUID](UUID.zero)
+	private val newWorkerProperties = new DynamicVariable[(String, UUID)]((null, UUID.zero))
 }

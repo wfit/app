@@ -9,25 +9,33 @@ import scala.scalajs.js
 import utils.UUID
 
 sealed class WorkerRef private[workers] (val uuid: UUID) {
-	def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef = WorkerRef.NoSender): Unit = {
-		if (uuid != UUID.zero) Worker.send(uuid, sender.uuid, msg)
-		else dom.console.warn("Ignoring message sent to UUID.zero: ", msg.asInstanceOf[js.Any])
+	def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = {
+		Worker.send(uuid, sender.uuid, msg)
 	}
 
 	override def toString: String = s"WorkerRef($uuid)"
 
-	def ?[T: MessageSerializer] (msg: T)(implicit sender: WorkerRef = WorkerRef.NoSender): Future[Any] = {
+	def ?[T: MessageSerializer] (msg: T)(implicit sender: WorkerRef = WorkerRef.NoWorker): Future[Any] = {
 		val promise = Promise[Any]()
 		val worker = Worker.local[AskWorker]
 		worker ! AskWorker.DoAsk(this, msg, promise)
 		promise.future
 	}
 
-	def terminate()(implicit sender: WorkerRef = WorkerRef.NoSender): Unit = this ! WorkerControl.Terminate
+	def terminate()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Terminate
+	def respawn()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Respawn
 }
 
 object WorkerRef {
-	val NoSender: WorkerRef = new WorkerRef(UUID.zero)
+	val NoWorker: WorkerRef = new WorkerRef(UUID.zero) {
+		override def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef): Unit = {
+			dom.console.warn("Ignoring message sent to UUID.zero: ", msg.asInstanceOf[js.Any])
+		}
+	}
+
+	val Ignore: WorkerRef = new WorkerRef(UUID.zero) {
+		override def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef): Unit = ()
+	}
 
 	final class Local (id: UUID) extends WorkerRef(id) {
 		require(id != UUID.zero, "Local WorkerRef targeting UUID.zero are forbidden")
