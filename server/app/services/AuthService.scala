@@ -6,7 +6,7 @@ import javax.inject.{Inject, Singleton}
 import models._
 import models.acl._
 import org.mindrot.jbcrypt.BCrypt
-import play.api.cache.AsyncCacheApi
+import play.api.cache.{AsyncCacheApi, NamedCache}
 import play.api.mvc.Results
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
@@ -14,7 +14,8 @@ import utils.{UserAcl, UserError, UUID}
 import utils.SlickAPI._
 
 @Singleton
-class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
+class AuthService @Inject()(rosterService: RosterService)
+                           (cache: AsyncCacheApi, @NamedCache("acl") aclCache: AsyncCacheApi)
                            (implicit ec: ExecutionContext) {
 	private val badAuth = DBIO.failed(UserError("Identifiants incorrects", Results.Unauthorized))
 
@@ -77,7 +78,7 @@ class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
 		def result: Int = if (negate) min else max
 	}
 
-	def loadAcl(user: User): Future[UserAcl] = cache.getOrElseUpdate(s"auth:acl:${ user.uuid }", 5.minutes) {
+	def loadAcl(user: User): Future[UserAcl] = aclCache.getOrElseUpdate(s"auth:acl:${ user.uuid }", 5.minutes) {
 		val groups = AclGroups.filter { group =>
 			val explicitly = AclMemberships.filter(m => group.uuid === m.group && m.user === user.uuid).exists
 			val implicitly = group.forumGroup === user.group
@@ -99,5 +100,6 @@ class AuthService @Inject()(rosterService: RosterService, cache: AsyncCacheApi)
 		}
 	}
 
-	def flushUserAcl(user: UUID): Future[Done] = cache.remove(s"auth:acl:$user")
+	def flushUserAcl(user: UUID): Future[Done] = aclCache.remove(s"auth:acl:$user")
+	def flushAclCaches(): Future[Done] = aclCache.removeAll()
 }

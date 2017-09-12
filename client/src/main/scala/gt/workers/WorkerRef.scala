@@ -1,7 +1,5 @@
 package gt.workers
 
-import gt.tools.Microtask
-import org.scalajs
 import org.scalajs.dom
 import protocol.MessageSerializer
 import scala.concurrent.{Future, Promise}
@@ -13,17 +11,22 @@ sealed class WorkerRef private[workers] (val uuid: UUID) {
 		Worker.send(uuid, sender.uuid, msg)
 	}
 
-	override def toString: String = s"WorkerRef($uuid)"
-
 	def ?[T: MessageSerializer] (msg: T)(implicit sender: WorkerRef = WorkerRef.NoWorker): Future[Any] = {
 		val promise = Promise[Any]()
 		val worker = Worker.local[AskWorker]
-		worker ! AskWorker.DoAsk(this, msg, promise)
+		worker !< AskWorker.DoAsk(this, msg, promise)
 		promise.future
 	}
 
 	def terminate()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Terminate
 	def respawn()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Respawn
+
+	override def toString: String = uuid.toString
+	override def hashCode(): Int = uuid.hashCode()
+	override def equals(obj: Any): Boolean = obj match {
+		case ref: WorkerRef => ref.uuid == uuid
+		case _ => false
+	}
 }
 
 object WorkerRef {
@@ -31,23 +34,41 @@ object WorkerRef {
 		override def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef): Unit = {
 			dom.console.warn("Ignoring message sent to UUID.zero: ", msg.asInstanceOf[js.Any])
 		}
+		override def toString: String = "<no-worker>"
+		override def hashCode(): Int = System.identityHashCode(this)
+		override def equals(obj: Any): Boolean = obj match {
+			case ref: AnyRef => this eq ref
+			case _ => false
+		}
 	}
 
 	val Ignore: WorkerRef = new WorkerRef(UUID.zero) {
 		override def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef): Unit = ()
+		override def toString: String = "<ignore>"
+		override def hashCode(): Int = System.identityHashCode(this)
+		override def equals(obj: Any): Boolean = obj match {
+			case ref: AnyRef => this eq ref
+			case _ => false
+		}
 	}
 
 	final class Local (id: UUID) extends WorkerRef(id) {
 		require(id != UUID.zero, "Local WorkerRef targeting UUID.zero are forbidden")
-		def ! (msg: Any)(implicit sender: WorkerRef): Unit = Microtask.schedule {
+		def !< (msg: Any)(implicit sender: WorkerRef): Unit = {
 			Worker.sendLocal(uuid, sender.uuid, msg)
 		}
 	}
 
-	implicit object Serializer extends MessageSerializer[WorkerRef] {
-		def serialize(ref: WorkerRef): String = ref.uuid.toString
-		def deserialize(uuid: String): WorkerRef = new WorkerRef(UUID(uuid))
+	def fromUUID(uuid: UUID): WorkerRef = new WorkerRef(uuid)
+
+	def fromString(string: String): WorkerRef = string match {
+		case "<no-worker>" => NoWorker
+		case "<ignore>" => Ignore
+		case other => fromUUID(UUID(other))
 	}
 
-	def fromUUID(uuid: UUID): WorkerRef = new WorkerRef(uuid)
+	implicit object Serializer extends MessageSerializer[WorkerRef] {
+		def serialize(ref: WorkerRef): String = ref.toString
+		def deserialize(string: String): WorkerRef = fromString(string)
+	}
 }

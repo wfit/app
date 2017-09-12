@@ -23,6 +23,10 @@ PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileCon
 
 # Addons
 GET           /addons                                     controllers.AddonsController.list
+GET           /addons/manifest                            controllers.AddonsController.manifest
+GET           /addons/digest/:addon                       controllers.AddonsController.digest(addon)
+GET           /addons/blob/:id                            controllers.AddonsController.blob(id)
+POST          /addons/notify                              controllers.AddonsController.notifyUpdate
 
 # Admin
 GET           /admin                                      controllers.AdminController.home

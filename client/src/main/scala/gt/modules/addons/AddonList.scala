@@ -3,9 +3,10 @@ package gt.modules.addons
 import gt.GuildTools
 import gt.tools.{ViewUtils, WorkerView}
 import gt.workers.Worker
-import gt.workers.updater.Updater
+import gt.workers.updater.{Manifest, Updater}
 import mhtml._
 import org.scalajs.dom
+import org.scalajs.dom.html
 import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.Dynamic.literal
@@ -19,16 +20,27 @@ class AddonList extends Worker with ViewUtils {
 	private val text = Var("Chargement")
 	private val path = Var(Option(dom.window.localStorage.getItem("updater.path")))
 	private val message = Var(None: Option[String])
+	private val manifest = Var(Manifest.empty)
 
 	mount("#updater-status-container") {
 		val msg = message.map(_.map { m =>
 			<tr>
-				<td colspan="2" class="gray">
+				<td colspan="2" class="gray small">
 					{m}
 				</td>
 			</tr>
 		})
 		val actions = status.map {
+			case "enabled" =>
+				<div class="row">
+					<button class="flex alternate" onclick={() => updater ! 'Update}>Actualiser</button>
+					<button class="flex alternate" onclick={() => disableUpdater()}>Désactiver</button>
+				</div>
+			case "failure" =>
+				<div class="row">
+					<button class="flex alternate" onclick={() => updater.respawn()}>Réessayer</button>
+					<button class="flex alternate" onclick={() => disableUpdater()}>Désactiver</button>
+				</div>
 			case "disabled" =>
 				<div class="row">
 					<button class="flex alternate" onclick={() => selectWowDirectory()}>Activer</button>
@@ -41,7 +53,7 @@ class AddonList extends Worker with ViewUtils {
 				</td>
 			</tr>
 		})
-		<table class="box inline no-hover" style="width: 500px;">
+		<table class="box no-hover">
 			<tr>
 				<th style="width: 75px;">Statut</th>
 				<td>
@@ -74,6 +86,52 @@ class AddonList extends Worker with ViewUtils {
 		}
 	}
 
+	private def disableUpdater(): Unit = {
+		dom.window.localStorage.removeItem("updater.path")
+		path := None
+		updater.respawn()
+	}
+
+	mount("#addons-list-container") {
+		val togglesDisabled = status.map(_ != "enabled")
+		def state(addon: Manifest.Addon): String = {
+			(addon.installed, addon.managed, addon.sync) match {
+				case (false, _, _) => "Non installé"
+				case (true, false, _) => "Installé (non géré)"
+				case (true, true, false) => "Mise à jour"
+				case (true, true, true) => "Installé (à jour)"
+			}
+		}
+		def formatDate(date: String): String = {
+			date.replaceFirst("""\d{4}-(\d{2})-(\d{2})T(\d{2}):(\d{2}).*""", "$2/$1 – $3:$4")
+		}
+		val rows = manifest.map(_.addons.map { addon =>
+			<tr>
+				<td><input type="checkbox" checked={addon.managed} disabled={togglesDisabled} onclick={toggleAddonState(addon.name)(_)} /></td>
+				<td>{addon.name}</td>
+				<td>{state(addon)}</td>
+				<td>{addon.rev.substring(0, 8)}</td>
+				<td>{formatDate(addon.date)}</td>
+			</tr>
+		})
+		<table class="box full no-hover">
+			<tr>
+				<th></th>
+				<th>Addon</th>
+				<th>État</th>
+				<th>Révision</th>
+				<th>Date</th>
+			</tr>
+			<tbody>{rows}</tbody>
+		</table>
+	}
+
+	private def toggleAddonState(addon: String)(event: dom.Event): Unit = {
+		event.preventDefault()
+		val action = if (event.target.asInstanceOf[html.Input].checked) 'Install else 'Uninstall
+		updater ! action ~ addon
+	}
+
 	def receive: Receive = {
 		case 'SetStatus ~ (status: String) ~ (color: String) ~ (text: String) =>
 			this.status := status
@@ -82,6 +140,9 @@ class AddonList extends Worker with ViewUtils {
 
 		case 'SetMessage ~ msg =>
 			this.message := Option(msg.asInstanceOf[String])
+
+		case 'SetManifest ~ (manifest: Manifest) =>
+			this.manifest := manifest
 	}
 
 	override def onTerminate(): Unit = {

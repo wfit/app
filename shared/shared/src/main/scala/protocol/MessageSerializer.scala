@@ -1,7 +1,7 @@
 package protocol
 
 import play.api.libs.json
-import play.api.libs.json.{Format, JsResult, JsValue}
+import play.api.libs.json.Format
 import scala.annotation.unchecked.uncheckedVariance
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 
@@ -19,14 +19,9 @@ object MessageSerializer {
 		final def deserialize(value: String): T = dfn(value)
 	}
 
-	abstract class Json[T] (val format: Format[T]) extends MessageSerializer[T] with Format[T] {
-		// Format interface
-		final def reads(json: JsValue): JsResult[T] = format.reads(json)
-		final def writes(o: T): JsValue = format.writes(o)
-
-		// MessageSerializer interface
-		final def serialize(value: T): String = writes(value).toString()
-		final def deserialize(value: String): T = reads(json.Json.parse(value)).get
+	abstract class Json[T] (val format: Format[T]) extends MessageSerializer[T] {
+		final def serialize(value: T): String = format.writes(value).toString()
+		final def deserialize(value: String): T = format.reads(json.Json.parse(value)).get
 	}
 
 	abstract class Singleton[T] (singleton: T) extends Lambda[T](_ => "<singleton>", _ => singleton)

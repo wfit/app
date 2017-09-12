@@ -9,3 +9,4 @@ case class UserAcl (grants: Map[String, Int]) {
 object UserAcl {
 	val empty = UserAcl(Map.empty)
 }
+

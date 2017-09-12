@@ -20,6 +20,13 @@ case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, 
 	}
 
 	val stateHash: Int = (main.uuid, acl.grants).##
+
+	lazy val autoWorkers: Seq[String] = Seq(
+		("gt.workers.ui.UIWorker", true),
+		("gt.workers.updater.Updater", isElectron && acl.can("addons.access")),
+	).collect {
+		case (worker, true) => worker
+	}
 }
 
 object UserRequest {

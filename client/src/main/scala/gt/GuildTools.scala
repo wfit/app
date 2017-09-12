@@ -2,14 +2,12 @@ package gt
 
 import facades.html5
 import facades.electron.{ElectronModule, RemoteModule}
-import gt.workers.{Worker, WorkerRef}
-import gt.workers.ui.UIWorker
-import gt.workers.updater.Updater
+import gt.workers.AutoWorker
 import org.scalajs.dom
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{global => g}
-import utils.UUID
+import utils.UserAcl
 
 @JSExportAll
 @JSExportTopLevel("gt")
@@ -22,32 +20,23 @@ object GuildTools {
 	lazy val stateHash: String = g.STATE_HASH.asInstanceOf[String]
 	lazy val instanceUUID: String = g.INSTANCE_UUID.asInstanceOf[String]
 	lazy val clientScripts: js.Array[String] = g.CLIENT_SCRIPTS.asInstanceOf[js.Array[String]]
-
-	// Global workers refs
-	lazy val globalWorkers: Map[String, WorkerRef] = {
-		if (isWorker) {
-			g.GLOBAL_WORKERS.asInstanceOf[js.Dictionary[String]].toMap
-				.map { case (name, id) => (name, WorkerRef.fromUUID(UUID(id))) }
-		} else {
-			Map(
-				"ui" -> Worker.local[UIWorker]
-			)
-		}
+	lazy val sharedWorkers: js.Dictionary[String] = {
+		g.SHARED_WORKERS.asInstanceOf[js.UndefOr[js.Dictionary[String]]] getOrElse js.Dictionary.empty[String]
 	}
-
-	private val autoStartWorkers = Seq(Updater)
+	lazy val acl: UserAcl = UserAcl(g.USER_ACL.asInstanceOf[js.Dictionary[Int]].toMap)
 
 	// Electron bindings
 	def require[T](module: String): T = g.require(module).asInstanceOf[T]
 	lazy val electron: ElectronModule = require[ElectronModule]("electron")
 	lazy val remote: RemoteModule = electron.remote
 
-	def init(): Unit = {
+	def init(autoWorkers: js.Array[String]): Unit = {
 		if (isApp) {
 			setupWindowControls()
 			setupCacheClearOnHide()
 		}
 		Interceptor.setup()
+		AutoWorker.start(autoWorkers)
 		Display.init()
 	}
 

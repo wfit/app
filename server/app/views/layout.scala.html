@@ -1,4 +1,4 @@
-@import play.api.libs.json.{JsString, JsBoolean, JsArray}
+@import play.api.libs.json.{JsArray, JsBoolean, JsNumber, JsObject, JsString}
 @(title: String)(content: Html)(implicit request: UserRequest[_])
 
 @nav(icon: String, module: String, target: String, aclKey: Option[String] = None) = {
@@ -23,18 +23,6 @@
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/wow.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/layout.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/window.css")">
-		<script>
-			GT_LOADED = true;
-			GT_MAIN = true;
-			GT_APP = @Html(JsBoolean(request.isElectron).toString);
-			GT_AUTHENTICATED = @Html(JsBoolean(request.authenticated).toString);
-			INSTANCE_UUID = @Html(JsString(request.meta.instanceUUID.toString).toString);
-			STATE_HASH = @Html(JsString(request.stateHash.toString).toString);
-			CLIENT_SCRIPTS = @Html(JsArray(request.meta.clientScripts.map(JsString.apply)).toString);
-		</script>
-		@for(script <- request.meta.clientScripts) {
-			<script type="text/javascript" src="@script"></script>
-		}
 	</head>
 	<body>
 		<header>
@@ -80,7 +68,22 @@
 		}
 		<section id="content" hidden>@content</section>
 		<aside id="toasts"></aside>
-		<script>gt.init();</script>
+		<script>
+			GT_LOADED = true;
+			GT_MAIN = true;
+			GT_APP = @Html(JsBoolean(request.isElectron).toString);
+			GT_AUTHENTICATED = @Html(JsBoolean(request.authenticated).toString);
+			INSTANCE_UUID = @Html(JsString(request.meta.instanceUUID.toString).toString);
+			STATE_HASH = @Html(JsString(request.stateHash.toString).toString);
+			CLIENT_SCRIPTS = @Html(JsArray(request.meta.clientScripts.map(JsString.apply)).toString);
+			USER_ACL = @Html(JsObject(request.acl.grants.map { case (k, v) => (k, JsNumber(v))}.toSeq).toString);
+		</script>
+		@for(script <- request.meta.clientScripts) {
+			<script type="text/javascript" src="@script"></script>
+		}
+		<script>
+			gt.init(@Html(JsArray(request.autoWorkers.map(JsString.apply)).toString));
+		</script>
 	</body>
 	</html>
 }

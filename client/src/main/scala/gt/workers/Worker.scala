@@ -1,6 +1,8 @@
 package gt.workers
 
 import gt.GuildTools
+import gt.tools.Microtask
+import gt.workers.ui.UIWorker
 import org.scalajs.dom
 import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope.{self => worker}
 import org.scalajs.dom.window.location
@@ -12,6 +14,7 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.{global => gec}
 import scala.reflect.ClassTag
 import scala.scalajs.js
+import scala.scalajs.js.JSON
 import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.Dynamic.{global, literal, newInstance}
 import scala.scalajs.reflect.Reflect
@@ -58,6 +61,8 @@ abstract class Worker {
 
 	private var _sender: WorkerRef = WorkerRef.NoWorker
 	protected def sender: WorkerRef = _sender
+	private var _current: Any = _
+	protected def current: Any = _current
 
 	// Control
 	def onTerminate(): Unit = ()
@@ -76,10 +81,16 @@ abstract class Worker {
 		}
 	}
 
-	private[workers] final def dispatch(sender: UUID, msg: Any): Unit = {
+	private[workers] final def dispatch(sender: UUID, message: Any): Unit = {
 		_sender = new WorkerRef(sender)
-		behavior(msg)
+		_current = message
+		try behavior(message)
+		catch {
+			case t: Throwable =>
+				dom.console.error("Error while dispatching message", t.asInstanceOf[js.Any], message.asInstanceOf[js.Any])
+		}
 		_sender = WorkerRef.NoWorker
+		_current = null
 	}
 }
 
@@ -94,12 +105,18 @@ object Worker {
 
 	// ADAPTER
 
-	private lazy val sharedEnv = Map[String, JsValue](
-		"GT_APP" -> JsBoolean(GuildTools.isApp),
-		"GT_AUTHENTICATED" -> JsBoolean(GuildTools.isAuthenticated),
-		"CLIENT_SCRIPTS" -> JsArray(GuildTools.clientScripts.toSeq.map(JsString.apply)),
-		"GLOBAL_WORKERS" -> JsObject(GuildTools.globalWorkers.mapValues(ref => JsString(ref.uuid.toString)).toSeq)
+	private lazy val sharedEnv = Map[String, String](
+		"GT_APP" -> JSON.stringify(GuildTools.isApp),
+		"GT_AUTHENTICATED" -> JSON.stringify(GuildTools.isAuthenticated),
+		"CLIENT_SCRIPTS" -> JSON.stringify(GuildTools.clientScripts),
+		"USER_ACL" -> JSON.stringify(global.USER_ACL)
 	).map { case (key, value) => s"$key = $value;" }.mkString("\n")
+
+	private val sharedWorkers: Seq[AutoWorker.Named[_]] = Seq(UIWorker)
+
+	private def sharedWorkersBinding: String = {
+		JsObject(sharedWorkers.map(sw => (sw.name, JsString(sw.ref.toString)))).toString()
+	}
 
 	private lazy val importPaths = {
 		val protocol = location.protocol
@@ -113,6 +130,7 @@ object Worker {
 	private def workerBridge(fqcn: String, id: UUID): String = s"""
 		|window = self;
 		|$sharedEnv
+		|SHARED_WORKERS = $sharedWorkersBinding;
 		|importScripts($importPaths);
 		|init_worker(${ JsString(fqcn) }, ${ JsString(id.toString) });
 		|""".stripMargin.trim
@@ -158,7 +176,7 @@ object Worker {
 	// SENDING
 
 	private[workers] def send[T](dest: UUID, sender: UUID, msg: T)
-	                            (implicit serializer: MessageSerializer[T]): Unit = {
+	                            (implicit serializer: MessageSerializer[T]): Unit = Microtask.schedule {
 		children.get(dest) match {
 			case Some(LocalWorker(child)) => child.dispatch(sender, msg)
 			case child => relay(Message.build(dest, sender, msg), child)
@@ -178,7 +196,7 @@ object Worker {
 		}
 	}
 
-	private[workers] def sendLocal(dest: UUID, sender: UUID, msg: Any): Unit = {
+	private[workers] def sendLocal(dest: UUID, sender: UUID, msg: Any): Unit = Microtask.schedule {
 		children.get(dest) match {
 			case Some(LocalWorker(worker)) => worker.dispatch(sender, msg)
 			case _ => dom.console.error(s"Worker '$dest' is not a local worker.")

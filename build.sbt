@@ -1,4 +1,4 @@
-import org.scalajs.sbtplugin.cross.CrossClasspathDependency
+
 
 name := "wfit"
 
@@ -14,7 +14,8 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-feature",
 		"-language:implicitConversions",
 		"-language:reflectiveCalls",
-		"-language:higherKinds"
+		"-language:higherKinds",
+		"-opt:l:method"
 	)
 )
 

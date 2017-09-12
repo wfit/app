@@ -1,8 +1,14 @@
 @()(implicit request: UserRequest[_])
 
 @view("Addons", "addons", "views.addons.list") {
-	<h3>Updater</h3>
-	<div id="updater-status-container"></div>
-
-	<h3>Addons</h3>
+	<div class="layout-columns">
+		<div style="width: 300px;">
+			<h3>Updater</h3>
+			<div id="updater-status-container"></div>
+		</div>
+		<div class="flex">
+			<h3>Addons disponibles</h3>
+			<div id="addons-list-container"></div>
+		</div>
+	</div>
 }

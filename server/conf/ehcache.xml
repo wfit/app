@@ -1,0 +1,26 @@
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../config/ehcache.xsd" updateCheck="false">
+	<!-- This is a default configuration for 128Mb of cached data using the JVM's heap, but it must be adjusted
+        according to specific requirement and heap sizes -->
+	<defaultCache
+		maxBytesLocalHeap="64m"
+		eternal="false"
+		timeToIdleSeconds="120"
+		timeToLiveSeconds="120"
+		overflowToDisk="false"
+	/>
+
+	<cache name="play"
+			 maxBytesLocalHeap="64m"
+			 eternal="false"
+			 overflowToDisk="false"/>
+
+	<cache name="acl"
+			 maxBytesLocalHeap="16m"
+			 eternal="false"
+			 overflowToDisk="false"/>
+
+	<cache name="ws"
+			 maxBytesLocalHeap="64m"
+			 eternal="false"
+			 overflowToDisk="false"/>
+</ehcache>

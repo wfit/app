@@ -1,7 +1,6 @@
 package gt.workers.ui
 
-import gt.GuildTools
-import gt.workers.{Worker, WorkerRef}
+import gt.workers.{AutoWorker, Worker}
 import org.scalajs.dom
 import scala.scalajs.js
 
@@ -14,6 +13,4 @@ class UIWorker extends Worker {
 	}
 }
 
-object UIWorker {
-	val ref: WorkerRef = GuildTools.globalWorkers("ui")
-}
+object UIWorker extends AutoWorker.Named[UIWorker]("ui")

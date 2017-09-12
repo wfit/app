@@ -1,7 +1,6 @@
 package gt.workers
 
 import gt.workers.AskWorker.DoAsk
-import java.net.ProtocolException
 import protocol.MessageSerializer
 import scala.concurrent.Promise
 
@@ -14,8 +13,8 @@ class AskWorker extends Worker {
 			promise = p
 			dest ! msg
 			become(waiting)
-		case _ =>
-			throw new IllegalArgumentException("Expecting a DoAsk message")
+		case other =>
+			throw new IllegalArgumentException("Expecting a DoAsk message, got: " + other)
 	}
 
 	def waiting: Receive = {

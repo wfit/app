@@ -3,11 +3,13 @@ package gt.tools
 import gt.{GuildTools, Toast}
 import org.scalajs.dom
 import org.scalajs.dom.experimental.{RequestInit, Response => JSResponse, _}
+import org.scalajs.dom.window.location
 import play.api.libs.json.{Json, JsValue}
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
-import scala.scalajs.js.URIUtils
+import scala.scalajs.js.{JSON, URIUtils}
+import scala.scalajs.js.typedarray.Uint8Array
 
 object Http {
 	val defaultHeaders = Map("Gt-Fetch" -> "1")
@@ -31,6 +33,7 @@ object Http {
 
 		lazy val contentType: String = headers.getOrElse("content-type", "?/?")
 		lazy val json: JsValue = Json.parse(text)
+		def as[T <: js.Any]: T = JSON.parse(text).asInstanceOf[T]
 	}
 
 	object Success {
@@ -96,28 +99,70 @@ object Http {
 		}
 	}
 
-	private def handleHttpHooks(response: dom.experimental.Response): Boolean = {
-		// Reads a header from response
-		def header(name: String): Option[String] = Option(response.headers.get(name).asInstanceOf[String])
+	trait ResponseMode {
+		type R
+		def apply(res: Future[JSResponse]): Future[R]
+	}
 
-		val stateHash = header("gt-statehash")
-		val instance = header("gt-instance")
-		val method = header("gt-method")
+	object BufferResponse extends ResponseMode {
+		private def handleHttpHooks(response: dom.experimental.Response): Boolean = {
+			// Reads a header from response
+			def header(name: String): Option[String] = Option(response.headers.get(name).asInstanceOf[String])
 
-		if (stateHash.exists(_ != GuildTools.stateHash) && method.contains("GET")) {
-			GuildTools.reload(response.url)
-			false
-		} else if (instance.exists(_ != GuildTools.instanceUUID)) {
-			Toast.serverUpdated()
-			true
-		} else {
-			true
+			val stateHash = header("gt-statehash")
+			val instance = header("gt-instance")
+			val method = header("gt-method")
+
+			if (stateHash.exists(_ != GuildTools.stateHash) && method.contains("GET")) {
+				GuildTools.reload(response.url)
+				false
+			} else if (instance.exists(_ != GuildTools.instanceUUID)) {
+				Toast.serverUpdated()
+				true
+			} else {
+				true
+			}
+		}
+
+		type R = Response
+		def apply(res: Future[JSResponse]): Future[Response] = {
+			res.flatMap { response =>
+				if (GuildTools.isWorker || handleHttpHooks(response)) {
+					// Handle response
+					if (300 <= response.status && response.status < 400) {
+						Future.successful(new Response(Some(response), null))
+					} else {
+						response.text().toFuture.map(text => new Response(Some(response), text))
+					}
+				} else {
+					Future.never
+				}
+			}.recover {
+				case err => new Response(None, err.getMessage)
+			}
+		}
+	}
+
+	object StreamResponse extends ResponseMode {
+		type R = ReadableStream[Uint8Array]
+		def apply(res: Future[JSResponse]): Future[ReadableStream[Uint8Array]] = {
+			res.filter(_.status == 200).map(_.body)
+		}
+	}
+
+	private def fullUrl(url: String): String = {
+		if (url contains ":") url
+		else {
+			require(url startsWith "/", "non-absolute URLs must be path-absolute")
+			if (GuildTools.isWorker) s"${ location.origin }$url"
+			else s"${ location.protocol }//${ location.host }$url"
 		}
 	}
 
 	def fetch[B](url: String, method: HttpMethod, body: B = EmptyBody,
-	             headers: Map[String, String] = Map.empty)
-	            (implicit format: HttpBody[B]): Future[Response] = {
+	             headers: Map[String, String] = Map.empty,
+	             mode: ResponseMode = BufferResponse)
+	            (implicit format: HttpBody[B]): Future[mode.R] = {
 		val composedHeaders = new Headers()
 
 		for ((n, v) <- defaultHeaders) composedHeaders.set(n, v)
@@ -132,37 +177,24 @@ object Http {
 			"credentials" -> RequestCredentials.include
 		).asInstanceOf[RequestInit]
 
-		Fetch.fetch(url, settings).toFuture.flatMap { response =>
-			if (handleHttpHooks(response)) {
-				// Handle response
-				if (300 <= response.status && response.status < 400) {
-					Future.successful(new Response(Some(response), null))
-				} else {
-					response.text().toFuture.map(text => new Response(Some(response), text))
-				}
-			} else {
-				Future.never
-			}
-		}.recover {
-			case err => new Response(None, err.getMessage)
-		}
+		mode(Fetch.fetch(fullUrl(url), settings).toFuture)
 	}
 
 	def get(url: String, headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.GET, EmptyBody, headers)
+		fetch(url, HttpMethod.GET, EmptyBody, headers, BufferResponse)
 	}
 
 	def delete(url: String, headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.DELETE, EmptyBody, headers)
+		fetch(url, HttpMethod.DELETE, EmptyBody, headers, BufferResponse)
 	}
 
 	def post[B: HttpBody](url: String, body: B = EmptyBody,
 	                      headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.POST, body, headers)
+		fetch(url, HttpMethod.POST, body, headers, BufferResponse)
 	}
 
 	def put[B: HttpBody](url: String, body: B = EmptyBody,
 	                     headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.PUT, body, headers)
+		fetch(url, HttpMethod.PUT, body, headers, BufferResponse)
 	}
 }
