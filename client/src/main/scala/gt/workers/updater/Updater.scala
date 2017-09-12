@@ -87,6 +87,7 @@ class Updater extends Worker with Stash {
 				case None => dom.console.error(s"Unknown addon '$name'")
 				case Some(addon) =>
 					become(updating)
+					updateState { status = Status.Updating; message = s"Installation de $name..." }
 					Updater.installAddon(addon, this).onComplete(self !< ('Continue, _))
 			}
 
@@ -95,6 +96,7 @@ class Updater extends Worker with Stash {
 				case None => dom.console.error(s"Unknown addon '$name'")
 				case Some(addon) =>
 					become(updating)
+					updateState { status = Status.Updating; message = s"Désinstallation de $name..." }
 					Updater.uninstallAddon(addon, this).onComplete(self !< ('Continue, _))
 			}
 	}
@@ -239,7 +241,7 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			val n = ops.indexWhere(_.break)
 			if (n < 0) acc :+ ops else ops.splitAt(n + 1) match { case (a, b) => splitAtBreaks(b, acc :+ a) }
 		}
-		splitAtBreaks(ops).flatMap(pack => pack.grouped(8)).toList
+		splitAtBreaks(ops).flatMap(pack => pack.grouped(16)).toList
 	}
 
 	private def executeActions(ops: List[Seq[DiffOp]], cb: Int => Unit = { _ => () }, count: Int = 0): Future[Unit] = {
