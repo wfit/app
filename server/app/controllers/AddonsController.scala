@@ -33,7 +33,7 @@ class AddonsController @Inject()(userAction: UserAction, checkAcl: CheckAcl, ws:
 	def digest(addon: String) = proxyRequest(s"addons:digest:$addon", s"http://addons.wfit.ovh/repository/$addon.digest.json", "application/json")
 	def blob(hash: String) = proxyRequest(s"addons:blob:$hash", s"http://addons.wfit.ovh/blobs/$hash", "application/octet-stream")
 
-	def notifyUpdate = Action {
-		Ok
+	def notifyUpdate = Action.async {
+		wsCache.removeAll().map(_ => Ok)
 	}
 }

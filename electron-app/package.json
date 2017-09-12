@@ -1,12 +1,12 @@
 {
 	"name": "wfit-app",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Wait For It - App",
 	"main": "main.js",
 	"author": "Bastien Clément",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/galedric/wfit.git"
+		"url": "https://github.com/wfit/app.git"
 	},
 	"dependencies": {
 		"electron-updater": "^2.8.7"

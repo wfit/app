@@ -63,7 +63,8 @@ object Digest {
 		}
 
 		def get(entry: String): Option[Node] = {
-			children.get(entry)
+			val search = entry.toLowerCase
+			children.collectFirst { case (key, value) if key.toLowerCase == search => value }
 		}
 
 		def diff(other: Directory): Seq[DiffOp] = {
