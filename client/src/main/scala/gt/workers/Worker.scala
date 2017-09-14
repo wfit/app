@@ -2,7 +2,6 @@ package gt.workers
 
 import gt.GuildTools
 import gt.tools.Microtask
-import gt.workers.ui.UIWorker
 import org.scalajs.dom
 import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope.{self => worker}
 import org.scalajs.dom.window.location
@@ -112,11 +111,7 @@ object Worker {
 		"USER_ACL" -> JSON.stringify(global.USER_ACL)
 	).map { case (key, value) => s"$key = $value;" }.mkString("\n")
 
-	private val sharedWorkers: Seq[AutoWorker.Named[_]] = Seq(UIWorker)
-
-	private def sharedWorkersBinding: String = {
-		JsObject(sharedWorkers.map(sw => (sw.name, JsString(sw.ref.toString)))).toString()
-	}
+	private def sharedWorkersBinding: String = JSON.stringify(GuildTools.sharedWorkers)
 
 	private lazy val importPaths = {
 		val protocol = location.protocol

@@ -4,6 +4,7 @@ import facades.node
 import gt.GuildTools
 import gt.tools.Http
 import gt.workers.{AutoWorker, Stash, Worker, WorkerRef}
+import gt.workers.eventbus.EventBus
 import gt.workers.ui.UIWorker
 import gt.workers.updater.Digest._
 import org.scalajs.dom
@@ -34,6 +35,7 @@ class Updater extends Worker with Stash {
 					case Some(addonsDir) =>
 						updateState { status = Status.Enabled; }
 						Updater.path = addonsDir
+						EventBus.subscribe("updater.notify")
 						become(enabled)
 						self !< 'Update
 					case None =>
@@ -62,7 +64,7 @@ class Updater extends Worker with Stash {
 	}
 
 	def enabled: Receive = receive orElse {
-		case 'Update =>
+		case 'Update | "updater.notify" ~ _ =>
 			updateState { status = Status.Updating; message = "Mise à jour de la liste d'addons..." }
 			shouldUpdateAgain = false
 			updatedThisRound = Set.empty
@@ -140,7 +142,7 @@ class Updater extends Worker with Stash {
 			become(enabled)
 			unstash()
 
-		case 'Update =>
+		case 'Update | "updater.notify" ~ _ =>
 			shouldUpdateAgain = true
 
 		case _ => stash()
@@ -206,7 +208,7 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			oldDigest <- buildDigest(newDigest.topLevelDirectories ++ addon.metadata.topLevelDirectories)
 			actions = oldDigest diff newDigest
 			total = actions.size
-			cb = (count: Int) => updater.updateState { updater.message = s"Mise à jour de '${ addon.name }'... ($count/$total)" }
+			cb = (count: Int) => updater.updateState { updater.message = s"Mise à jour de '${ addon.name }'... (${ 100 * count / total }%)" }
 			_ <- if (actions.isEmpty) Future.unit else executeActions(pack(actions), cb)
 			_ <- commitUpdate(addon, newDigest.topLevelDirectories)
 		} yield ()
@@ -299,7 +301,7 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			digest <- Updater.buildDigest(addon.metadata.topLevelDirectories)
 			actions = digest diff Digest.empty
 			total = actions.size
-			cb = (count: Int) => updater.updateState { updater.message = s"Désinstallation de '${ addon.name }'... ($count/$total)" }
+			cb = (count: Int) => updater.updateState { updater.message = s"Désinstallation de '${ addon.name }'... (${ 100 * count / total }%)" }
 			_ <- executeActions(pack(actions), cb)
 		} yield ()
 	}

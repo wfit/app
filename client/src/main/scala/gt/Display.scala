@@ -1,5 +1,6 @@
 package gt
 
+import gt.tools.{Http, View}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.ext.PimpedNodeList
@@ -8,12 +9,11 @@ import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js
 import scala.scalajs.js.URIUtils
-import tools.{Http, View}
 
 object Display {
 	private var currentView: Option[View] = None
 	private var tasks: Set[Future[_]] = Set.empty
-	private var ready: Future[_] = Future.successful(())
+	private var ready: Future[_] = Future.unit
 	private var activeStyles: Set[html.Link] = Set.empty
 	private var navigationInProgress: Boolean = false
 

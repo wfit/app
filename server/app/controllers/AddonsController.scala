@@ -8,9 +8,11 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.{Action, AnyContent, InjectedController}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
+import services.EventBus
 
 @Singleton
 class AddonsController @Inject()(userAction: UserAction, checkAcl: CheckAcl, ws: WSClient)
+                                (eventBus: EventBus)
                                 (@NamedCache("ws") wsCache: AsyncCacheApi)
                                 (implicit ec: ExecutionContext, mat: Materializer)
 	extends InjectedController {
@@ -34,6 +36,6 @@ class AddonsController @Inject()(userAction: UserAction, checkAcl: CheckAcl, ws:
 	def blob(hash: String) = proxyRequest(s"addons:blob:$hash", s"http://addons.wfit.ovh/blobs/$hash", "application/octet-stream")
 
 	def notifyUpdate = Action.async {
-		wsCache.removeAll().map(_ => Ok)
+		wsCache.removeAll().map(_ => Ok) andThen { case _ => eventBus.publish("updater.notify", ()) }
 	}
 }

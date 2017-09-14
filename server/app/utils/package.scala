@@ -30,7 +30,7 @@ package object utils {
 				try {
 					f match {
 						case pf: PartialFunction[Try[T], Future[U]] =>
-							pf.applyOrElse[Try[T], Future[Any]](result, _ => Future.successful(())).transform(_ => result)
+							pf.applyOrElse[Try[T], Future[Any]](result, _ => Future.unit).transform(_ => result)
 						case _ =>
 							f(result).transform(_ => result)
 					}

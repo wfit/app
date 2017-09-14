@@ -1,7 +1,7 @@
 package platform
 
-import protocol.JsMessageDecoder
+import protocol.JsSerializerLookup
 
 object JsPlatform {
-	implicit def jsMessageDecoder: JsMessageDecoder.type = JsMessageDecoder
+	implicit def jsSerializerLookup: JsSerializerLookup.type = JsSerializerLookup
 }

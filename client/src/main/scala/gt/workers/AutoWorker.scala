@@ -33,7 +33,7 @@ object AutoWorker {
 		_ref = GuildTools.sharedWorkers.get(name).map(WorkerRef.fromString) getOrElse WorkerRef.NoWorker
 
 		override def spawn(): WorkerRef = {
-			val ref = super.spawn()
+			_ref = super.spawn()
 			GuildTools.sharedWorkers.put(name, ref.toString)
 			ref
 		}

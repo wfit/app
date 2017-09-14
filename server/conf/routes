@@ -1,3 +1,12 @@
+# Assets
+GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
+
+# EventBus
+GET           /events/bus                                 controllers.EventBusController.bus
+POST          /events/subscribe                           controllers.EventBusController.subscribe
+POST          /events/subscribe-all                       controllers.EventBusController.subscribeAll
+GET           /events/unsubscribe                         controllers.EventBusController.unsubscribe
+
 # Base
 GET           /                                           controllers.HomeController.index
 GET           /login                                      controllers.HomeController.login(continue: Option[String] ?= None)
@@ -47,6 +56,4 @@ DELETE        /admin/acl/keys/:key                        controllers.AclControl
 # Electron support
 GET           /electron/bootstrap                         controllers.ElectronController.bootstrap
 
-# Assets
-GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 

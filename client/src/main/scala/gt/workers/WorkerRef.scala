@@ -67,8 +67,5 @@ object WorkerRef {
 		case other => fromUUID(UUID(other))
 	}
 
-	implicit object Serializer extends MessageSerializer[WorkerRef] {
-		def serialize(ref: WorkerRef): String = ref.toString
-		def deserialize(string: String): WorkerRef = fromString(string)
-	}
+	implicit object Serializer extends MessageSerializer.Lambda[WorkerRef](_.toString, fromString)
 }
