@@ -12,7 +12,7 @@ object Message {
 	implicit val format: Format[Message] = Json.format[Message]
 
 	def build[T](dest: UUID, sender: UUID, payload: T)(implicit ms: MessageSerializer[T]): Message = {
-		Message(dest, sender, Option(ms.serialize(payload)), ms.fqcn)
+		Message(dest, sender, Option(ms.serialize(payload)), ms.tag)
 	}
 
 	def parse(input: String): Message = Json.parse(input).as[Message]
