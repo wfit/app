@@ -1,5 +1,6 @@
 package controllers.base
 
+import controllers.routes
 import javax.inject.{Inject, Singleton}
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
@@ -13,7 +14,8 @@ class CheckAcl @Inject()(implicit val executionContext: ExecutionContext) {
 		protected val executionContext: ExecutionContext = CheckAcl.this.executionContext
 		protected def filter[A](request: UserRequest[A]): Future[Option[Result]] = {
 			if (criteria.forall(criterion => criterion.check(request.acl, request))) FNone
-			else Future.successful(Some(Results.Forbidden))
+			else if (request.isFetch) Future.successful(Some(Results.Forbidden))
+			else Future.successful(Some(Results.Redirect(routes.DashboardController.dashboard())))
 		}
 	}
 }
