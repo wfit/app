@@ -21,14 +21,16 @@ process.on("uncaughtException", (err) => {
 	app.exit();
 });
 
-function doUpdate() {
-	global.closeSplash();
-	dialog.showMessageBox({
-		title: "Mise à jour disponible",
-		message: "Une mise à jour pour l'app Wait For It\nest disponible et va être installée.",
-		icon: __dirname + "/build/icon.ico"
-	});
-	autoUpdater.quitAndInstall();
+function doUpdate(autoUpdater) {
+	return () => {
+		global.closeSplash();
+		dialog.showMessageBox({
+			title: "Mise à jour disponible",
+			message: "Une mise à jour pour l'app Wait For It\nest disponible et va être installée.",
+			icon: __dirname + "/build/icon.ico"
+		});
+		autoUpdater.quitAndInstall();
+	};
 }
 
 app.on("window-all-closed", () => {});
@@ -45,7 +47,7 @@ app.on("ready", function () {
 	} else {
 		const {autoUpdater} = require("electron-updater");
 		autoUpdater.on("update-not-available", load);
-		autoUpdater.on("update-downloaded", doUpdate);
+		autoUpdater.on("update-downloaded", doUpdate(autoUpdater));
 		autoUpdater.checkForUpdates();
 	}
 });
