@@ -114,13 +114,13 @@ class AddonList extends Worker with ViewUtils {
 				<td>{formatDate(addon.date)}</td>
 			</tr>
 		})
-		<table class="box full no-hover">
+		<table class="box full no-hover fixed">
 			<tr>
-				<th></th>
+				<th style="width: 35px;"></th>
 				<th>Addon</th>
-				<th>État</th>
-				<th>Révision</th>
-				<th>Date</th>
+				<th style="width: 200px;">État</th>
+				<th style="width: 150px;">Révision</th>
+				<th style="width: 150px;">Date</th>
 			</tr>
 			<tbody>{rows}</tbody>
 		</table>

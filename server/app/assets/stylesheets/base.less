@@ -122,6 +122,7 @@ hr {
 
 	&.error {
 		background: fade(mix(#333, #dd1f20, 75%), 50%);
+		border-color: fade(mix(#333, #dd1f20, 75%), 50%);
 	}
 }
 
@@ -245,6 +246,10 @@ table {
 	&.no-hover td {
 		background-color: unset !important;
 	}
+
+	&.fixed {
+		table-layout: fixed;
+	}
 }
 
 .selectable {
@@ -252,7 +257,7 @@ table {
 	cursor: text;
 }
 
-input, select {
+input:not([type=checkbox]), select {
 	font-family: 'Roboto', sans-serif;
 	font-size: 14px;
 	padding: 3px 0;
@@ -282,6 +287,31 @@ select {
 
 	option {
 		background: #131313;
+	}
+}
+
+input[type=checkbox] {
+	-webkit-appearance: none;
+
+	&:before {
+		font-family: 'Material Icons';
+		font-weight: normal;
+		font-style: normal;
+		font-size: 18px; /* Preferred icon size */
+		display: inline-block;
+		line-height: 1;
+		vertical-align: middle;
+		color: #666;
+		content: "\00e835";
+	}
+
+	&:hover:before {
+		color: #91adba;
+	}
+
+	&:checked:before {
+		color: #91adba;
+		content: "\00e834";
 	}
 }
 
