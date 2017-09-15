@@ -27,6 +27,16 @@
 	<body>
 		<header>
 			<h1>
+				@if(request.isElectron) {
+					<nav id="app-nav">
+						<h3>Wait for it</h3>
+						<ul>
+							<li><a class="btn alternate" href="/settings"><i>settings</i><span>Préférences</span></a></li>
+							<li><a class="btn alternate" data-action="reload"><i>refresh</i><span>Reload</span></a></li>
+							<li><a class="btn alternate" data-action="devtools"><i>build</i><span>Developer Tools</span></a></li>
+						</ul>
+					</nav>
+				}
 				<img src="@routes.Assets.versioned("images/wfit.png")">
 				<span class="lds-dual-ring">
 					<span></span>
@@ -48,7 +58,7 @@
 			</div>
 		</header>
 		@if(request.authenticated) {
-			<nav>
+			<nav id="modules-nav">
 				<ul>
 					@nav("dashboard", "dashboard", routes.DashboardController.dashboard().url)
 					@nav("account_circle", "profile", routes.ProfileController.profile(request.user.uuid).url)

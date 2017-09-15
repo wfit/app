@@ -6,7 +6,7 @@ import gt.workers.AutoWorker
 import org.scalajs.dom
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
-import scala.scalajs.js.Dynamic.{global => g}
+import scala.scalajs.js.Dynamic.{literal, global => g}
 import utils.UserAcl
 
 @JSExportAll
@@ -32,6 +32,7 @@ object GuildTools {
 
 	def init(autoWorkers: js.Array[String]): Unit = {
 		if (isApp) {
+			setupAppMenuToggle()
 			setupWindowControls()
 			setupCacheClearOnHide()
 		}
@@ -40,8 +41,18 @@ object GuildTools {
 		Display.init()
 	}
 
+	private def setupAppMenuToggle(): Unit = {
+		val nav = dom.document.getElementById("app-nav")
+		dom.document.querySelector("header h1").addEventListener("click", (e: dom.MouseEvent) => {
+			nav.classList.add("open")
+		})
+		nav.addEventListener("mouseleave", (e: dom.MouseEvent) => {
+			nav.classList.remove("open")
+		})
+	}
+
 	private def setupWindowControls(): Unit = {
-		dom.document.getElementById("app-buttons").addEventListener("click", (e: dom.MouseEvent) => {
+		dom.document.querySelector("header").addEventListener("click", (e: dom.MouseEvent) => {
 			lazy val window = remote.getCurrentWindow()
 			val target = e.target.asInstanceOf[html5.Element].closest("[data-action]")
 			if (target ne null) {
@@ -50,6 +61,8 @@ object GuildTools {
 					case "maximize" if window.isMaximized() => window.unmaximize()
 					case "maximize" => window.maximize()
 					case "close" => window.close()
+					case "devtools" => window.webContents.openDevTools(literal(mode = "detach"))
+					case "reload" => reload()
 				}
 			}
 		})
