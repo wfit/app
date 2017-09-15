@@ -96,10 +96,10 @@ class AddonList extends Worker with ViewUtils {
 		val togglesDisabled = status.map(_ != "enabled")
 		def state(addon: Manifest.Addon): String = {
 			(addon.installed, addon.managed, addon.sync) match {
-				case (false, _, _) => "Non installé"
-				case (true, false, _) => "Installé (non géré)"
-				case (true, true, false) => "Mise à jour"
-				case (true, true, true) => "Installé (à jour)"
+				case (false, _, _) => "Absent"
+				case (true, false, _) => "Ignoré"
+				case (true, true, false) => "Synchronisation..."
+				case (true, true, true) => "À jour"
 			}
 		}
 		def formatDate(date: String): String = {
