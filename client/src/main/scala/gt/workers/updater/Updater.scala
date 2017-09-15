@@ -205,7 +205,11 @@ object Updater extends AutoWorker.Spawn[Updater] {
 	private def syncAddon(addon: Manifest.Addon, updater: Updater): Future[Unit] = {
 		for {
 			newDigest <- fetchDigest(s"/addons/digest/${ addon.name }")
-			oldDigest <- buildDigest(newDigest.topLevelDirectories ++ addon.metadata.topLevelDirectories)
+			oldDigest <- buildDigest(
+				newDigest.topLevelDirectories ++
+				addon.metadata.topLevelDirectories ++
+				Legacy.directories.getOrElse(addon.name, Seq.empty)
+			)
 			actions = oldDigest diff newDigest
 			total = actions.size
 			cb = (count: Int) => updater.updateState { updater.message = s"Mise à jour de '${ addon.name }'... (${ 100 * count / total }%)" }
