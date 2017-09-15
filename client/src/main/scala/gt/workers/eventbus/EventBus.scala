@@ -1,5 +1,6 @@
 package gt.workers.eventbus
 
+import gt.GuildTools
 import gt.tools.Http
 import gt.workers.{AutoWorker, Worker, WorkerRef}
 import models.eventbus.Event
@@ -16,6 +17,11 @@ class EventBus extends Worker {
 	private val bus = new dom.EventSource("/events/bus")
 	bus.onmessage = { msg =>
 		Event.fromJson(msg.data.asInstanceOf[String]) match {
+			case e @ Event("eventbus.instanceid") => // Ignore
+				val id = e.data.asInstanceOf[UUID]
+				if (GuildTools.instanceUUID != id.toString) {
+					GuildTools.reload()
+				}
 			case e @ Event("eventbus.streamid") =>
 				uuid = e.data.asInstanceOf[UUID]
 				val subscriptions = bindings.map { case (c, _) => c }
@@ -25,8 +31,7 @@ class EventBus extends Worker {
 						"channels" -> subscriptions.toSeq
 					))
 				}
-			case Event("eventbus.keepalive") =>
-			// Ignore
+			case Event("eventbus.keepalive") => // Ignore
 			case e: Event if e.system =>
 				dom.console.warn("Ignoring system event:", e.channel, e.payload)
 			case e @ Event(channel) =>

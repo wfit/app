@@ -12,7 +12,8 @@ import services.EventBus.Stream
 import utils.UUID
 
 @Singleton
-class EventBus @Inject()(implicit private val materializer: Materializer,
+class EventBus @Inject()(val runtimeService: RuntimeService)
+                        (implicit private val materializer: Materializer,
                          private val executionContext: ExecutionContext) {
 	private val (queue, out) =
 		Source.queue[Event](bufferSize = 64, OverflowStrategy.dropHead)
@@ -65,10 +66,15 @@ object EventBus {
 				.filter(event => event.system || isSubscribed(event.channel))
 				.map(event => event.toString)
 
+		private val prefixMessages = Source(List(
+			Event("eventbus.instanceid", bus.runtimeService.instanceUUID, system = true),
+			Event("eventbus.streamid", id, system = true)
+		).map(_.toString))
+
 		private val ((queue, done), pub) =
 			Source.queue[String](bufferSize = 16, OverflowStrategy.dropHead)
 				.merge(filteredBus)
-				.prepend(Source.single(Event("eventbus.streamid", id, system = true).toString))
+				.prepend(prefixMessages)
 				.keepAlive(30.seconds, () => Tick)
 				.backpressureTimeout(30.seconds)
 				.watchTermination()(Keep.both)
