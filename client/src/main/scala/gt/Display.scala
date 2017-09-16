@@ -3,6 +3,7 @@ package gt
 import gt.util.{Http, View}
 import org.scalajs.dom
 import org.scalajs.dom.html
+import org.scalajs.dom.experimental.HttpMethod
 import org.scalajs.dom.ext.PimpedNodeList
 import play.api.libs.json._
 import scala.concurrent.{Future, Promise}
@@ -165,10 +166,10 @@ object Display {
 		navigationInProgress = true
 		beginLoading()
 		val req = method match {
-			case "POST" => Http.post(url)
-			case "DELETE" => Http.delete(url)
-			case "PUT" => Http.put(url)
-			case _ => Http.get(url)
+			case "POST" => Http.fetch(url, HttpMethod.POST, mode = Http.NavigationResponse)
+			case "DELETE" => Http.fetch(url, HttpMethod.DELETE, mode = Http.NavigationResponse)
+			case "PUT" => Http.fetch(url, HttpMethod.PUT, mode = Http.NavigationResponse)
+			case _ => Http.fetch(url, HttpMethod.GET, mode = Http.NavigationResponse)
 		}
 		req.andThen { case _ => endLoading() }.foreach { res =>
 			navigationInProgress = false

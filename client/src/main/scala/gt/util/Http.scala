@@ -105,6 +105,22 @@ object Http {
 	}
 
 	object BufferResponse extends ResponseMode {
+		type R = Response
+		def apply(res: Future[JSResponse]): Future[Response] = {
+			res.flatMap { response =>
+				// Handle response
+				if (300 <= response.status && response.status < 400) {
+					Future.successful(new Response(Some(response), null))
+				} else {
+					response.text().toFuture.map(text => new Response(Some(response), text))
+				}
+			}.recover {
+				case err => new Response(None, err.getMessage)
+			}
+		}
+	}
+
+	object NavigationResponse extends ResponseMode {
 		private def handleHttpHooks(response: dom.experimental.Response): Boolean = {
 			// Reads a header from response
 			def header(name: String): Option[String] = Option(response.headers.get(name).asInstanceOf[String])
@@ -130,20 +146,10 @@ object Http {
 
 		type R = Response
 		def apply(res: Future[JSResponse]): Future[Response] = {
-			res.flatMap { response =>
-				if (GuildTools.isWorker || handleHttpHooks(response)) {
-					// Handle response
-					if (300 <= response.status && response.status < 400) {
-						Future.successful(new Response(Some(response), null))
-					} else {
-						response.text().toFuture.map(text => new Response(Some(response), text))
-					}
-				} else {
-					Future.never
-				}
-			}.recover {
-				case err => new Response(None, err.getMessage)
-			}
+			BufferResponse(res.flatMap { response =>
+				if (GuildTools.isWorker || handleHttpHooks(response)) res
+				else Future.never
+			})
 		}
 	}
 
