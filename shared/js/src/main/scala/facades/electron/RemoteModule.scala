@@ -6,4 +6,5 @@ import scala.scalajs.js
 trait RemoteModule extends js.Object {
 	def getCurrentWindow(): BrowserWindow = js.native
 	val dialog: DialogModule = js.native
+	val app: AppModule = js.native
 }

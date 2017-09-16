@@ -1,7 +1,7 @@
 package gt
 
 import facades.html5
-import facades.electron.{ElectronModule, RemoteModule}
+import facades.electron.{ElectronModule, LoginItemSettings, RemoteModule}
 import gt.workers.AutoWorker
 import org.scalajs.dom
 import scala.scalajs.js
@@ -35,6 +35,7 @@ object GuildTools {
 			setupAppMenuToggle()
 			setupWindowControls()
 			setupCacheClearOnHide()
+			setupAutoLaunch(Settings.AppAutoLaunch.get)
 		}
 		Interceptor.setup()
 		AutoWorker.start(autoWorkers)
@@ -72,6 +73,16 @@ object GuildTools {
 		dom.document.addEventListener("visibilitychange", (e: dom.Event) => {
 			if (dom.document.hidden) electron.webFrame.clearCache()
 		})
+	}
+
+	private[gt] def setupAutoLaunch(state: Boolean): Unit = {
+		val current = remote.app.getLoginItemSettings(LoginItemSettings(args = js.Array("--at-login")))
+		if (current.openAtLogin != state) {
+			remote.app.setLoginItemSettings(LoginItemSettings(
+				openAtLogin = state,
+				args = js.Array("--at-login")
+			))
+		}
 	}
 
 	def reload(target: js.UndefOr[String] = js.undefined): Unit = {

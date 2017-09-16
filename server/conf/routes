@@ -37,6 +37,9 @@ GET           /addons/digest/:addon                       controllers.AddonsCont
 GET           /addons/blob/:id                            controllers.AddonsController.blob(id)
 POST          /addons/notify                              controllers.AddonsController.notifyUpdate
 
+# Settings
+GET           /settings                                   controllers.SettingsController.settings
+
 # Admin
 GET           /admin                                      controllers.AdminController.home
 GET           /admin/acl/users                            controllers.AclController.users
