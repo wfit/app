@@ -330,15 +330,9 @@ object Updater extends AutoWorker.Spawn[Updater] {
 		     restart = set.exists { case (_, r) => r }) yield {
 			if (enabled) {
 				val addons = set.map { case (a, _) => a }.toSeq.sorted.mkString(", ")
-				val help = (multi, restart) match {
-					case (false, false) => "Rechargez votre interface pour charger la nouvelle version de l'addon."
-					case (false, true) => "Cette version requiert de relancer le jeu pour être utilisée."
-					case (true, false) => "Rechargez votre interface pour charger des nouvelles versions de ces addons."
-					case (true, true) => "Il est nécessaire de relancez le jeu pour utiliser ces nouvelles versions."
-				}
 				UIWorker.ref ! UIWorker.Notification(
 					title = if (multi) "Vos addons ont été mis à jour" else "Un addon a été mis à jour",
-					body = addons + "\n\n" + help,
+					body = if (restart) addons + "\n\nCette version requiert de quitter et relancer le jeu." else addons,
 					silent = !sound
 				)
 			}
