@@ -1,7 +1,6 @@
 package electron
 
 import facades.electron._
-import facades.node.EventEmitter
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.{global => g}
 
@@ -16,6 +15,7 @@ object Electron {
 
 	val root: String = g.electronRoot.asInstanceOf[String]
 	val base: String = g.appBase.asInstanceOf[String]
+	val autoLaunch: Boolean = g.process.argv.asInstanceOf[js.Array[String]].contains("--at-login")
 
 	def main(args: Array[String]): Unit = {
 		AppTray.setup()

@@ -47,6 +47,10 @@ object Window {
 		})
 
 		Electron.app.on("before-quit", () => close())
+
+		if (!Electron.autoLaunch) {
+			show()
+		}
 	}
 
 	def show(): Unit = {
