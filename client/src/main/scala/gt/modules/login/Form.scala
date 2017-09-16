@@ -4,9 +4,7 @@ import gt.GuildTools
 import gt.tools.{CustomEvent, View}
 import org.scalajs.dom
 import org.scalajs.dom.html
-import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 
-@JSExportTopLevel("views.login.form")
 object Form extends View {
 	private def form = $[html.Form]("#login form")
 	private def id = $[html.Input]("#login input[name='id']")

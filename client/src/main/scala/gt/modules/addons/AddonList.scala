@@ -8,7 +8,6 @@ import mhtml._
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSExportTopLevel
 import scala.scalajs.js.Dynamic.literal
 
 class AddonList extends Worker with ViewUtils {
@@ -150,5 +149,4 @@ class AddonList extends Worker with ViewUtils {
 	}
 }
 
-@JSExportTopLevel("views.addons.list")
 object AddonList extends WorkerView[AddonList]
