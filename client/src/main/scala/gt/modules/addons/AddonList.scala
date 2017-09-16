@@ -1,7 +1,7 @@
 package gt.modules.addons
 
-import gt.GuildTools
-import gt.tools.{ViewUtils, WorkerView}
+import gt.{GuildTools, Settings}
+import gt.util.{ViewUtils, WorkerView}
 import gt.workers.Worker
 import gt.workers.updater.{Manifest, Updater}
 import mhtml._
@@ -17,7 +17,7 @@ class AddonList extends Worker with ViewUtils {
 	private val status = Var("loading")
 	private val color = Var("#999")
 	private val text = Var("Chargement")
-	private val path = Var(Option(dom.window.localStorage.getItem("updater.path")))
+	private val path = Var(Option(Settings.UpdaterPath.get))
 	private val message = Var(None: Option[String])
 	private val manifest = Var(Manifest.empty)
 
@@ -79,14 +79,14 @@ class AddonList extends Worker with ViewUtils {
 			)
 		).foreach { res =>
 			val choice = res.head
-			dom.window.localStorage.setItem("updater.path", choice)
+			Settings.UpdaterPath := choice
 			path := Some(choice)
 			updater.respawn()
 		}
 	}
 
 	private def disableUpdater(): Unit = {
-		dom.window.localStorage.removeItem("updater.path")
+		Settings.UpdaterPath := null
 		path := None
 		updater.respawn()
 	}

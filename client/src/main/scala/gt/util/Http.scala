@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import gt.{GuildTools, Toast}
 import org.scalajs.dom

@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 

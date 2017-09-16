@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import mhtml.{Cancelable, Rx, _}
 import org.scalajs.dom

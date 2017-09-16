@@ -1,7 +1,7 @@
 package gt.modules.login
 
 import gt.GuildTools
-import gt.tools.{CustomEvent, View}
+import gt.util.{CustomEvent, View}
 import org.scalajs.dom
 import org.scalajs.dom.html
 

@@ -1,6 +1,6 @@
 package gt.workers
 
-import gt.tools.Microtask
+import gt.util.Microtask
 import utils.UUID
 
 trait Stash extends Worker {

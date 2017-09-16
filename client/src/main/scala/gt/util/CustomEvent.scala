@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import org.scalajs.dom
 import scala.scalajs.js

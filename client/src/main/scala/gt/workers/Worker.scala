@@ -1,7 +1,7 @@
 package gt.workers
 
 import gt.GuildTools
-import gt.tools.Microtask
+import gt.util.Microtask
 import org.scalajs.dom
 import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope.{self => worker}
 import org.scalajs.dom.window.location
@@ -81,7 +81,7 @@ abstract class Worker {
 	}
 
 	private[workers] final def dispatch(sender: UUID, message: Any): Unit = {
-		_sender = new WorkerRef(sender)
+		_sender = WorkerRef.fromUUID(sender)
 		_current = message
 		try behavior(message)
 		catch {

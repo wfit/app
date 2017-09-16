@@ -1,7 +1,7 @@
 package gt
 
 import facades.html5
-import gt.tools.{CustomEvent, Http}
+import gt.util.{CustomEvent, Http}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.ext._

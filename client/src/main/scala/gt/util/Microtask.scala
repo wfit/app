@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import scala.scalajs.js
 import scala.scalajs.js.{|, Promise, Thenable}

@@ -1,6 +1,6 @@
 package gt.modules.settings
 
-import gt.tools.View
+import gt.util.View
 
 class Settings extends View {
 

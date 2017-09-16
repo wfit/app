@@ -1,7 +1,7 @@
 package gt.workers.eventbus
 
 import gt.GuildTools
-import gt.tools.Http
+import gt.util.Http
 import gt.workers.{AutoWorker, Worker, WorkerRef}
 import models.eventbus.Event
 import org.scalajs.dom

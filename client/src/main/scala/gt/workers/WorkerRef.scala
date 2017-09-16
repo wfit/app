@@ -42,7 +42,7 @@ object WorkerRef {
 		}
 	}
 
-	val Ignore: WorkerRef = new WorkerRef(UUID.zero) {
+	val Ignore: WorkerRef = new WorkerRef(UUID.dummy) {
 		override def ![T: MessageSerializer] (msg: T)(implicit sender: WorkerRef): Unit = ()
 		override def toString: String = "<ignore>"
 		override def hashCode(): Int = System.identityHashCode(this)
@@ -59,7 +59,11 @@ object WorkerRef {
 		}
 	}
 
-	def fromUUID(uuid: UUID): WorkerRef = new WorkerRef(uuid)
+	def fromUUID(uuid: UUID): WorkerRef = uuid match {
+		case UUID.zero => NoWorker
+		case UUID.dummy => Ignore
+		case _ => new WorkerRef(uuid)
+	}
 
 	def fromString(string: String): WorkerRef = string match {
 		case "<no-worker>" => NoWorker

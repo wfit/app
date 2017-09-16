@@ -1,6 +1,6 @@
 package gt
 
-import gt.tools.{Http, View}
+import gt.util.{Http, View}
 import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.ext.PimpedNodeList

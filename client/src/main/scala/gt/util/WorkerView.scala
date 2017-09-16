@@ -1,4 +1,4 @@
-package gt.tools
+package gt.util
 
 import gt.workers.{Worker, WorkerRef}
 import scala.reflect.ClassTag

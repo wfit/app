@@ -1,7 +1,7 @@
 package gt.workers.updater
 
 import facades.node
-import gt.tools.Http
+import gt.util.Http
 import org.scalajs.dom.experimental.HttpMethod
 import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global

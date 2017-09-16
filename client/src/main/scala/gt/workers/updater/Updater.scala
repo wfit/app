@@ -1,11 +1,10 @@
 package gt.workers.updater
 
 import facades.node
-import gt.GuildTools
-import gt.tools.Http
+import gt.{GuildTools, Settings}
+import gt.util.Http
 import gt.workers.{AutoWorker, Stash, Worker, WorkerRef}
 import gt.workers.eventbus.EventBus
-import gt.workers.ui.UIWorker
 import gt.workers.updater.Digest._
 import org.scalajs.dom
 import scala.annotation.tailrec
@@ -27,7 +26,7 @@ class Updater extends Worker with Stash {
 	else updateState { status = Status.Locked }
 
 	private def init(): Unit = {
-		for (path <- (UIWorker.ref ? ('LocalStorageGet ~ "updater.path")).mapTo[String]) {
+		for (path <- Settings.UpdaterPath.value) {
 			if (path == null) updateState { status = Status.Disabled; }
 			else {
 				updateState { message = "Vérification du dossier d'installation..." }
