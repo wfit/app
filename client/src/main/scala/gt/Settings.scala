@@ -9,4 +9,5 @@ object Settings extends SettingsRegistry {
 
 	val UpdaterPath = Setting("updater.path", null)
 	val UpdaterNotify = Setting("updater.notify", "1").typed(BooleanT)
+	val UpdaterNotifySound = Setting("updater.notify.sound", "0").typed(BooleanT)
 }

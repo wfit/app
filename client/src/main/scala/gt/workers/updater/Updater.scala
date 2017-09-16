@@ -5,6 +5,7 @@ import gt.{GuildTools, Settings}
 import gt.util.Http
 import gt.workers.{AutoWorker, Stash, Worker, WorkerRef}
 import gt.workers.eventbus.EventBus
+import gt.workers.ui.UIWorker
 import gt.workers.updater.Digest._
 import org.scalajs.dom
 import scala.annotation.tailrec
@@ -67,6 +68,7 @@ class Updater extends Worker with Stash {
 			updateState { status = Status.Updating; message = "Mise à jour de la liste d'addons..." }
 			shouldUpdateAgain = false
 			updatedThisRound = Set.empty
+			Updater.updated = Set.empty
 			become(updating)
 			Http.get("/addons/manifest").flatMap {
 				case res if res.ok =>
@@ -121,19 +123,20 @@ class Updater extends Worker with Stash {
 			Future.fromTry(res)
 				.flatMap(_ => Updater.buildManifest(serverManifest))
 				.onComplete {
-				case Success(updatedManifest) =>
-					updateState { manifest = updatedManifest }
-					self !< 'UpdateOne
-				case Failure(e: ExecutionException) =>
-					self !< ('Fail, e.getCause.getMessage)
-				case Failure(e) =>
-					self !< ('Fail, e.getMessage)
-			}
+					case Success(updatedManifest) =>
+						updateState { manifest = updatedManifest }
+						self !< 'UpdateOne
+					case Failure(e: ExecutionException) =>
+						self !< ('Fail, e.getCause.getMessage)
+					case Failure(e) =>
+						self !< ('Fail, e.getMessage)
+				}
 
 		case 'Done =>
 			updateState { status = Status.Enabled; message = null }
 			become(enabled)
 			unstash()
+			if (Updater.updated.nonEmpty) Updater.notifyUpdates()
 			if (shouldUpdateAgain) self !< 'Update
 
 		case ('Fail, cause: String) =>
@@ -160,6 +163,7 @@ object Updater extends AutoWorker.Spawn[Updater] {
 
 	private val fs = GuildTools.require[node.FileSystem]("fs")
 	private var path: String = _
+	private var updated = Set.empty[(String, Boolean)]
 
 	private def findAddonsDirectory(wowDir: String): Option[String] = {
 		for {
@@ -214,7 +218,9 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			cb = (count: Int) => updater.updateState { updater.message = s"Mise à jour de '${ addon.name }'... (${ 100 * count / total }%)" }
 			_ <- if (actions.isEmpty) Future.unit else executeActions(pack(actions), cb)
 			_ <- commitUpdate(addon, newDigest.topLevelDirectories)
-		} yield ()
+		} yield {
+			updated += (addon.name -> requireRestart(actions))
+		}
 	}
 
 	private def fetchDigest(url: String): Future[Digest] = {
@@ -293,7 +299,7 @@ object Updater extends AutoWorker.Spawn[Updater] {
 
 	private def installAddon(addon: Manifest.Addon, updater: Updater): Future[Unit] = {
 		for {
-			_ <- ensureDirExists(s"$path/${addon.name}")
+			_ <- ensureDirExists(s"$path/${ addon.name }")
 			_ <- fs.writeFile(s"$path/${ addon.name }/.pkg.metadata", "", "utf8")
 		} yield ()
 	}
@@ -307,6 +313,36 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			cb = (count: Int) => updater.updateState { updater.message = s"Désinstallation de '${ addon.name }'... (${ 100 * count / total }%)" }
 			_ <- executeActions(pack(actions), cb)
 		} yield ()
+	}
+
+	private def requireRestart(actions: Seq[DiffOp]): Boolean = {
+		actions.exists {
+			case CreateFile(_, _) => true
+			case _ => false
+		}
+	}
+
+	private def notifyUpdates(): Future[Unit] = {
+		for (enabled <- Settings.UpdaterNotify.value;
+		     sound <- Settings.UpdaterNotifySound.value;
+		     set = Updater.updated;
+		     multi = set.size > 1;
+		     restart = set.exists { case (_, r) => r }) yield {
+			if (enabled) {
+				val addons = set.map { case (a, _) => a }.toSeq.sorted.mkString(", ")
+				val help = (multi, restart) match {
+					case (false, false) => "Rechargez votre interface pour charger la nouvelle version de l'addon."
+					case (false, true) => "Cette version requiert de relancer le jeu pour être utilisée."
+					case (true, false) => "Rechargez votre interface pour charger des nouvelles versions de ces addons."
+					case (true, true) => "Il est nécessaire de relancez le jeu pour utiliser ces nouvelles versions."
+				}
+				UIWorker.ref ! UIWorker.Notification(
+					title = if (multi) "Vos addons ont été mis à jour" else "Un addon a été mis à jour",
+					body = addons + "\n\n" + help,
+					silent = !sound
+				)
+			}
+		}
 	}
 }
 
