@@ -4,7 +4,17 @@ const load = () => require("./loader");
 app.setAppUserModelId("fr.waitforit.app");
 
 const isSecondInstance = app.makeSingleInstance(() => {});
-if (isSecondInstance) app.quit();
+if (isSecondInstance) {
+	app.on("ready", function () {
+		dialog.showMessageBox({
+			title: "Un instance de l'application est déjà en cours d'exécution",
+			message: "Le lancement de l'application Wait for It a été interrompu\npuisqu'une autre instance de cette application est déjà\nen cours d'exécution.\n\nVérifiez les applications dans votre barre des tâches et\nvos processus en arrière-plan.",
+			icon: __dirname + "/build/icon.ico"
+		});
+		app.quit();
+	});
+	return;
+}
 
 let splash;
 
