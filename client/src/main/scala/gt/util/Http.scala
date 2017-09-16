@@ -135,10 +135,11 @@ object Http {
 			} else if (instance.exists(_ != GuildTools.instanceUUID)) {
 				if (method.contains("GET")) {
 					GuildTools.reload(response.url)
+					false
 				} else {
 					Toast.serverUpdated()
+					true
 				}
-				true
 			} else {
 				true
 			}
