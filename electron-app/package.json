@@ -1,6 +1,6 @@
 {
 	"name": "wfit-app",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"description": "Wait For It - App",
 	"main": "main.js",
 	"author": "Bastien Clément",
@@ -23,7 +23,10 @@
 			"build/icon.*"
 		],
 		"win": {
-			"target": "nsis-web",
+			"target": [
+				{"target": "nsis-web"},
+				{"target": "nsis"}
+			],
 			"publish": "github"
 		},
 		"nsis": {
