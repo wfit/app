@@ -8,5 +8,5 @@ object Settings extends SettingsRegistry {
 	val LoginIdentifier = Setting("login.identifier", "")
 
 	val UpdaterPath = Setting("updater.path", null)
-	val UpdaterNotify = Setting("updater.notify", "0").typed(BooleanT)
+	val UpdaterNotify = Setting("updater.notify", "1").typed(BooleanT)
 }
