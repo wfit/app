@@ -14,8 +14,8 @@ object Legacy {
 			"/BigWigs_Antorus",
 			"/BigWigs_ArgusInvasionPoints"
 		),
-		"WFI_Core" -> Seq("FS_Core"),
-		"WFI_SmartColor" -> Seq("FS_SmartColor"),
-		"WFI_UpdaterStatus" -> Seq("FS_UpdaterStatus"),
+		"WFI_Core" -> Seq("/FS_Core"),
+		"WFI_SmartColor" -> Seq("/FS_SmartColor"),
+		"WFI_UpdaterStatus" -> Seq("/FS_UpdaterStatus"),
 	)
 }
