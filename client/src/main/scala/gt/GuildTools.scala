@@ -30,6 +30,22 @@ object GuildTools {
 	lazy val electron: ElectronModule = require[ElectronModule]("electron")
 	lazy val remote: RemoteModule = electron.remote
 
+	lazy val version: Int = if (!isApp) -1 else {
+		g.GT_APP_VERSION.asInstanceOf[js.UndefOr[Int]] getOrElse buildVersionNumber
+	}
+
+	private def buildVersionNumber: Int = {
+		remote.app.getVersion()
+			.split('.')
+			.map { part =>
+				part.replaceAll("[^0-9]", "") match {
+					case "" => 0
+					case num => num.toInt
+				}
+			}
+			.foldLeft(0)((prev, cur) => prev * 100 + cur)
+	}
+
 	def init(autoWorkers: js.Array[String]): Unit = {
 		if (isApp) {
 			setupAppMenuToggle()

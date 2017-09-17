@@ -124,6 +124,7 @@ object Worker {
 
 	private lazy val sharedEnv = Map[String, String](
 		"GT_APP" -> JSON.stringify(GuildTools.isApp),
+		"GT_APP_VERSION" -> JSON.stringify(GuildTools.version),
 		"GT_AUTHENTICATED" -> JSON.stringify(GuildTools.isAuthenticated),
 		"CLIENT_SCRIPTS" -> JSON.stringify(GuildTools.clientScripts),
 		"USER_ACL" -> JSON.stringify(global.USER_ACL)

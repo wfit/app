@@ -10,4 +10,5 @@ trait AppModule extends EventEmitter {
 	def makeSingleInstance(cb: js.Function2[String, String, Unit]): Boolean = js.native
 	def getLoginItemSettings(settings: LoginItemSettings): LoginItemSettings = js.native
 	def setLoginItemSettings(settings: LoginItemSettings): Unit = js.native
+	def getVersion(): String = js.native
 }
