@@ -77,9 +77,13 @@ object GuildTools {
 					case "minimize" => window.minimize()
 					case "maximize" if window.isMaximized() => window.unmaximize()
 					case "maximize" => window.maximize()
-					case "close" => window.close()
 					case "devtools" => window.webContents.openDevTools(literal(mode = "detach"))
 					case "reload" => reload()
+					case "close" => window.close()
+					case "quit" => remote.app.quit()
+					case "restart" =>
+						remote.app.relaunch()
+						remote.app.quit()
 				}
 			}
 		})
