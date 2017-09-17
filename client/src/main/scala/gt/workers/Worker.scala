@@ -11,6 +11,7 @@ import protocol.{CompoundMessage, Message, MessageSerializer}
 import protocol.CompoundMessage.CompoundBuilder
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.Implicits.{global => gec}
+import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 import scala.scalajs.js
 import scala.scalajs.js.JSON
@@ -51,6 +52,22 @@ abstract class Worker {
 		behavior = buildBehavior(newBehavior)
 	}
 
+	// Scheduling
+	private var tasks = Map.empty[UUID, () => Unit]
+	protected def schedule(delay: FiniteDuration, repeat: Boolean = false, instant: Boolean = false)
+	                      (action: => Unit): UUID = {
+		val task = UUID.random
+		if (repeat) {
+			val tid = js.timers.setInterval(delay)(action)
+			tasks += (task -> (() => js.timers.clearInterval(tid)))
+			if (instant) action
+		} else {
+			val tid = js.timers.setTimeout(delay)(action)
+			tasks += (task -> (() => js.timers.clearTimeout(tid)))
+		}
+		task
+	}
+
 	// Worker settings
 	private val (fqcn: String, uuid: UUID) = Worker.newWorkerProperties.value
 	private var behavior: Receive = buildBehavior(receive)
@@ -69,6 +86,7 @@ abstract class Worker {
 
 	final def terminate(): Unit = {
 		onTerminate()
+		for (cancel <- tasks.values) cancel()
 		Worker.terminated(uuid)
 	}
 
