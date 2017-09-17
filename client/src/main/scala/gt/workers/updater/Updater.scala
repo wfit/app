@@ -10,6 +10,7 @@ import gt.workers.updater.Digest._
 import org.scalajs.dom
 import scala.annotation.tailrec
 import scala.concurrent.{ExecutionException, Future}
+import scala.concurrent.duration._
 import scala.scalajs.js
 import scala.util.{Failure, Success, Try}
 
@@ -37,7 +38,9 @@ class Updater extends Worker with Stash {
 						Updater.path = addonsDir
 						EventBus.subscribe("updater.notify")
 						become(enabled)
-						self !< 'Update
+						schedule(30.minutes, repeat = true, instant = true) {
+							self !< 'Update
+						}
 					case None =>
 						updateState { status = Status.Failure; message = "Le dossier d'installation n'est pas valide." }
 				}
