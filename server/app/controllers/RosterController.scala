@@ -26,7 +26,7 @@ class RosterController @Inject()() extends AppController {
 
 	private def rosterData: Future[Seq[(User, Int, Seq[Toon])]] = rosterQuery.run.map(formatRoster)
 
-	def roster = UserAction.async { implicit req =>
+	def roster = (UserAction andThen CheckAcl("roster.access")).async { implicit req =>
 		rosterData map (data => Ok(views.html.roster.roster(data)))
 	}
 }

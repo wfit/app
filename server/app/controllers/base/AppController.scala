@@ -7,8 +7,10 @@ import scala.concurrent.ExecutionContext
 //noinspection VarCouldBeVal
 abstract class AppController extends InjectedController {
 	@Inject private var userAction: UserAction = null
+	@Inject private var checkAcl: CheckAcl = null
 	@Inject private var executionContext: ExecutionContext = null
 
-	protected def UserAction: UserAction = userAction
-	protected implicit def ExecutionContext: ExecutionContext = executionContext
+	protected final def UserAction: UserAction = userAction
+	protected final def CheckAcl: CheckAcl = checkAcl
+	protected final implicit def ExecutionContext: ExecutionContext = executionContext
 }
