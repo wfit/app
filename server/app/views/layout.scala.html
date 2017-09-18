@@ -67,7 +67,7 @@
 					@nav("event", "calendar", null, Some("calendar.access"))
 					@nav("flash_on", "slacks", null, Some("slacks.access"))
 					@nav("pages", "composer", null, Some("composer.access"))
-					@nav("group", "roster", null, Some("roster.access"))
+					@nav("group", "roster", routes.RosterController.roster().url, Some("roster.access"))
 					@if(request.isElectron) {
 						@nav("extension", "addons", routes.AddonsController.list().url, Some("addons.access"))
 						@nav("screen_share", "tv", null, Some("tv.access"))

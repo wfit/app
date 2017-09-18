@@ -8,8 +8,9 @@ class Credentials (tag: Tag) extends Table[Credential](tag, "milbb_users") {
 	def name_clean = column[String]("username_clean")
 	def mail = column[String]("user_email")
 	def password = column[String]("user_password")
+	def group = column[Int]("group_id")
 
-	def * = (id, name, mail, password) <> (Credential.tupled, Credential.unapply)
+	def * = (id, name, mail, password, group) <> (Credential.tupled, Credential.unapply)
 }
 
 object Credentials extends TableQuery(new Credentials(_))

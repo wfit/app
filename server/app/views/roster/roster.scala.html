@@ -1,0 +1,65 @@
+@(data: Seq[(User, Int, Seq[Toon])])(implicit request: UserRequest[_])
+
+@rosterPlayers = @{
+	data.collect { case (u, r, ts) if r > 1 => (u, ts.find(_.main).get) }
+      	.groupBy { case (_, t) => t.spec.role }
+      	.toSeq
+      	.sortBy { case (r, _) => r }
+}
+
+@view("Roster", "roster", styles = Seq()) {
+	<div class="layout-columns">
+		<div class="column" style="width: 302px">
+			@for((role, members) <- rosterPlayers) {
+				<div>
+					<h4 class="mb">@role.key</h4>
+					@for((user, toon) <- members.sortBy({ case (u, t) => t })(Toon.orderingByClass)) {
+						<a class="toon" href="@routes.ProfileController.profile(user)" wow-class="@toon.cls.id" wow-role="@toon.spec.role.key">@toon.name</a>
+					}
+				</div>
+			}
+		</div>
+		<div class="flex column">
+			<table class="box full">
+				<tr>
+					<th>Joueur</th>
+					<th>Rank</th>
+					<th>Ilvl</th>
+					<th>Alts</th>
+				</tr>
+				@for((user, rank, toons) <- data.sortBy(_._3.head.name); main = toons.head; alts = toons.tail) {
+					<tr>
+						<td>
+							<a href="@routes.ProfileController.profile(user)" wow-class="@main.cls.id">@main.name</a>
+						</td>
+						<td>
+							@{
+								rank match {
+									case 1 => "Friend"
+									case 2 => "Apply"
+									case 3 => "Member"
+									case 4 => "Officer"
+									case 5 => "Guild Master"
+									case other => other.toString
+								}
+							}
+						</td>
+						<td>@main.ilvl</td>
+						<td>
+							@for(alt <- alts.sorted) {
+								<div class="small" style="margin-bottom: 2px">
+									<span wow-class="@alt.cls.id">@alt.name</span>
+									<span class="darkgray">&ndash;</span>
+									<span class="gray">@alt.ilvl</span>
+								</div>
+							}
+							@if(alts.isEmpty) {
+								<span class="darkgray">&mdash;</span>
+							}
+						</td>
+					</tr>
+				}
+			</table>
+		</div>
+	</div>
+}

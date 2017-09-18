@@ -42,4 +42,7 @@ object Toon {
 		lastUpdate = Instant.now,
 		invalid = false
 	)
+
+	implicit val ordering: Ordering[Toon] = Ordering.by(toon => (!toon.main, !toon.active, -toon.ilvl, toon.name))
+	val orderingByClass: Ordering[Toon] = Ordering.by(toon => (toon.cls, toon.name))
 }

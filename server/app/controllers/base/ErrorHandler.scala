@@ -16,15 +16,23 @@ class ErrorHandler @Inject() (env: Environment, config: Configuration,
 	extends DefaultHttpErrorHandler(env, config, sourceMapper, router) {
 
 	@tailrec private def selectUserError(exception: Throwable): Option[UserError] = exception match {
+		case null => None
 		case ee: ExecutionException => selectUserError(ee.getCause)
 		case ue: UserError => Some(ue)
 		case _ => None
 	}
 
+	private def serializeException(exception: Throwable): String = {
+		Option(exception.getMessage) match {
+			case Some(message) => message
+			case None => exception.getClass.getName + exception.getStackTrace.mkString("\n\t", "\n\t", "\n")
+		}
+	}
+
 	override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful {
 		selectUserError(exception)
 			.map { case UserError(msg, status) => status(msg) }
-			.getOrElse(Results.InternalServerError(exception.getMessage))
+			.getOrElse(Results.InternalServerError(serializeException(exception)))
 		//super.onServerError(request, exception)
 	}
 }

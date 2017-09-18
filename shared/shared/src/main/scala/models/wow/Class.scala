@@ -127,4 +127,6 @@ object Class {
 		val armor = Armor.Leather
 		val token = Token.Conqueror
 	}
+
+	implicit val ordering: Ordering[Class] = Ordering.by(cls => cls.id)
 }

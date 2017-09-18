@@ -30,6 +30,9 @@ POST          /profile/:user/toon/:toon/update            controllers.ProfileCon
 POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: utils.UUID, toon: utils.UUID)
 PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: utils.UUID, toon: utils.UUID, spec: Int)
 
+# Roster
+GET           /roster                                     controllers.RosterController.roster
+
 # Addons
 GET           /addons                                     controllers.AddonsController.list
 GET           /addons/manifest                            controllers.AddonsController.manifest
