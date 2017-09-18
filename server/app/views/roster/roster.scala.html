@@ -22,27 +22,15 @@
 		<div class="flex column">
 			<table class="box full">
 				<tr>
-					<th>Joueur</th>
-					<th>Rank</th>
-					<th>Ilvl</th>
+					<th style="width: 18%;">Joueur</th>
+					<th style="width: 18%;">Ilvl</th>
 					<th>Alts</th>
+					<th style="width: 33%;">Rank</th>
 				</tr>
-				@for((user, rank, toons) <- data.sortBy(_._3.head.name); main = toons.head; alts = toons.tail) {
+				@for((user, rank, toons) <- data.sortBy { case (_, r, ts) => (-r, ts.head.cls, ts.head.name) }; main = toons.head; alts = toons.tail) {
 					<tr>
 						<td>
 							<a href="@routes.ProfileController.profile(user)" wow-class="@main.cls.id">@main.name</a>
-						</td>
-						<td>
-							@{
-								rank match {
-									case 1 => "Friend"
-									case 2 => "Apply"
-									case 3 => "Member"
-									case 4 => "Officer"
-									case 5 => "Guild Master"
-									case other => other.toString
-								}
-							}
 						</td>
 						<td>@main.ilvl</td>
 						<td>
@@ -56,6 +44,18 @@
 							@if(alts.isEmpty) {
 								<span class="darkgray">&mdash;</span>
 							}
+						</td>
+						<td>
+						@{
+							rank match {
+								case 1 => "Friend"
+								case 2 => "Apply"
+								case 3 => "Member"
+								case 4 => "Officer"
+								case 5 => "Guild Master"
+								case other => other.toString
+							}
+						}
 						</td>
 					</tr>
 				}
