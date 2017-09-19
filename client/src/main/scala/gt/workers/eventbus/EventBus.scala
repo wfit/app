@@ -32,7 +32,7 @@ class EventBus extends Worker {
 					uuid = e.data.asInstanceOf[UUID]
 					val subscriptions = bindings.map { case (c, _) => c }
 					if (subscriptions.nonEmpty) {
-						Http.post("/events/subscribe", Json.obj(
+						Http.post("/events/subscribe-all", Json.obj(
 							"stream" -> uuid,
 							"channels" -> subscriptions.toSeq
 						))

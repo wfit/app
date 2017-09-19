@@ -23,7 +23,12 @@ class EventBusController @Inject()(userAction: UserAction, eventBus: EventBus)
 		}
 	}
 
-	def subscribeAll = userAction { Ok }
+	def subscribeAll = userAction.authenticated(parse.json) { req =>
+		eventBus.getStream(req.param("stream").asUUID, req.user) match {
+			case Some(stream) => req.param("channels").as[Seq[String]].foreach(stream.subscribe); Ok
+			case None => NotFound
+		}
+	}
 
 	def unsubscribe = userAction.authenticated(parse.json) { req =>
 		eventBus.getStream(req.param("stream").asUUID, req.user) match {
