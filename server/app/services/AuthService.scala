@@ -64,40 +64,13 @@ class AuthService @Inject()(rosterService: RosterService)
 		session.map(_.lastAccess).update(Instant.now) andThen session.map(_.user).result.headOption
 	}
 
-	def loadAcl(userId: UUID): Future[UserAcl] = {
-		rosterService.loadUser(userId).flatMap {
-			case Some(user) => loadAcl(user)
-			case None => Future.successful(UserAcl.empty)
-		}
-	}
-
-	private class CombinedGrants {
-		var min = Int.MaxValue
-		var max = Int.MinValue
-		var negate = false
-		def result: Int = if (negate) min else max
-	}
-
-	def loadAcl(user: User): Future[UserAcl] = aclCache.getOrElseUpdate(s"auth:acl:${ user.uuid }", 5.minutes) {
-		val groups = AclGroups.filter { group =>
-			val explicitly = AclMemberships.filter(m => group.uuid === m.group && m.user === user.uuid).exists
-			val implicitly = group.forumGroup === user.group
-			explicitly || implicitly
-		}.map(_.uuid)
-
-		val grantsQuery = AclGroupGrants.filter(_.subject in groups).join(AclKeys).on((g, k) => g.key === k.id)
-		for (grants <- grantsQuery.result) yield {
-			UserAcl(grants.groupBy { case (g, k) => k.key }
-				.mapValues { grantsAndKey => grantsAndKey.map { case (grant, key) => grant } }
-				.map { case (key, keyGrants) =>
-					(key, keyGrants.foldLeft(new CombinedGrants) { (combined, grant) =>
-						combined.max = combined.max max grant.value
-						combined.min = combined.min min grant.value
-						combined.negate = combined.negate || grant.negate
-						combined
-					}.result)
-				})
-		}
+	def loadAcl(userId: UUID): Future[UserAcl] = aclCache.getOrElseUpdate(s"auth:acl:$userId", 15.minutes) {
+		AclView.filter(e => e.user === userId)
+			.map(e => (e.key, e.value))
+			.result
+			.map(_.toMap)
+			.map(UserAcl.apply)
+			.run
 	}
 
 	def flushUserAcl(user: UUID): Future[Done] = aclCache.remove(s"auth:acl:$user")

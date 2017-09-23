@@ -1,0 +1,17 @@
+@()(implicit req: UserRequest[_])
+
+@view("Nouveau document", "composer") {
+	<div class="layout-center">
+		<div style="width: 300px;">
+			<h3>Nouveau document</h3>
+			<form class="box" action="@routes.ComposerController.createPost()" error-toast>
+				<label>
+					Titre
+					<input name="title" autofocus>
+				</label>
+				<button>Créer</button>
+				<a href="@routes.ComposerController.composer()" class="btn alternate">Annuler</a>
+			</form>
+		</div>
+	</div>
+}

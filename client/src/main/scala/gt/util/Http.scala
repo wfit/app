@@ -164,7 +164,7 @@ object Http {
 	private def fullUrl(url: String): String = {
 		if (url contains ":") url
 		else {
-			require(url startsWith "/", "non-absolute URLs must be path-absolute")
+			require(url startsWith "/", s"non-absolute URLs must be path-absolute: $url")
 			if (GuildTools.isWorker) s"${ location.origin }$url"
 			else s"${ location.protocol }//${ location.host }$url"
 		}

@@ -1,0 +1,22 @@
+@import models.composer.Document
+@(docs: Seq[Document])(implicit request: UserRequest[_])
+
+@view("Composer", "composer", styles = Seq()) {
+	<div class="row">
+		<h3 class="flex">Documents</h3>
+		<a class="btn" @href(routes.ComposerController.create())>Nouveau document</a>
+	</div>
+	<div class="row wrap">
+		@for(doc <- docs) {
+			<a @href(routes.ComposerController.document(doc.id))>
+				<div class="box mt row" style="width: 350px;">
+					<i style="font-size: 36px;">content_copy</i>
+					<div>
+						<h3>@doc.title</h3>
+					</div>
+
+				</div>
+			</a>
+		}
+	</div>
+}

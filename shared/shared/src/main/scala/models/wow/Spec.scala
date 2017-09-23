@@ -2,6 +2,7 @@ package models.wow
 
 import models.wow.Artifact._
 import models.wow.Role.{DPS, Healing, Tank}
+import play.api.libs.json.{Format, JsNumber, JsResult, JsValue}
 
 sealed abstract class Spec(val id: Int, val cls: Class, val name: String, val role: Role, val icon: String) {
 	def this(id: Int, name: String, role: Role, icon: String)(implicit cls: Class) = this(id, cls, name, role, icon)
@@ -200,5 +201,10 @@ object Spec {
 		object Vengeance extends Spec(581, "Vengeance", Tank, "ability_demonhunter_spectank") {
 			val artifact = TheAldrachiWarblades
 		}
+	}
+
+	implicit object JsonFormat extends Format[Spec] {
+		def writes(spec: Spec): JsValue = JsNumber(spec.id)
+		def reads(json: JsValue): JsResult[Spec] = json.validate[Int].map(fromId)
 	}
 }

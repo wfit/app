@@ -1,0 +1,90 @@
+
+#composer-sidebar {
+	width: 366px;
+
+	.tabs {
+		text-align: center;
+		margin: -24px -24px 0 -24px;
+		padding: 12px 24px;
+		box-shadow: 0 0 10px fade(#000, 75%);
+		z-index: 2;
+
+		li {
+			font-size: 21px;
+			display: inline-block;
+			padding: 0 16px;
+			opacity: 0.5;
+
+			i {
+				padding: 6px 2px 6px 2px;
+				border-bottom: 2px solid transparent;
+			}
+
+			&:hover, &[selected] {
+				opacity: 1;
+				cursor: pointer;
+			}
+
+			&[selected] i {
+				border-color: #dd1f20;
+			}
+		}
+	}
+
+	.content {
+		margin: 0 -24px -24px -24px;
+		position: relative;
+		z-index: 1;
+
+		& > div {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			padding: 24px 24px 24px 24px;
+			overflow: auto;
+		}
+	}
+
+	#composer-sidebar-roster {
+		.toons {
+			margin-left: -4px;
+		}
+
+		h4 {
+			margin: 8px 0;
+		}
+
+		.toon {
+			width: 100px;
+			margin-left: 4px;
+		}
+	}
+}
+
+#composer-main {
+	.fragment {
+		border: 1px dotted #333;
+		padding: 24px;
+	}
+
+	.fragment.new {
+		button {
+			flex: 1;
+			font-size: 16px;
+			font-weight: 300;
+			display: block;
+			padding: 24px;
+
+			i {
+				font-size: 24px;
+				display: block;
+				margin: 0 0 16px 0;
+			}
+		}
+		.row {
+
+		}
+	}
+}

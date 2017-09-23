@@ -18,7 +18,7 @@
 		<title>@title</title>
 		<link rel="icon" type="image/png" href="@routes.Assets.versioned("images/wfit.png")">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed|Roboto+Mono|Roboto:300,400,500&subset=latin-ext">
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:300,400,500|Roboto+Mono|Roboto:300,400,500&subset=latin-ext">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/base.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/wow.css")">
 		<link rel="stylesheet" href="@routes.Assets.versioned(s"stylesheets/layout.css")">
@@ -66,7 +66,7 @@
 					@nav("account_circle", "profile", routes.ProfileController.profile(request.user.uuid).url)
 					@nav("event", "calendar", null, Some("calendar.access"))
 					@nav("flash_on", "slacks", null, Some("slacks.access"))
-					@nav("pages", "composer", null, Some("composer.access"))
+					@nav("pages", "composer", routes.ComposerController.composer().url, Some("composer.access"))
 					@nav("group", "roster", routes.RosterController.roster().url, Some("roster.access"))
 					@if(request.isElectron) {
 						@nav("extension", "addons", routes.AddonsController.list().url, Some("addons.access"))

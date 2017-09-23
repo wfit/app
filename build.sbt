@@ -96,6 +96,7 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 	.jsSettings(
 		commonScalaJsSettings,
 		libraryDependencies ++= Seq(
+			"io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
 			"org.scala-js" %%% "scalajs-dom" % "0.9.3"
 		)
 	)

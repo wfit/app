@@ -3,7 +3,7 @@ package controllers
 import controllers.base.AppController
 import javax.inject.{Inject, Singleton}
 import models.{Toon, Toons, User, Users}
-import models.acl.{AclGroupGrants, AclGroups, AclKeys}
+import models.acl.AclView
 import scala.concurrent.Future
 import utils.SlickAPI._
 
@@ -11,9 +11,7 @@ import utils.SlickAPI._
 class RosterController @Inject()() extends AppController {
 	private val rosterQuery = (for {
 		user <- Users
-		group <- AclGroups.filter(_.forumGroup === user.group).map(_.uuid)
-		key <- AclKeys.filter(_.key === "rank").map(_.id)
-		rank <- AclGroupGrants.filter(grant => grant.subject === group && grant.key === key).map(_.value)
+		rank <- AclView.filter(e => e.user === user.uuid && e.key === "rank").map(_.value)
 		toon <- Toons.filter(toon => toon.owner === user.uuid && toon.active)
 	} yield (user, rank, toon)).result
 

@@ -1,17 +1,15 @@
 package utils
 
 import java.sql.{Date, Timestamp}
-import java.time.{Instant, LocalDate}
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import java.util.{UUID => JUUID}
 import javax.inject.Inject
+import models.composer.Fragment
 import models.wow.{Class, Spec}
 import org.apache.commons.codec.binary.Hex
 import play.api.db.slick.DatabaseConfigProvider
-import play.api.mvc.Result
 import scala.concurrent.{ExecutionContext, Future}
-import slick.dbio
-import slick.jdbc.{JdbcProfile, MySQLProfile}
-import slick.lifted.AppliedCompiledFunction
+import slick.jdbc.{JdbcProfile, MySQLProfile, PositionedParameters, SetParameter}
 
 object SlickAPI extends MySQLProfile.API {
 	@Inject var dbc: DatabaseConfigProvider = _
@@ -49,6 +47,10 @@ object SlickAPI extends MySQLProfile.API {
 		bin => UUID(scalaBinToUuid(bin))
 	)
 
+	implicit val uuidSetParameter: SetParameter[UUID] = new SetParameter[UUID] {
+		def apply(v: UUID, pp: PositionedParameters): Unit = pp.setBytes(scalaUuidToBin(v.toString))
+	}
+
 	implicit val instantColumnType: BaseColumnType[Instant] = MappedColumnType.base[Instant, Timestamp](
 		Timestamp.from,
 		ts => ts.toInstant
@@ -59,6 +61,11 @@ object SlickAPI extends MySQLProfile.API {
 		date => date.toLocalDate
 	)
 
+	implicit val localDateTimeColumnType: BaseColumnType[LocalDateTime] = MappedColumnType.base[LocalDateTime, Timestamp](
+		ldt => Timestamp.from(ldt.toInstant(ZoneOffset.UTC)),
+		ts => ts.toLocalDateTime
+	)
+
 	implicit val classColumnType: BaseColumnType[Class] = MappedColumnType.base[Class, Int](
 		cls => cls.id,
 		Class.fromId
@@ -67,5 +74,13 @@ object SlickAPI extends MySQLProfile.API {
 	implicit val specColumnType: BaseColumnType[Spec] = MappedColumnType.base[Spec, Int](
 		spec => spec.id,
 		Spec.fromId
+	)
+
+	implicit val fragmentStyleColumnType: BaseColumnType[Fragment.Style] = MappedColumnType.base[Fragment.Style, String](
+		style => style.value, {
+			case "text" => Fragment.Text
+			case "group" => Fragment.Group
+			case "grid" => Fragment.Grid
+		}
 	)
 }

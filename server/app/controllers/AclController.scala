@@ -1,13 +1,12 @@
 package controllers
 
-import akka.Done
 import controllers.base.{CheckAcl, UserAction}
 import javax.inject.{Inject, Singleton}
 import models._
 import models.acl._
 import play.api.cache.AsyncCacheApi
-import play.api.mvc.{InjectedController, Result}
-import scala.concurrent.{ExecutionContext, Future}
+import play.api.mvc.InjectedController
+import scala.concurrent.ExecutionContext
 import services.AuthService
 import utils.{FutureOps, UUID}
 import utils.SlickAPI._
@@ -19,24 +18,6 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	extends InjectedController {
 
 	private def aclAction = userAction.authenticated andThen checkAcl("admin.acl")
-
-	private def enumerateGroupMembers(group: UUID): Future[Seq[UUID]] = {
-		Users.filter { u =>
-			val explicitly = AclMemberships.filter(m => m.group === group && m.user === u.uuid).exists
-			val implicitly = AclGroups.filter(g => g.uuid === group && g.forumGroup === u.group).exists
-			explicitly || implicitly
-		}.map(_.uuid).result
-	}
-
-	private def flushMultipleCaches(users: Seq[UUID]): Future[Done] = {
-		Future.traverse(users)(authService.flushUserAcl).replaceSuccess(Done)
-	}
-
-	private def withGroupFlush(group: UUID)(action: => Future[Result]): Future[Result] = {
-		enumerateGroupMembers(group).flatMap { members =>
-			action andThenAsync flushMultipleCaches(members)
-		}
-	}
 
 	def users = aclAction.async { implicit req =>
 		Users.sortBy(_.name).result.map(users => Ok(views.html.admin.aclUsers(users)))
@@ -99,22 +80,16 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	}
 
 	def groupGrant(uuid: UUID) = aclAction(parse.json).async { implicit req =>
-		withGroupFlush(uuid) {
-			val grant = AclGroupGrant(uuid, req.param("key").asUUID, req.param("value").asInt, req.param("negate").asBoolean)
-			(AclGroupGrants insertOrUpdate grant) andThen Redirect(routes.AclController.group(uuid))
-		}
+		val grant = AclGroupGrant(uuid, req.param("key").asUUID, req.param("value").asInt, req.param("negate").asBoolean)
+		(AclGroupGrants insertOrUpdate grant) andThen authService.flushAclCaches() andThen Redirect(routes.AclController.group(uuid))
 	}
 
 	def groupRevoke(uuid: UUID, key: UUID) = aclAction.async { implicit req =>
-		withGroupFlush(uuid) {
-			AclGroupGrants.filter(g => g.subject === uuid && g.key === key).delete andThen Redirect(routes.AclController.group(uuid))
-		}
+		AclGroupGrants.filter(g => g.subject === uuid && g.key === key).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.group(uuid))
 	}
 
 	def deleteGroup(uuid: UUID) = aclAction.async { implicit req =>
-		withGroupFlush(uuid) {
-			AclGroups.filter(_.uuid === uuid).delete andThen Redirect(routes.AclController.groups())
-		}
+		AclGroups.filter(_.uuid === uuid).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.groups())
 	}
 
 	def keys = aclAction.async { implicit req =>
@@ -128,6 +103,6 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	}
 
 	def deleteKey(id: UUID) = aclAction.async { implicit req =>
-		AclKeys.filter(_.id === id).delete andThen Redirect(routes.AclController.keys())
+		AclKeys.filter(_.id === id).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.keys())
 	}
 }

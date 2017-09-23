@@ -215,7 +215,7 @@ object Display {
 		freshContainer.innerHTML = source
 		loadMetadata(freshContainer)
 
-		for (script <- freshContainer.querySelectorAll("script")) {
+		for (script <- freshContainer.querySelectorAll("script[type='application/gt-metadata']")) {
 			script.parentNode.removeChild(script)
 		}
 

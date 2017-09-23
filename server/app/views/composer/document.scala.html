@@ -1,0 +1,28 @@
+@import models.composer.Document
+@(doc: Document)(implicit request: UserRequest[_])
+
+@view(doc.title, "composer", "gt.modules.composer.Composer", styles = Seq("composer/composer")) {
+	@value("document-id", doc.id)
+	<div class="layout-columns">
+		<div class="column" id="composer-sidebar">
+			<div class="tabs-container"></div>
+			<div class="flex content"></div>
+		</div>
+		<div class="flex column" id="composer-main">
+			<div class="row">
+
+			</div>
+			<div class="fragment new">
+				<h3>Nouvelle section</h3>
+				<div class="row">
+					<button class="alternate" data-type="text"><i>text_fields</i> Texte</button>
+					<button class="alternate" data-type="group"><i>people</i> Groupe</button>
+					<button class="alternate" data-type="grid"><i>border_all</i> Grid</button>
+				</div>
+			</div>
+			<div class="row">
+
+			</div>
+		</div>
+	</div>
+}

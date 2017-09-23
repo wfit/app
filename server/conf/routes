@@ -30,6 +30,14 @@ POST          /profile/:user/toon/:toon/update            controllers.ProfileCon
 POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: utils.UUID, toon: utils.UUID)
 PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: utils.UUID, toon: utils.UUID, spec: Int)
 
+# Composer
+GET           /composer                                   controllers.ComposerController.composer
+GET           /composer/create                            controllers.ComposerController.create
+POST          /composer/create                            controllers.ComposerController.createPost
+GET           /composer/roster                            controllers.ComposerController.roster
+GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
+POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
+
 # Roster
 GET           /roster                                     controllers.RosterController.roster
 
@@ -61,5 +69,3 @@ DELETE        /admin/acl/keys/:key                        controllers.AclControl
 
 # Electron support
 GET           /electron/bootstrap                         controllers.ElectronController.bootstrap
-
-

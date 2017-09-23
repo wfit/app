@@ -2,6 +2,7 @@ package models
 
 import java.time.Instant
 import models.wow.{Class, Spec}
+import play.api.libs.json.{Format, Json}
 import utils.UUID
 
 case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boolean, active: Boolean,
@@ -42,6 +43,8 @@ object Toon {
 		lastUpdate = Instant.now,
 		invalid = false
 	)
+
+	implicit val format: Format[Toon] = Json.format[Toon]
 
 	implicit val ordering: Ordering[Toon] = Ordering.by(toon => (!toon.main, !toon.active, -toon.ilvl, toon.name))
 	val orderingByClass: Ordering[Toon] = Ordering.by(toon => (toon.cls, toon.name))

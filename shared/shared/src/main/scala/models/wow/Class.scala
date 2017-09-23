@@ -1,5 +1,7 @@
 package models.wow
 
+import play.api.libs.json.{Format, JsNumber, JsResult, JsValue}
+
 sealed abstract class Class (val id: Int, val name: String) {
 	val specs: Seq[Spec]
 	val armor: Armor
@@ -126,6 +128,11 @@ object Class {
 			Spec.DemonHunter.Vengeance)
 		val armor = Armor.Leather
 		val token = Token.Conqueror
+	}
+
+	implicit object JsonFormat extends Format[Class] {
+		def writes(cls: Class): JsValue = JsNumber(cls.id)
+		def reads(json: JsValue): JsResult[Class] = json.validate[Int].map(fromId)
 	}
 
 	implicit val ordering: Ordering[Class] = Ordering.by(cls => cls.id)

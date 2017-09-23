@@ -1,0 +1,6 @@
+@import java.net.URLEncoder
+@import play.api.libs.json.Json
+@import play.api.libs.json.Json.JsValueWrapper
+@(key: String, value: JsValueWrapper)
+
+<script type="application/gt-value" key="@key">@Html(URLEncoder.encode(Json.arr(value)(0).toString, "UTF-8"))</script>
