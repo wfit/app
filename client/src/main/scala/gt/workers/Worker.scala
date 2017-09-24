@@ -10,7 +10,6 @@ import play.api.libs.json._
 import protocol.{CompoundMessage, Message, MessageSerializer}
 import protocol.CompoundMessage.CompoundBuilder
 import scala.concurrent.ExecutionContext
-import scala.concurrent.ExecutionContext.Implicits.{global => gec}
 import scala.concurrent.duration.FiniteDuration
 import scala.reflect.ClassTag
 import scala.scalajs.js
@@ -34,6 +33,20 @@ abstract class Worker {
 	@inline protected final implicit def ImplCompoundBuilder[T: MessageSerializer](value: T): CompoundBuilder[T] = new CompoundBuilder(value)
 	protected final implicit val executionContext: ExecutionContext = ExecutionContext.global
 
+	// Worker settings
+	private val (fqcn: String, uuid: UUID, parent: WorkerRef) = Worker.newWorkerProperties.value
+
+	// References
+	implicit protected val self: WorkerRef.Local = new WorkerRef.Local(uuid)
+
+	private var attached = parent != WorkerRef.NoWorker
+	if (attached) parent.watch()
+
+	private var _sender: WorkerRef = WorkerRef.NoWorker
+	protected def sender: WorkerRef = _sender
+	private var _current: Any = _
+	protected def current: Any = _current
+
 	// Watchers
 	private var watchers = Set.empty[WorkerRef]
 
@@ -41,8 +54,10 @@ abstract class Worker {
 	private val beforeDispatch: Receive = {
 		case WorkerControl.Terminate => terminate()
 		case WorkerControl.Respawn => respawn()
+		case WorkerControl.Detach => detach()
 		case WorkerControl.Watch => watchers += sender
 		case WorkerControl.Unwatch => watchers -= sender
+		case WorkerControl.Terminated if sender == parent && attached => terminate()
 	}
 
 	private val afterDispatch: Receive = {
@@ -73,21 +88,14 @@ abstract class Worker {
 		task
 	}
 
-	// Worker settings
-	private val (fqcn: String, uuid: UUID) = Worker.newWorkerProperties.value
-	private var behavior: Receive = buildBehavior(receive)
-
-	// References
-	implicit protected lazy val self: WorkerRef.Local = new WorkerRef.Local(uuid)
-
-	private var _sender: WorkerRef = WorkerRef.NoWorker
-	protected def sender: WorkerRef = _sender
-	private var _current: Any = _
-	protected def current: Any = _current
-
 	// Control
 	def onTerminate(): Unit = ()
 	def onRespawn(): Unit = onTerminate()
+
+	final def detach(): Unit = if (attached) {
+		attached = false
+		parent.unwatch()
+	}
 
 	final def terminate(): Unit = {
 		onTerminate()
@@ -100,7 +108,7 @@ abstract class Worker {
 		// In case onRespawn called terminated
 		if (Worker.children contains uuid) {
 			cleanup()
-			Worker.localWithUUID(fqcn, uuid)
+			Worker.localWithUUID(fqcn, uuid, parent)
 		}
 	}
 
@@ -108,6 +116,8 @@ abstract class Worker {
 		for (cancel <- tasks.values) cancel()
 		for (watcher <- watchers) watcher ! WorkerControl.Terminated
 	}
+
+	private var behavior: Receive = buildBehavior(receive)
 
 	private[workers] final def dispatch(sender: UUID, message: Any): Unit = {
 		_sender = WorkerRef.fromUUID(sender)
@@ -152,20 +162,20 @@ object Worker {
 
 	private val blobOptions = literal(`type` = "text/javascript").asInstanceOf[dom.BlobPropertyBag]
 
-	private def workerBridge(fqcn: String, id: UUID): String = s"""
+	private def workerBridge(fqcn: String, id: UUID, parent: WorkerRef): String = s"""
 		|window = self;
 		|$sharedEnv
 		|SHARED_WORKERS = $sharedWorkersBinding;
 		|importScripts($importPaths);
-		|init_worker(${ JsString(fqcn) }, ${ JsString(id.toString) });
+		|init_worker(${ JsString(fqcn) }, ${ JsString(id.toString) }, ${ JsString(parent.uuid.toString) });
 		|""".stripMargin.trim
 
 	// SPAWNING
 
-	def spawn[T <: Worker : ClassTag]: WorkerRef = {
+	def spawn[T <: Worker : ClassTag](implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef = {
 		val fqcn = implicitly[ClassTag[T]].runtimeClass.getName
 		val id = UUID.random
-		val blob = new dom.Blob(js.Array(workerBridge(fqcn, id)), blobOptions)
+		val blob = new dom.Blob(js.Array(workerBridge(fqcn, id, parent)), blobOptions)
 		val url = dom.URL.createObjectURL(blob)
 		val instance = newInstance(global.Worker)(url).asInstanceOf[dom.webworkers.Worker]
 		instance.onmessage = messageRouter(id, instance)
@@ -173,14 +183,14 @@ object Worker {
 		new WorkerRef(id)
 	}
 
-	def local[T <: Worker : ClassTag]: WorkerRef.Local = {
-		localWithUUID(implicitly[ClassTag[T]].runtimeClass.getName, UUID.random)
+	def local[T <: Worker : ClassTag](implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef.Local = {
+		localWithUUID(implicitly[ClassTag[T]].runtimeClass.getName, UUID.random, parent)
 	}
 
-	private def localWithUUID(fqcn: String, uuid: UUID): WorkerRef.Local = {
+	private def localWithUUID(fqcn: String, uuid: UUID, parent: WorkerRef): WorkerRef.Local = {
 		Reflect.lookupInstantiatableClass(fqcn) match {
 			case Some(instantiatableClass) =>
-				val instance = newWorkerProperties.withValue((fqcn, uuid)) {
+				val instance = newWorkerProperties.withValue((fqcn, uuid, parent)) {
 					instantiatableClass.newInstance().asInstanceOf[Worker]
 				}
 				registerWorker(uuid, LocalWorker(instance))
@@ -214,7 +224,7 @@ object Worker {
 		val msg = orig.copy(ttl = orig.ttl - 1)
 		require(msg.ttl > 0, "Message expired: " + msg.toString)
 		(if (instance == null) children.get(msg.dest) else instance) match {
-			case Some(RemoteWorker(child)) => child.postMessage (msg.toString)
+			case Some(RemoteWorker(child)) => child.postMessage(msg.toString)
 			case Some(LocalWorker(child)) => child.dispatch(msg.sender, msg.payload)
 			case None if GuildTools.isWorker => worker.postMessage(msg.toString)
 			case None if msg.optimistic => // Ignore
@@ -240,8 +250,8 @@ object Worker {
 	// INITIALIZING
 
 	@JSExportTopLevel("init_worker")
-	def init(fqcn: String, id: String): Unit = {
-		localWithUUID(fqcn, UUID(id))
+	def init(fqcn: String, id: String, parent: String): Unit = {
+		localWithUUID(fqcn, UUID(id), WorkerRef.fromString(parent))
 		worker.onmessage = messageRouter(UUID.zero)
 	}
 
@@ -272,5 +282,5 @@ object Worker {
 		}
 	}
 
-	private val newWorkerProperties = new DynamicVariable[(String, UUID)]((null, UUID.zero))
+	private val newWorkerProperties = new DynamicVariable[(String, UUID, WorkerRef)]((null, UUID.zero, WorkerRef.NoWorker))
 }

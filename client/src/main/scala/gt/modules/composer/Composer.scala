@@ -24,11 +24,6 @@ class Composer extends Worker with ViewUtils {
 	def receive: Receive = {
 		case None => ???
 	}
-
-	override def onTerminate(): Unit = {
-		sidebar.terminate()
-		fragments.terminate()
-	}
 }
 
 object Composer extends WorkerView[Composer] {

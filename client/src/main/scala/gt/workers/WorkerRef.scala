@@ -18,11 +18,12 @@ sealed class WorkerRef private[workers] (val uuid: UUID) {
 		promise.future
 	}
 
-	def terminate()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Terminate
-	def respawn()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Respawn
+	def terminate()(implicit sender: WorkerRef = WorkerRef.NoWorker): this.type = { this ! WorkerControl.Terminate; this }
+	def respawn()(implicit sender: WorkerRef = WorkerRef.NoWorker): this.type = { this ! WorkerControl.Respawn; this }
+	def detach()(implicit sender: WorkerRef = WorkerRef.NoWorker): this.type = { this ! WorkerControl.Detach; this }
 
-	def watch()(implicit sender: WorkerRef): Unit = this ! WorkerControl.Watch
-	def unwatch()(implicit sender: WorkerRef): Unit = this ! WorkerControl.Unwatch
+	def watch()(implicit sender: WorkerRef): this.type = { this ! WorkerControl.Watch; this }
+	def unwatch()(implicit sender: WorkerRef): this.type = { this ! WorkerControl.Unwatch; this }
 
 	override def toString: String = uuid.toString
 	override def hashCode(): Int = uuid.hashCode()

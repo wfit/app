@@ -33,11 +33,11 @@ class AddonList extends Worker with ViewUtils {
 			case "enabled" =>
 				<div class="row">
 					<button class="flex alternate" onclick={() => updater ! 'Update}>Actualiser</button>
-					<button class="flex alternate" onclick={() => disableUpdater()}>Désactiver</button>
+					<button class="flex alternate" onclick={() => respawnUpdater()}>Désactiver</button>
 				</div>
 			case "failure" =>
 				<div class="row">
-					<button class="flex alternate" onclick={() => updater.respawn()}>Réessayer</button>
+					<button class="flex alternate" onclick={() => respawnUpdater()}>Réessayer</button>
 					<button class="flex alternate" onclick={() => disableUpdater()}>Désactiver</button>
 				</div>
 			case "disabled" =>
@@ -83,6 +83,10 @@ class AddonList extends Worker with ViewUtils {
 			path := Some(choice)
 			updater.respawn()
 		}
+	}
+
+	private def respawnUpdater(): Unit = {
+		updater.respawn()
 	}
 
 	private def disableUpdater(): Unit = {
