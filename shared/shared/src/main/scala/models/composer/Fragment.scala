@@ -1,6 +1,7 @@
 package models.composer
 
 import models.composer.Fragment.Style
+import play.api.libs.json._
 import utils.UUID
 
 case class Fragment (id: UUID, doc: UUID, sort: Int, style: Style, title: String)
@@ -18,4 +19,11 @@ object Fragment {
 		case "grid" => Grid
 		case other => throw new NoSuchElementException(other)
 	}
+
+	implicit object StyleJsonFormat extends Format[Style] {
+		def writes(style: Style): JsValue = JsString(style.value)
+		def reads(json: JsValue): JsResult[Style] = json.validate[String].map(styleFromString)
+	}
+
+	implicit val format: Format[Fragment] = Json.format[Fragment]
 }

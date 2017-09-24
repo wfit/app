@@ -2,14 +2,16 @@ package controllers
 
 import controllers.base.AppController
 import java.time.LocalDateTime
+import javax.inject.Inject
 import models.{Toons, Users}
 import models.acl.AclView
 import models.composer._
 import play.api.libs.json.Json
+import services.EventBus
 import utils.UUID
 import utils.SlickAPI._
 
-class ComposerController extends AppController {
+class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	private def ComposerAction = UserAction andThen CheckAcl("composer.access")
 
 	def composer = ComposerAction.async { implicit req =>
@@ -45,6 +47,10 @@ class ComposerController extends AppController {
 		}
 	}
 
+	def fragments(doc: UUID) = ComposerAction.async { implicit req =>
+		Fragments.filter(f => f.doc === doc).sortBy(_.sort).result.map(frags => Ok(Json.toJson(frags)))
+	}
+
 	def createFragment(doc: UUID) = ComposerAction(parse.json).async { implicit req =>
 		val uuid = UUID.random
 		val sort = Fragments.filter(f => f.doc === doc).map(_.sort).max.getOrElse(0) + 1
@@ -60,5 +66,41 @@ class ComposerController extends AppController {
 		val action = (insert andThen Fragments.filter(f => f.id === uuid).result.head).transactionally
 
 		action andThen Created
+	}
+
+	def move(doc: UUID) = ComposerAction(parse.json).async { implicit req =>
+		val source = req.param("source").asUUID
+		val target = req.param("target").asUUID
+		require(source != target)
+
+		val position = req.param("position").asString
+		val frags = Fragments.filter(f => f.doc === doc)
+
+		val locations = for  {
+			sourcePos <- frags.filter(f => f.id === source).map(f => f.sort).result.head
+			targetPos <- frags.filter(f => f.id === target).map(f => f.sort).result.head
+		} yield (sourcePos, targetPos)
+
+		val action = locations.flatMap { case (sourcePos, targetPos) =>
+			val (range, offset, pos) = (sourcePos, targetPos, position) match {
+				case (s, t, "before") if s < t => ((s + 1) until t, -1, t - 1)
+				case (s, t, "after") if s < t => ((s + 1) to t, -1, t)
+				case (s, t, "before") if s > t => ((s - 1) to t by -1, 1, t)
+				case (s, t, "after") if s > t => ((s - 1) until t by -1, 1, t + 1)
+			}
+
+			if (pos != sourcePos) {
+				DBIO.sequence(for (i <- range) yield {
+					frags.filter(f => f.sort === i).map(f => f.sort).update(i + offset)
+				}) andThen frags.filter(f => f.id === source).map(f => f.sort).update(pos)
+			} else {
+				// Nothing to do if moving fragment before its next neighbor or after its previous one
+				DBIO.successful(0)
+			}
+		} andThen Ok
+
+		action.transactionally.run andThen {
+			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
+		}
 	}
 }

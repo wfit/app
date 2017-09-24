@@ -57,9 +57,9 @@ object Roster {
 	}
 
 	private def toonsButtons(seq: Seq[RosterEntry]) = seq.map { entry =>
-		<a class="toon" wow-class={entry.toon.cls.id.toString}>
+		<span class="toon" wow-class={entry.toon.cls.id.toString} draggable="true">
 			{entry.toon.name}
-		</a>
+		</span>
 	}
 
 	private def altsSections(sections: Seq[(String, Seq[RosterEntry])]) = sections.map { case (range, toons) =>

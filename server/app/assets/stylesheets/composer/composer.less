@@ -67,6 +67,14 @@
 	.fragment {
 		border: 1px dotted #333;
 		padding: 24px;
+
+		&.drag-before {
+			box-shadow: 0 -15px 15px -10px fade(#dd1f20, 50%);
+		}
+
+		&.drag-after {
+			box-shadow: 0 15px 15px -10px fade(#dd1f20, 50%);
+		}
 	}
 
 	.fragment.new {
@@ -83,6 +91,7 @@
 				margin: 0 0 16px 0;
 			}
 		}
+
 		.row {
 
 		}

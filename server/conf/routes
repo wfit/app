@@ -4,8 +4,7 @@ GET           /assets/*file                               controllers.Assets.ver
 # EventBus
 GET           /events/bus                                 controllers.EventBusController.bus
 POST          /events/subscribe                           controllers.EventBusController.subscribe
-POST          /events/subscribe-all                       controllers.EventBusController.subscribeAll
-GET           /events/unsubscribe                         controllers.EventBusController.unsubscribe
+POST          /events/unsubscribe                         controllers.EventBusController.unsubscribe
 
 # Base
 GET           /                                           controllers.HomeController.index
@@ -37,6 +36,8 @@ POST          /composer/create                            controllers.ComposerCo
 GET           /composer/roster                            controllers.ComposerController.roster
 GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
 POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
+GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)
+POST          /composer/:id/move                          controllers.ComposerController.move(id: utils.UUID)
 
 # Roster
 GET           /roster                                     controllers.RosterController.roster

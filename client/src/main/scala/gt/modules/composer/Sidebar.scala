@@ -7,8 +7,6 @@ import mhtml.{Rx, Var}
 class Sidebar extends Worker with ViewUtils {
 	val doc = value[String]("document-id")
 
-	Roster.refresh()
-
 	val tab = Var("none")
 	selectTab("roster")
 

@@ -2,6 +2,7 @@ package protocol
 
 import play.api.libs.json
 import play.api.libs.json.{Format, JsValue}
+import protocol.Message.CanUseSerializer
 import scala.annotation.unchecked.uncheckedVariance
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 import utils.UUID
@@ -12,11 +13,21 @@ trait MessageSerializer[-T] {
 		val fqcn = getClass.getName
 		MessageSerializer.tagFromName.getOrElse(fqcn, fqcn)
 	}
-	protected def serialize(value: T): String
-	protected def deserialize(body: String)(implicit lookup: SerializerLookup): T@uncheckedVariance
+
+	def serialize(value: T)(implicit cus: CanUseSerializer): String
+	def deserialize(body: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): T@uncheckedVariance
+
+	/** A serializer is symmetric if `deserialize(serialize(foo)) == foo` */
+	def symmetric(value: T): Boolean = true
+
+	/** Whether the message was sent optimistically and should not be reported in case of failed delivery */
+	def optimistic(value: T): Boolean = false
 }
 
 object MessageSerializer {
+	// Import implicit CCS to check correct usage of serialize
+	private implicit final val cus = CanUseSerializer
+
 	val tagFromName = Map(
 		"protocol.MessageSerializer$UnitSerializer$" -> "U",
 		"protocol.MessageSerializer$BooleanSerializer$" -> "B",
@@ -57,16 +68,37 @@ object MessageSerializer {
 	}
 
 	abstract class Lambda[T] (sfn: T => String, dfn: String => T) extends MessageSerializer[T] {
-		final def serialize(value: T): String = sfn(value)
-		final def deserialize(value: String)(implicit lookup: SerializerLookup): T = dfn(value)
+		final def serialize(value: T)(implicit cus: CanUseSerializer): String = {
+			sfn(value)
+		}
+
+		final def deserialize(value: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): T = {
+			dfn(value)
+		}
 	}
 
 	abstract class Json[T] (val format: Format[T]) extends MessageSerializer[T] {
-		final def serialize(value: T): String = format.writes(value).toString()
-		final def deserialize(value: String)(implicit lookup: SerializerLookup): T = format.reads(json.Json.parse(value)).get
+		final def serialize(value: T)(implicit cus: CanUseSerializer): String = {
+			format.writes(value).toString()
+		}
+
+		final def deserialize(value: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): T = {
+			format.reads(json.Json.parse(value)).get
+		}
 	}
 
 	abstract class Singleton[T] (singleton: T) extends Lambda[T](_ => "", _ => singleton)
+
+	class Using[T, U](asU: T => U, asT: U => T)
+	                          (implicit other: MessageSerializer[U]) extends MessageSerializer[T] {
+		def serialize(value: T)(implicit cus: CanUseSerializer): String = {
+			other.serialize(asU(value))
+		}
+
+		def deserialize(body: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): T = {
+			asT(other.deserialize(body))
+		}
+	}
 
 	implicit object UnitSerializer extends Singleton[Unit](())
 	implicit object BooleanSerializer extends Lambda[Boolean](if (_) "1" else "0", _ == "1")
@@ -79,7 +111,8 @@ object MessageSerializer {
 
 	// Dummy serializer for Forward objects, will be special-cased in serialize()
 	implicit object ForwardSerializer extends MessageSerializer[Forward] {
-		def serialize(value: Forward): String = ???
-		def deserialize(body: String)(implicit lookup: SerializerLookup): Forward = ???
+		def serialize(value: Forward)(implicit ccs: CanUseSerializer): String = ???
+		def deserialize(body: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): Forward = ???
+		override def symmetric(value: Forward): Boolean = false
 	}
 }

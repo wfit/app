@@ -34,10 +34,15 @@ abstract class Worker {
 	@inline protected final implicit def ImplCompoundBuilder[T: MessageSerializer](value: T): CompoundBuilder[T] = new CompoundBuilder(value)
 	protected final implicit val executionContext: ExecutionContext = ExecutionContext.global
 
+	// Watchers
+	private var watchers = Set.empty[WorkerRef]
+
 	// Dispatch
 	private val beforeDispatch: Receive = {
 		case WorkerControl.Terminate => terminate()
 		case WorkerControl.Respawn => respawn()
+		case WorkerControl.Watch => watchers += sender
+		case WorkerControl.Unwatch => watchers -= sender
 	}
 
 	private val afterDispatch: Receive = {
@@ -86,16 +91,22 @@ abstract class Worker {
 
 	final def terminate(): Unit = {
 		onTerminate()
-		for (cancel <- tasks.values) cancel()
+		cleanup()
 		Worker.terminated(uuid)
 	}
 
 	final def respawn(): Unit = {
 		onRespawn()
+		// In case onRespawn called terminated
 		if (Worker.children contains uuid) {
-			// In case onRespawn called terminated
+			cleanup()
 			Worker.localWithUUID(fqcn, uuid)
 		}
+	}
+
+	private def cleanup(): Unit = {
+		for (cancel <- tasks.values) cancel()
+		for (watcher <- watchers) watcher ! WorkerControl.Terminated
 	}
 
 	private[workers] final def dispatch(sender: UUID, message: Any): Unit = {
@@ -192,7 +203,7 @@ object Worker {
 	private[workers] def send[T](dest: UUID, sender: UUID, msg: T)
 	                            (implicit serializer: MessageSerializer[T]): Unit = Microtask.schedule {
 		children.get(dest) match {
-			case Some(LocalWorker(child)) => child.dispatch(sender, msg)
+			case Some(LocalWorker(child)) if serializer.symmetric(msg) => child.dispatch(sender, msg)
 			case child => relay(Message.build(dest, sender, msg), child)
 		}
 	}
@@ -203,10 +214,19 @@ object Worker {
 		val msg = orig.copy(ttl = orig.ttl - 1)
 		require(msg.ttl > 0, "Message expired: " + msg.toString)
 		(if (instance == null) children.get(msg.dest) else instance) match {
-			case Some(RemoteWorker(child)) => child.postMessage(msg.toString)
+			case Some(RemoteWorker(child)) => child.postMessage (msg.toString)
 			case Some(LocalWorker(child)) => child.dispatch(msg.sender, msg.payload)
 			case None if GuildTools.isWorker => worker.postMessage(msg.toString)
-			case None => dom.console.warn(s"Unable to deliver message to worker '${ msg.dest }': ", msg.toString)
+			case None if msg.optimistic => // Ignore
+			case None => msg.payload match {
+				case WorkerControl.Watch =>
+					// Synthesize terminated event
+					implicit val fakeSender: WorkerRef = WorkerRef.fromUUID(msg.dest)
+					WorkerRef.fromUUID(msg.sender) ! WorkerControl.Terminated
+				case WorkerControl.Unwatch => // Ignore too
+				case _ =>
+					dom.console.warn(s"Unable to deliver message to worker '${ msg.dest }': ", msg.toString)
+			}
 		}
 	}
 

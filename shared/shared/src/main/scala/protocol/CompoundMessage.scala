@@ -1,6 +1,7 @@
 package protocol
 
 import play.api.libs.json.Json
+import protocol.Message.CanUseSerializer
 import scala.annotation.unchecked.uncheckedVariance
 
 object CompoundMessage {
@@ -21,11 +22,11 @@ object CompoundMessage {
 			case a ~ b => Seq(item(a)(value.as), item(b)(value.bs))
 		}
 
-		def serialize(value: ~[Any, Any]): String = {
+		def serialize(value: ~[Any, Any])(implicit ccs: CanUseSerializer): String = {
 			Json.toJson(flatten(value)).toString()
 		}
 
-		def deserialize(body: String)(implicit lookup: SerializerLookup): ~[Any, Any] = {
+		def deserialize(body: String)(implicit lookup: SerializerLookup, cus: CanUseSerializer): ~[Any, Any] = {
 			Json.parse(body).as[List[String]] match {
 				case a :: b :: rest =>
 					val (ad, as) = MessageSerializer.unpack(a)
@@ -38,6 +39,10 @@ object CompoundMessage {
 					}
 				case _ => ???
 			}
+		}
+
+		override def symmetric(value: ~[Any, Any]): Boolean = {
+			value.as.symmetric(value.a) && value.bs.symmetric(value.b)
 		}
 	}
 }

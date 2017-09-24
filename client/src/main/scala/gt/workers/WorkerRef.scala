@@ -21,6 +21,9 @@ sealed class WorkerRef private[workers] (val uuid: UUID) {
 	def terminate()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Terminate
 	def respawn()(implicit sender: WorkerRef = WorkerRef.NoWorker): Unit = this ! WorkerControl.Respawn
 
+	def watch()(implicit sender: WorkerRef): Unit = this ! WorkerControl.Watch
+	def unwatch()(implicit sender: WorkerRef): Unit = this ! WorkerControl.Unwatch
+
 	override def toString: String = uuid.toString
 	override def hashCode(): Int = uuid.hashCode()
 	override def equals(obj: Any): Boolean = obj match {
