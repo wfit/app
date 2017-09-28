@@ -30,6 +30,7 @@ class ErrorHandler @Inject() (env: Environment, config: Configuration,
 	}
 
 	override def onServerError(request: RequestHeader, exception: Throwable): Future[Result] = Future.successful {
+		println(exception)
 		selectUserError(exception)
 			.map { case UserError(msg, status) => status(msg) }
 			.getOrElse(Results.InternalServerError(serializeException(exception)))

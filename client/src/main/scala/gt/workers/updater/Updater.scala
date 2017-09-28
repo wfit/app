@@ -169,10 +169,12 @@ object Updater extends AutoWorker.Spawn[Updater] {
 	private var updated = Set.empty[(String, Boolean)]
 
 	private def findAddonsDirectory(wowDir: String): Option[String] = {
-		for {
-			interface <- fs.readdirSync(wowDir).find(_.toLowerCase == "interface")
-			addons <- fs.readdirSync(s"$wowDir/$interface").find(_.toLowerCase == "addons")
-		} yield s"$wowDir/$interface/$addons"
+		Try {
+			for {
+				interface <- fs.readdirSync(wowDir).find(_.toLowerCase == "interface")
+				addons <- fs.readdirSync(s"$wowDir/$interface").find(_.toLowerCase == "addons")
+			} yield s"$wowDir/$interface/$addons"
+		} getOrElse None
 	}
 
 	private def buildManifest(serverManifest: ServerManifest): Future[Manifest] = {

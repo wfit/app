@@ -97,7 +97,7 @@ class Fragments extends Worker with ViewUtils {
 	private val blocks = fragments.map(frags => frags.map(fragmentBlock))
 
 	mount("#composer-main .fragments-mount") {
-		<div class="column">
+		<div>
 			{blocks}
 		</div>
 	}
