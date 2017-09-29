@@ -27,7 +27,7 @@ class Toons (tag: Tag) extends Table[Toon](tag, "gt_toons") {
 	def invalid = column[Boolean]("invalid")
 	def failures = column[Int]("failures")
 
-	def * = (uuid, name, realm, owner, main, active, cls, spec, race, gender, level, thumbnail, ilvl, lastUpdate, invalid) <> ((Toon.apply _).tupled, Toon.unapply)
+	def * = (uuid, name, realm, owner, main, active, cls, spec, race, gender, level, thumbnail, ilvl, lastUpdate, invalid, failures) <> ((Toon.apply _).tupled, Toon.unapply)
 }
 
 object Toons extends TableQuery(new Toons(_))

@@ -5,12 +5,10 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 import javax.inject.{Inject, Singleton}
 import models.{Toon, Toons, User, Users}
-import play.api.data
 import play.api.cache.AsyncCacheApi
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag
-import scala.util.Success
 import utils.{FutureOps, UUID}
 import utils.SlickAPI._
 
@@ -54,12 +52,12 @@ class RosterService @Inject()(cache: AsyncCacheApi, bnetService: BnetService)
 	def updateToon(old: Toon, toon: Toon): Future[Toon] = {
 		val query = Toons.filter(_.uuid === old.uuid)
 		val action = query.map { old =>
-			(old.name, old.realm, old.cls, old.spec, old.race, old.gender, old.level, old.thumbnail, old.ilvl, old.lastUpdate, old.invalid)
+			(old.name, old.realm, old.cls, old.spec, old.race, old.gender, old.level, old.thumbnail, old.ilvl, old.lastUpdate, old.invalid, old.failures)
 		}.update {
 			// Ensure spec is kept only if class is still valid
 			val spec = if (old.spec.cls == toon.cls) old.spec else toon.spec
 			val ilvl = old.ilvl max toon.ilvl
-			(toon.name, toon.realm, toon.cls, spec, toon.race, toon.gender, toon.level, toon.thumbnail, ilvl, Instant.now, false)
+			(toon.name, toon.realm, toon.cls, spec, toon.race, toon.gender, toon.level, toon.thumbnail, ilvl, Instant.now, false, 0)
 		} andThen query.result.head
 		action.run.flatMap(t => flushUserCaches(t.owner).replaceSuccess(t))
 	}

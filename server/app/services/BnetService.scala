@@ -42,7 +42,8 @@ class BnetService @Inject()(conf: Configuration, ws: WSClient)
 					thumbnail = (data \ "thumbnail").asOpt[String],
 					ilvl = (data \ "items" \ "averageItemLevelEquipped").as[Int],
 					lastUpdate = Instant.now,
-					invalid = false
+					invalid = false,
+					failures = 0
 				)
 			}
 	}

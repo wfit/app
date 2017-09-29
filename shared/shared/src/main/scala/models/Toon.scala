@@ -7,7 +7,7 @@ import utils.UUID
 
 case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boolean, active: Boolean,
                  cls: Class, spec: Spec, race: Int, gender: Int, level: Int, thumbnail: Option[String], ilvl: Int,
-                 lastUpdate: Instant, invalid: Boolean) {
+                 lastUpdate: Instant, invalid: Boolean, failures: Int) {
 
 	def thumbnailUrl: String = {
 		thumbnail match {
@@ -41,7 +41,8 @@ object Toon {
 		thumbnail = None,
 		ilvl = 0,
 		lastUpdate = Instant.now,
-		invalid = false
+		invalid = false,
+		failures = 0
 	)
 
 	implicit val format: Format[Toon] = Json.format[Toon]
