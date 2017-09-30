@@ -66,10 +66,12 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		val insert = shape forceInsertExpr (uuid, doc, sort, style, title)
 		val action = (insert andThen Fragments.filter(f => f.id === uuid).result.head).transactionally
 
-		action andThen Created
+		(action andThen Created).run andThen {
+			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
+		}
 	}
 
-	def move(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+	def moveFragment(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
 		val source = req.param("source").asUUID
 		val target = req.param("target").asUUID
 		require(source != target)
@@ -105,17 +107,31 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		}
 	}
 
-	def renameFragment(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
-		val fragment = req.param("fragment").asUUID
-		val title = req.param("title").asString
-
+	def renameFragment(doc: UUID, frag: UUID) = ComposerEditAction(parse.text).async { implicit req =>
+		val title = req.body
 		if (title matches """^\s*$""") {
 			UnprocessableEntity("Titre non-acceptable")
 		} else {
-			val action = Fragments.filter(f => f.id === fragment && f.doc === doc).map(_.title).update(title) andThen Ok
+			val action = Fragments.filter(f => f.id === frag && f.doc === doc).map(_.title).update(title) andThen Ok
 			action.run andThen {
 				case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
 			}
+		}
+	}
+
+	def deleteFragment(doc: UUID, frag: UUID) = ComposerEditAction.async { implicit req =>
+		val query = Fragments.filter(f => f.id === frag && f.doc === doc)
+		val maxSort = Fragments.filter(f => f.doc === doc).map(_.sort).max.result
+		(query.result.head zip maxSort).flatMap { case (frag, max) =>
+			val moveActions = (frag.sort + 1 to max.get).map { i =>
+				Fragments.filter(f => f.doc === doc && f.sort === i).map(_.sort).update(i - 1)
+			}
+			DBIO.seq(
+				query.delete,
+				DBIO.sequence(moveActions)
+			).transactionally andThen Ok
+		}.run andThen {
+			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
 		}
 	}
 }

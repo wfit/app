@@ -1,6 +1,6 @@
 package gt.util
 
-import gt.{GuildTools, Toast}
+import gt.{Display, GuildTools, Toast}
 import org.scalajs.dom
 import org.scalajs.dom.experimental.{RequestInit, Response => JSResponse, _}
 import org.scalajs.dom.window.location
@@ -14,6 +14,7 @@ import scala.scalajs.js.typedarray.Uint8Array
 object Http {
 	val defaultHeaders = Map("Gt-Fetch" -> "1")
 	val emptyHeaders = new Headers()
+	val defaultBackground = GuildTools.isWorker
 
 	private def extractHeaders(headers: Headers): Map[String, String] = {
 		var extracted = Map.empty[String, String]
@@ -172,6 +173,7 @@ object Http {
 
 	def fetch[B](url: String, method: HttpMethod, body: B = EmptyBody,
 	             headers: Map[String, String] = Map.empty,
+	             background: Boolean = defaultBackground,
 	             mode: ResponseMode = BufferResponse)
 	            (implicit format: HttpBody[B]): Future[mode.R] = {
 		val composedHeaders = new Headers()
@@ -188,24 +190,32 @@ object Http {
 			"credentials" -> RequestCredentials.include
 		).asInstanceOf[RequestInit]
 
-		mode(Fetch.fetch(fullUrl(url), settings).toFuture)
+		val res = mode(Fetch.fetch(fullUrl(url), settings).toFuture)
+
+		if (background || GuildTools.isWorker) res
+		else {
+			Display.beginLoading()
+			res andThen { case _ => Display.endLoading() }
+		}
 	}
 
-	def get(url: String, headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.GET, EmptyBody, headers, BufferResponse)
+	def get(url: String, headers: Map[String, String] = Map.empty, background: Boolean = defaultBackground): Future[Response] = {
+		fetch(url, HttpMethod.GET, EmptyBody, headers, background, BufferResponse)
 	}
 
-	def delete(url: String, headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.DELETE, EmptyBody, headers, BufferResponse)
+	def delete(url: String, headers: Map[String, String] = Map.empty, background: Boolean = defaultBackground): Future[Response] = {
+		fetch(url, HttpMethod.DELETE, EmptyBody, headers, background, BufferResponse)
 	}
 
 	def post[B: HttpBody](url: String, body: B = EmptyBody,
-	                      headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.POST, body, headers, BufferResponse)
+	                      headers: Map[String, String] = Map.empty,
+	                      background: Boolean = defaultBackground): Future[Response] = {
+		fetch(url, HttpMethod.POST, body, headers, background, BufferResponse)
 	}
 
 	def put[B: HttpBody](url: String, body: B = EmptyBody,
-	                     headers: Map[String, String] = Map.empty): Future[Response] = {
-		fetch(url, HttpMethod.PUT, body, headers, BufferResponse)
+	                     headers: Map[String, String] = Map.empty,
+	                     background: Boolean = defaultBackground): Future[Response] = {
+		fetch(url, HttpMethod.PUT, body, headers, background, BufferResponse)
 	}
 }

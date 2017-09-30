@@ -1,9 +1,7 @@
 package gt.modules.composer
 
-import gt.util.{Http, ViewUtils, WorkerView}
+import gt.util.{ViewUtils, WorkerView}
 import gt.workers.Worker
-import org.scalajs.dom.html
-import play.api.libs.json.Json
 import utils.UUID
 
 class Composer extends Worker with ViewUtils {
@@ -11,15 +9,6 @@ class Composer extends Worker with ViewUtils {
 
 	val sidebar = Worker.local[Sidebar]
 	val fragments = Worker.local[FragmentsList]
-
-	// Fragment creators
-	for (btn <- $$[html.Button](".fragment.new button")) {
-		btn.onclick = { _ => createFragment(btn.getAttribute("data-type")) }
-	}
-
-	def createFragment(style: String): Unit = {
-		Http.post(s"/composer/$doc/create", Json.obj("style" -> style))
-	}
 
 	def receive: Receive = {
 		case None => ???

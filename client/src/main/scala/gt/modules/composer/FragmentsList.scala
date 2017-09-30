@@ -73,6 +73,9 @@ class FragmentsList extends Worker with ViewUtils {
 				      onblur={e: dom.FocusEvent => fragmentTitleBlur(e, fragment)}>
 					{fragment.title}
 				</span>
+				<button class="btn alternate" onclick={() => deleteFragment(fragment)}>
+					<i>delete_forever</i>
+				</button>
 			</h3>
 			<div>
 				{treeForFragment(fragment)}
@@ -136,7 +139,7 @@ class FragmentsList extends Worker with ViewUtils {
 		if (Composer.dragType == "fragment" && Composer.dragFragment != id) {
 			val el = event.currentTarget.asInstanceOf[html.Element]
 			val rect = el.getBoundingClientRect()
-			Http.post(s"/composer/$doc/move", Json.obj(
+			Http.post(s"/composer/$doc/moveFragment", Json.obj(
 				"source" -> Composer.dragFragment,
 				"target" -> id,
 				"position" -> (if (event.clientY - rect.top < rect.height / 2) "before" else "after")
@@ -149,8 +152,9 @@ class FragmentsList extends Worker with ViewUtils {
 	private def fragmentTitleMouseUp(event: MouseEvent): Unit = {
 		val el = event.currentTarget.asInstanceOf[html.Element]
 		if (!el.hasAttribute("contenteditable")) {
+			el.textContent = el.textContent.trim
 			el.setAttribute("contenteditable", "true")
-			el.setAttribute("old-title", el.textContent.trim)
+			el.setAttribute("old-title", el.textContent)
 			el.focus()
 			dom.document.execCommand("selectAll", false)
 		}
@@ -160,6 +164,7 @@ class FragmentsList extends Worker with ViewUtils {
 	private def fragmentTitleKeyDown(event: KeyboardEvent): Unit = {
 		val el = event.currentTarget.asInstanceOf[html.Element]
 		if (event.keyCode == 13) { // Enter
+			event.preventDefault()
 			el.blur()
 		} else if (event.ctrlKey || event.altKey) {
 			event.preventDefault()
@@ -179,16 +184,45 @@ class FragmentsList extends Worker with ViewUtils {
 		if (title matches """^\s*$""") {
 			el.textContent = old
 		} else if (title != old) {
-			Http.post(s"/composer/${fragment.doc}/renameFragment", Json.obj("fragment" -> fragment.id, "title" -> title))
+			Http.post(s"/composer/${ fragment.doc }/${ fragment.id }/rename", title)
 		}
+	}
+
+	/** Deletes a fragment */
+	private def deleteFragment(fragment: Fragment): Unit = {
+		Http.delete(s"/composer/${ fragment.doc }/${ fragment.id }")
 	}
 
 	private val blocks = fragments.map(frags => frags.map(fragmentBlock))
 
-	mount("#composer-main .fragments-mount") {
-		<div class="fragments-list">
-			{blocks}
+	mount("#composer-main") {
+		<div>
+			<div class="fragments-list">
+				{blocks}
+			</div>
+			<div class="new">
+				<h3 class="gray">Nouvelle section</h3>
+				<div class="row">
+					<button class="gray alternate" onclick={() => createFragment("text")}>
+						<i>text_fields</i>
+						Texte
+					</button>
+					<button class="gray alternate" onclick={() => createFragment("group")}>
+						<i>people</i>
+						Groupe
+					</button>
+					<button class="gray alternate" onclick={() => createFragment("grid")}>
+						<i>border_all</i>
+						Grid
+					</button>
+				</div>
+			</div>
 		</div>
+	}
+
+	/** Creates a new fragment */
+	private def createFragment(style: String): Unit = {
+		Http.post(s"/composer/$doc/create", Json.obj("style" -> style))
 	}
 
 	def receive: Receive = {

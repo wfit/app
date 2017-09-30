@@ -37,8 +37,9 @@ GET           /composer/roster                            controllers.ComposerCo
 GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
 POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
 GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)
-POST          /composer/:id/move                          controllers.ComposerController.move(id: utils.UUID)
-POST          /composer/:id/renameFragment                controllers.ComposerController.renameFragment(id: utils.UUID)
+POST          /composer/:id/moveFragment                  controllers.ComposerController.moveFragment(id: utils.UUID)
+POST          /composer/:id/:frag/rename                  controllers.ComposerController.renameFragment(id: utils.UUID, frag: utils.UUID)
+DELETE        /composer/:id/:frag                         controllers.ComposerController.deleteFragment(id: utils.UUID, frag: utils.UUID)
 
 # Roster
 GET           /roster                                     controllers.RosterController.roster
