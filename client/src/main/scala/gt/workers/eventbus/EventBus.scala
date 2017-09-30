@@ -24,10 +24,6 @@ class EventBus extends Worker {
 	private def open(): Unit = {
 		bus = new dom.EventSource("/events/bus")
 
-		bus.onopen = { _: js.Any =>
-			ready = true
-		}
-
 		bus.onmessage = { msg =>
 			Event.fromJson(msg.data.asInstanceOf[String]) match {
 				case e @ Event("eventbus.instanceid") => // Ignore
@@ -37,9 +33,10 @@ class EventBus extends Worker {
 					}
 				case e @ Event("eventbus.streamid") =>
 					uuid = e.data.asInstanceOf[UUID]
+					ready = true
 					val subscriptions = bindings.map { case (c, _) => c }
 					if (subscriptions.nonEmpty) {
-						Http.post("/events/subscribe-all", Json.obj(
+						Http.post("/events/subscribe", Json.obj(
 							"stream" -> uuid,
 							"channels" -> subscriptions.toSeq
 						))

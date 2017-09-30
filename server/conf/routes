@@ -38,6 +38,7 @@ GET           /composer/:id                               controllers.ComposerCo
 POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
 GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)
 POST          /composer/:id/move                          controllers.ComposerController.move(id: utils.UUID)
+POST          /composer/:id/renameFragment                controllers.ComposerController.renameFragment(id: utils.UUID)
 
 # Roster
 GET           /roster                                     controllers.RosterController.roster

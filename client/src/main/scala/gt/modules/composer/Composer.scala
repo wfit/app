@@ -10,7 +10,7 @@ class Composer extends Worker with ViewUtils {
 	val doc = value[String]("document-id")
 
 	val sidebar = Worker.local[Sidebar]
-	val fragments = Worker.local[Fragments]
+	val fragments = Worker.local[FragmentsList]
 
 	// Fragment creators
 	for (btn <- $$[html.Button](".fragment.new button")) {

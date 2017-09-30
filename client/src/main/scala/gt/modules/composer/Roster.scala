@@ -3,7 +3,9 @@ package gt.modules.composer
 import gt.util.Http
 import mhtml.{Rx, Var}
 import models.composer.RosterEntry
+import org.scalajs.dom
 import scala.concurrent.ExecutionContext.Implicits.global
+import utils.UUID
 
 object Roster {
 	private val roster = Var(Seq.empty[RosterEntry])
@@ -57,9 +59,20 @@ object Roster {
 	}
 
 	private def toonsButtons(seq: Seq[RosterEntry]) = seq.map { entry =>
-		<span class="toon" wow-class={entry.toon.cls.id.toString} draggable="true">
+		<span class="toon" wow-class={entry.toon.cls.id.toString} draggable="true"
+		      ondragstart={(e: dom.DragEvent) => toonDragStart(e, entry.toon.uuid)}
+		      ondragend={() => toonDragEnd()}>
 			{entry.toon.name}
 		</span>
+	}
+
+	private def toonDragStart(event: dom.DragEvent, uuid: UUID): Unit = {
+		Composer.dragType = "toon"
+		event.dataTransfer.dropEffect = "copy"
+	}
+
+	private def toonDragEnd(): Unit = {
+		Composer.dragType = null
 	}
 
 	private def altsSections(sections: Seq[(String, Seq[RosterEntry])]) = sections.map { case (range, toons) =>

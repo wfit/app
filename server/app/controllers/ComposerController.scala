@@ -13,16 +13,17 @@ import utils.SlickAPI._
 
 class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	private def ComposerAction = UserAction andThen CheckAcl("composer.access")
+	private def ComposerEditAction = UserAction andThen CheckAcl("composer.access", "composer.edit")
 
 	def composer = ComposerAction.async { implicit req =>
 		Documents.sortBy(doc => doc.updated.desc).result map (docs => Ok(views.html.composer.composer(docs)))
 	}
 
-	def create = ComposerAction { implicit req =>
+	def create = ComposerEditAction { implicit req =>
 		Ok(views.html.composer.create())
 	}
 
-	def createPost = ComposerAction(parse.json).async { implicit req =>
+	def createPost = ComposerEditAction(parse.json).async { implicit req =>
 		val title = req.param("title").asString
 		val doc = Document(UUID.random, title, LocalDateTime.now())
 		(Documents += doc) andThen Redirect(routes.ComposerController.composer())
@@ -51,7 +52,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		Fragments.filter(f => f.doc === doc).sortBy(_.sort).result.map(frags => Ok(Json.toJson(frags)))
 	}
 
-	def createFragment(doc: UUID) = ComposerAction(parse.json).async { implicit req =>
+	def createFragment(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
 		val uuid = UUID.random
 		val sort = Fragments.filter(f => f.doc === doc).map(_.sort).max.getOrElse(0) + 1
 		val style = Fragment.styleFromString(req.param("style").asString)
@@ -68,7 +69,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		action andThen Created
 	}
 
-	def move(doc: UUID) = ComposerAction(parse.json).async { implicit req =>
+	def move(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
 		val source = req.param("source").asUUID
 		val target = req.param("target").asUUID
 		require(source != target)
@@ -76,7 +77,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		val position = req.param("position").asString
 		val frags = Fragments.filter(f => f.doc === doc)
 
-		val locations = for  {
+		val locations = for {
 			sourcePos <- frags.filter(f => f.id === source).map(f => f.sort).result.head
 			targetPos <- frags.filter(f => f.id === target).map(f => f.sort).result.head
 		} yield (sourcePos, targetPos)
@@ -101,6 +102,20 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 		action.transactionally.run andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
+		}
+	}
+
+	def renameFragment(doc: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+		val fragment = req.param("fragment").asUUID
+		val title = req.param("title").asString
+
+		if (title matches """^\s*$""") {
+			UnprocessableEntity("Titre non-acceptable")
+		} else {
+			val action = Fragments.filter(f => f.id === fragment && f.doc === doc).map(_.title).update(title) andThen Ok
+			action.run andThen {
+				case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
+			}
 		}
 	}
 }
