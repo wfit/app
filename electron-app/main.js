@@ -1,4 +1,5 @@
-const {app, dialog, BrowserWindow} = require("electron");
+const {app, dialog, BrowserWindow, Menu, Tray} = require("electron");
+const isReachable = require("is-reachable");
 const load = () => require("./loader");
 
 app.setAppUserModelId("fr.waitforit.app");
@@ -18,7 +19,8 @@ if (isSecondInstance) {
 
 let splash;
 
-let watchdog = setTimeout(() => app.quit(), 60 * 1000);
+let watchdog = null;
+global.startWatchdog = () => watchdog = setTimeout(() => app.quit(), 60 * 1000);
 global.disableWatchdog = () => clearTimeout(watchdog);
 global.closeSplash = () => {
 	if (splash) splash.destroy();
@@ -41,15 +43,8 @@ function updateDialog() {
 	});
 }
 
-app.on("window-all-closed", () => {});
-
-app.on("ready", function () {
-	splash = new BrowserWindow({width: 590, height: 150, frame: false, transparent: true,
-		show: false, skipTaskbar: true, alwaysOnTop: true});
-	splash.setIgnoreMouseEvents(true);
-	splash.loadURL(`file://${__dirname}/splash.html`);
-	splash.once("ready-to-show", () => splash.show());
-
+function loadApp() {
+	global.startWatchdog();
 	if (require("electron-is-dev")) {
 		load();
 	} else {
@@ -60,4 +55,51 @@ app.on("ready", function () {
 		autoUpdater.on("error", errorDialog);
 		autoUpdater.checkForUpdates();
 	}
+}
+
+let tray = null;
+let reachTimeout = null;
+let reachProgress = false;
+
+function checkReachability() {
+	if (reachProgress) return;
+	if (reachTimeout) clearTimeout(reachTimeout);
+	reachTimeout = null;
+	reachProgress = true;
+	console.log("checking reachability");
+	isReachable(global.base).then(reachable => {
+		reachProgress = false;
+		console.log(reachable);
+		if (reachable) {
+			if (tray) {
+				tray.destroy();
+			}
+			loadApp();
+		} else {
+			if (!tray) {
+				global.closeSplash();
+				tray = new Tray(__dirname + "/build/gray.ico");
+				const contextMenu = Menu.buildFromTemplate([
+					{label: "Quitter", role: "quit"}
+				]);
+				tray.setToolTip("Wait For It (Hors ligne)");
+				tray.setContextMenu(contextMenu);
+				tray.on("click", checkReachability);
+			}
+			reachTimeout = setTimeout(checkReachability, 15000);
+		}
+	});
+}
+
+app.on("window-all-closed", () => {});
+
+app.on("ready", function () {
+	splash = new BrowserWindow({width: 590, height: 150, frame: false, transparent: true,
+		show: false, skipTaskbar: true, alwaysOnTop: true});
+	splash.setIgnoreMouseEvents(true);
+	splash.loadURL(`file://${__dirname}/splash.html`);
+	splash.once("ready-to-show", () => splash.show());
+
+	global.base = require("electron-is-dev") ? "http://localhost:9000" : "https://app.wfit.ovh";
+	checkReachability();
 });
