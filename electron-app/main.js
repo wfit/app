@@ -36,6 +36,8 @@ function errorDialog(err) {
 process.on("uncaughtException", errorDialog);
 
 function updateDialog() {
+	global.closeSplash();
+	global.disableWatchdog();
 	dialog.showMessageBox({
 		title: "Mise à jour disponible",
 		message: "Une mise à jour pour l'app Wait For It\nest disponible et va être installée.",
