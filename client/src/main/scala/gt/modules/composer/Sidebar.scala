@@ -20,7 +20,7 @@ class Sidebar extends Worker with ViewUtils {
 
 	def tabSelected(key: String): Rx[Boolean] = tab.map(_ == key)
 
-	private def tabs(items: (String, String)*) = items.map { case (key, icon) =>
+	private def genTabs(items: (String, String)*) = items.map { case (key, icon) =>
 		<li onclick={() => selectTab(key)} selected={tabSelected(key)}>
 			<i>
 				{icon}
@@ -28,13 +28,17 @@ class Sidebar extends Worker with ViewUtils {
 		</li>
 	}
 
+	private val tabs = genTabs(
+		"roster" -> "people",
+		"slacks" -> "flash_on",
+		"wishes" -> "star",
+		"check" -> "lightbulb_outline"
+	)
+
 	mount("#composer-sidebar .tabs-container") {
-		<ul class="tabs">{tabs(
-			"roster" -> "people",
-			"slacks" -> "flash_on",
-			"wishes" -> "star",
-			"check" -> "lightbulb_outline"
-		)}</ul>
+		<ul class="tabs">
+			{tabs}
+		</ul>
 	}
 
 	val tree = tab.map {
