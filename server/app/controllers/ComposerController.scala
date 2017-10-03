@@ -9,6 +9,7 @@ import models.composer._
 import play.api.libs.json.Json
 import services.EventBus
 import utils.UUID
+import utils.JsonFormats._
 import utils.SlickAPI._
 
 class ComposerController @Inject() (eventBus: EventBus) extends AppController {
@@ -132,6 +133,24 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 			).transactionally andThen Ok
 		}.run andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
+		}
+	}
+
+	def getSlots(doc: UUID, frag: UUID) = ComposerEditAction.async { implicit req =>
+		GroupSlots.filter(gs => gs.fragment === frag)
+			.joinLeft(Toons).on((gs, t) => gs.toon === t.uuid)
+			.result
+			.map(res => Ok(Json.toJson(res)))
+	}
+
+	def setGroupSlot(doc: UUID, frag: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+		val toon = req.param("toon").asUUID
+		val tier = req.param("tier").asInt
+		Toons.filter(t => t.uuid === toon).result.head.flatMap { toonData =>
+			val slot = GroupSlot(frag, UUID.random, tier, Some(toon), toonData.name, toonData.spec.role, toonData.cls)
+			GroupSlots insertOrUpdate slot andThen Ok
+		}.transactionally.run andThen {
+			case _ => eventBus.publish(s"composer:$doc:fragment.update", frag)
 		}
 	}
 }

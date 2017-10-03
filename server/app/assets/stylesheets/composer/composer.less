@@ -123,10 +123,21 @@
 }
 
 .group-fragment {
-	.fake-group {
+	.tier {
+		min-height: 27px;
+		margin-top: 6px;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&.hover {
+			outline: 1px dotted #dd1f20;
+		}
+	}
+
+	.fake {
 		display: none;
-		height: 24px;
-		border: 1px dotted #dd1f20;
 
 		.drag-toon & {
 			display: block;

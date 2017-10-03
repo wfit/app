@@ -22,6 +22,9 @@ class FragmentsList extends Worker with ViewUtils {
 	val RefreshEventKey = s"composer:$doc:fragments.refresh"
 	EventBus.subscribe(RefreshEventKey)
 
+	val UpdateEventKey = s"composer:$doc:fragment.update"
+	EventBus.subscribe(UpdateEventKey)
+
 	// The sequence of fragments of this document
 	val fragments = Var(Seq.empty[Fragment])
 	refreshFragments()
@@ -46,11 +49,13 @@ class FragmentsList extends Worker with ViewUtils {
 	/** The DOM tree for a given fragment */
 	private def treeForFragment(fragment: Fragment): Elem = {
 		fragmentTreeCache.getOrElseUpdate(fragment.id, {
-			fragment.style match {
+			val instance = fragment.style match {
 				case Fragment.Text => Text(fragment)
 				case Fragment.Group => Group(fragment)
 				case Fragment.Grid => Grid(fragment)
 			}
+			instance.refresh()
+			instance
 		}).tree
 	}
 
@@ -224,6 +229,11 @@ class FragmentsList extends Worker with ViewUtils {
 	}
 
 	def receive: Receive = {
-		case RefreshEventKey ~ _ => refreshFragments()
+		case RefreshEventKey ~ _ =>
+			refreshFragments()
+
+		case UpdateEventKey ~ (fragment: UUID) =>
+			for (f <- fragmentTreeCache.get(fragment))
+				f.refresh()
 	}
 }

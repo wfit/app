@@ -18,4 +18,5 @@ class Composer extends Worker with ViewUtils {
 object Composer extends WorkerView[Composer] {
 	var dragType = ""
 	var dragFragment = UUID.zero
+	var dragToon = UUID.zero
 }

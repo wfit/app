@@ -68,11 +68,13 @@ object Roster {
 
 	private def toonDragStart(event: dom.DragEvent, uuid: UUID): Unit = {
 		Composer.dragType = "toon"
+		Composer.dragToon = uuid
 		event.dataTransfer.dropEffect = "copy"
 	}
 
 	private def toonDragEnd(): Unit = {
 		Composer.dragType = null
+		Composer.dragToon = UUID.zero
 	}
 
 	private def altsSections(sections: Seq[(String, Seq[RosterEntry])]) = sections.map { case (range, toons) =>

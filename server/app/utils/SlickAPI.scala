@@ -5,7 +5,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, ZoneOffset}
 import java.util.{UUID => JUUID}
 import javax.inject.Inject
 import models.composer.Fragment
-import models.wow.{Class, Spec}
+import models.wow.{Class, Role, Spec}
 import org.apache.commons.codec.binary.Hex
 import play.api.db.slick.DatabaseConfigProvider
 import scala.concurrent.{ExecutionContext, Future}
@@ -74,6 +74,11 @@ object SlickAPI extends MySQLProfile.API {
 	implicit val specColumnType: BaseColumnType[Spec] = MappedColumnType.base[Spec, Int](
 		spec => spec.id,
 		Spec.fromId
+	)
+
+	implicit val roleColumnType: BaseColumnType[Role] = MappedColumnType.base[Role, String](
+		role => role.key,
+		Role.fromString
 	)
 
 	implicit val fragmentStyleColumnType: BaseColumnType[Fragment.Style] = MappedColumnType.base[Fragment.Style, String](
