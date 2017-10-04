@@ -9,3 +9,4 @@ pv -N upload -i 0.1 -pter stage.tar.gz | ssh debian@app.wfit.ovh "
 	docker stop wfit-server && docker rm -f wfit-server;
 	docker run -d --name wfit-server --restart unless-stopped -p 127.0.0.1:9000:9000 --env-file /home/debian/env wfit-server:latest;
 	docker image prune -f;"
+rm stage.tar.gz
