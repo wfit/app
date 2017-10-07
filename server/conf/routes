@@ -41,7 +41,8 @@ POST          /composer/:id/moveFragment                  controllers.ComposerCo
 POST          /composer/:id/:frag/rename                  controllers.ComposerController.renameFragment(id: utils.UUID, frag: utils.UUID)
 DELETE        /composer/:id/:frag                         controllers.ComposerController.deleteFragment(id: utils.UUID, frag: utils.UUID)
 GET           /composer/:id/:frag/slots                   controllers.ComposerController.getSlots(id: utils.UUID, frag: utils.UUID)
-POST          /composer/:id/:frag/slots                   controllers.ComposerController.setGroupSlot(id: utils.UUID, frag: utils.UUID)
+POST          /composer/:id/:frag/slots                   controllers.ComposerController.setSlot(id: utils.UUID, frag: utils.UUID)
+DELETE        /composer/:id/:frag/:slot                   controllers.ComposerController.deleteSlot(id: utils.UUID, frag: utils.UUID, slot: utils.UUID)
 
 # Roster
 GET           /roster                                     controllers.RosterController.roster

@@ -58,7 +58,7 @@ object Roster {
 		list :+ (ilvlRangeLabel(0, lastIlvl), last)
 	}
 
-	private def toonsButtons(seq: Seq[RosterEntry]) = seq.map { entry =>
+	private def toonsButtons(seq: Seq[RosterEntry]) = seq.sortBy(_.toon)(Composer.StandardToonOrdering).map { entry =>
 		<span class="toon" wow-class={entry.toon.cls.id.toString} draggable="true"
 		      ondragstart={(e: dom.DragEvent) => toonDragStart(e, entry.toon.uuid)}
 		      ondragend={() => toonDragEnd()}>
@@ -69,7 +69,6 @@ object Roster {
 	private def toonDragStart(event: dom.DragEvent, uuid: UUID): Unit = {
 		Composer.dragType = "toon"
 		Composer.dragToon = uuid
-		event.dataTransfer.dropEffect = "copy"
 	}
 
 	private def toonDragEnd(): Unit = {

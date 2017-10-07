@@ -25,9 +25,16 @@ class FragmentsList extends Worker with ViewUtils {
 	val UpdateEventKey = s"composer:$doc:fragment.update"
 	EventBus.subscribe(UpdateEventKey)
 
+	/** A cache of fragment implementations instances */
+	private val fragmentTreeCache = mutable.Map.empty[UUID, FragmentTree]
+
 	// The sequence of fragments of this document
 	val fragments = Var(Seq.empty[Fragment])
 	refreshFragments()
+
+	private val fragmentsGcBinding = fragments.impure.foreach { frags =>
+		fragmentTreeCache --= (fragmentTreeCache.keySet diff frags.map(f => f.id).toSet)
+	}
 
 	/** Refreshes the fragment list */
 	def refreshFragments(): Unit = {
@@ -42,9 +49,6 @@ class FragmentsList extends Worker with ViewUtils {
 		case Fragment.Group => "people"
 		case Fragment.Grid => "border_all"
 	}
-
-	/** A cache of fragment implementations instances */
-	private val fragmentTreeCache = mutable.Map.empty[UUID, FragmentTree]
 
 	/** The DOM tree for a given fragment */
 	private def treeForFragment(fragment: Fragment): Elem = {
@@ -67,16 +71,19 @@ class FragmentsList extends Worker with ViewUtils {
 		     ondragover={e: dom.DragEvent => fragmentDragOver(e, fragment.id)}
 		     ondragleave={e: dom.DragEvent => fragmentDragLeave(e, counter)}
 		     ondrop={(e: dom.DragEvent) => fragmentDragDrop(e, counter, fragment.id)}>
-			<h3 draggable="true"
-			    ondragstart={e: dom.DragEvent => fragmentDragStart(e, fragment.id)}
-			    ondragend={() => fragmentDragEnd()}>
-				<i>
-					{fragmentIcon(fragment.style)}
-				</i>
-				<span onmouseup={e: dom.MouseEvent => fragmentTitleMouseUp(e)}
-				      onkeydown={e: dom.KeyboardEvent => fragmentTitleKeyDown(e)}
-				      onblur={e: dom.FocusEvent => fragmentTitleBlur(e, fragment)}>
-					{fragment.title}
+			<h3>
+				<i class="focus">remove_red_eye</i>
+				<span draggable="true"
+				      ondragstart={e: dom.DragEvent => fragmentDragStart(e, fragment.id)}
+				      ondragend={() => fragmentDragEnd()}>
+					<i>
+						{fragmentIcon(fragment.style)}
+					</i>
+					<span onmouseup={e: dom.MouseEvent => fragmentTitleMouseUp(e)}
+					      onkeydown={e: dom.KeyboardEvent => fragmentTitleKeyDown(e)}
+					      onblur={e: dom.FocusEvent => fragmentTitleBlur(e, fragment)}>
+						{fragment.title}
+					</span>
 				</span>
 				<button class="btn alternate" onclick={() => deleteFragment(fragment)}>
 					<i>delete_forever</i>
@@ -106,7 +113,7 @@ class FragmentsList extends Worker with ViewUtils {
 		val el = event.currentTarget.asInstanceOf[html.Element]
 		if (Composer.dragType == "fragment") {
 			event.preventDefault()
-		} else if (Composer.dragType == "toon") {
+		} else if (Composer.dragType == "toon" || Composer.dragType == "slot") {
 			el.classList.add("drag-toon")
 		}
 	}
@@ -235,5 +242,9 @@ class FragmentsList extends Worker with ViewUtils {
 		case UpdateEventKey ~ (fragment: UUID) =>
 			for (f <- fragmentTreeCache.get(fragment))
 				f.refresh()
+	}
+
+	override def onTerminate(): Unit = {
+		fragmentsGcBinding.cancel
 	}
 }

@@ -7,7 +7,9 @@ import models.{Toons, Users}
 import models.acl.AclView
 import models.composer._
 import play.api.libs.json.Json
+import scala.util.Success
 import services.EventBus
+import slick.jdbc.TransactionIsolation
 import utils.UUID
 import utils.JsonFormats._
 import utils.SlickAPI._
@@ -45,7 +47,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	def document(id: UUID) = ComposerAction.async { implicit req =>
 		Documents.filter(doc => doc.id === id).result.headOption map {
 			case Some(doc) => Ok(views.html.composer.document(doc))
-			case None => NotFound("Document non-existant")
+			case None => NotFound("Ce document n'existe pas")
 		}
 	}
 
@@ -136,20 +138,81 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		}
 	}
 
+	private def validFragmentsForDoc(doc: UUID): Query[Rep[UUID], UUID, Seq] = {
+		Fragments.filter(f => f.doc === doc).map(_.id)
+	}
+
+	private def slotMatching(doc: UUID, frag: UUID)(s: Slots): Rep[Boolean] = {
+		s.fragment === frag && (s.fragment in Fragments.filter(f => f.doc === doc).map(_.id))
+	}
+
+	private def slotsForDocAndFrag(doc: UUID, frag: UUID): Query[Slots, Slot, Seq] = {
+		Slots.filter(slotMatching(doc, frag))
+	}
+
 	def getSlots(doc: UUID, frag: UUID) = ComposerEditAction.async { implicit req =>
-		GroupSlots.filter(gs => gs.fragment === frag)
+		slotsForDocAndFrag(doc, frag)
 			.joinLeft(Toons).on((gs, t) => gs.toon === t.uuid)
 			.result
 			.map(res => Ok(Json.toJson(res)))
 	}
 
-	def setGroupSlot(doc: UUID, frag: UUID) = ComposerEditAction(parse.json).async { implicit req =>
-		val toon = req.param("toon").asUUID
-		val tier = req.param("tier").asInt
-		Toons.filter(t => t.uuid === toon).result.head.flatMap { toonData =>
-			val slot = GroupSlot(frag, UUID.random, tier, Some(toon), toonData.name, toonData.spec.role, toonData.cls)
-			GroupSlots insertOrUpdate slot andThen Ok
-		}.transactionally.run andThen {
+	def setSlot(doc: UUID, frag: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+		// Get target slot `row` and `col` values, col can be null
+		val row = req.param("row").asInt
+		val col = req.param("col").asOpt[Int]
+
+		// The request should include either a `toon` property or a `slot` indicating
+		// the source of data for this slot. If a toon was given, a new slot is created
+		// based on the toons attributes. If a slot was given, the slot is updated.
+		(req.param("toon").asOpt[UUID] match {
+			case Some(toonUUID) =>
+				Toons.filter(t => t.uuid === toonUUID).result.head.map { toon =>
+					(Some(toon.uuid), toon.name, toon.spec.role, toon.cls, None, None)
+				}
+			case None =>
+				Slots.filter(s => s.fragment in validFragmentsForDoc(doc))
+					.filter(s => s.id === req.param("slot").asUUID)
+					.forUpdate.result.head
+					.map { slot =>
+						(slot.toon, slot.name, slot.role, slot.cls, Some(slot.id), Some(slot.fragment))
+					}
+		}).flatMap { case (toon, name, role, cls, id, source) =>
+			// Only manipulate slots owned by the target fragment
+			val slots = Slots.filter(s => s.fragment === frag)
+
+			// Remove slot with duplicate toon
+			val duplicateToonRemove = toon match {
+				case Some(uuid) => slots.filter(cs => cs.toon === uuid).delete
+				case None => DBIO.successful(0)
+			}
+
+			// Remove slot with duplicate location
+			val duplicateLocationRemove = (row, col) match {
+				case (r, Some(c)) => slots.filter(cs => cs.row === r && cs.col === c).delete
+				case _ => DBIO.successful(0)
+			}
+
+			// Insert the new slot in the database
+			val copy = req.param("copy").asOpt[Boolean] getOrElse false
+			val slotId = id filterNot (_ => copy) getOrElse UUID.random
+			val slotInsert = Slots insertOrUpdate Slot(
+				slotId, frag, row, col getOrElse -1,
+				toon, name, role, cls
+			)
+
+			// The whole operation
+			duplicateToonRemove andThen duplicateLocationRemove andThen slotInsert andThen source
+		}.transactionally.withTransactionIsolation(TransactionIsolation.Serializable).run andThen {
+			case Success(source) =>
+				eventBus.publish(s"composer:$doc:fragment.update", frag)
+				for (s <- source) eventBus.publish(s"composer:$doc:fragment.update", s)
+		} map (_ => Ok)
+	}
+
+	def deleteSlot(doc: UUID, frag: UUID, slot: UUID) = ComposerEditAction.async { implicit req =>
+		val action = slotsForDocAndFrag(doc, frag).filter(s => s.id === slot).delete andThen Ok
+		action.run andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragment.update", frag)
 		}
 	}

@@ -4,10 +4,7 @@
 @view(doc.title, "composer", "gt.modules.composer.Composer", styles = Seq("composer/composer")) {
 	@value("document-id", doc.id)
 	<div class="layout-columns">
-		<div class="column" id="composer-sidebar">
-			<div class="tabs-container"></div>
-			<div class="flex content"></div>
-		</div>
+		<div class="column" id="composer-sidebar"></div>
 		<div class="flex fragments-mount" id="composer-main"></div>
 	</div>
 }
