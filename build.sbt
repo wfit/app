@@ -38,9 +38,9 @@ lazy val server = (project in file("server"))
 			"com.vmunier" %% "scalajs-scripts" % "1.1.1",
 			"org.mindrot" % "jbcrypt" % "0.4",
 			"com.typesafe.slick" %% "slick" % "3.2.1",
-			"com.typesafe.play" %% "play-slick" % "3.0.1",
-			"mysql" % "mysql-connector-java" % "5.1.23",
-			"org.ocpsoft.prettytime" % "prettytime" % "3.2.7.Final"
+			"com.typesafe.play" %% "play-slick" % "3.0.2",
+			"org.mariadb.jdbc" % "mariadb-java-client" % "2.1.2",
+			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final"
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
