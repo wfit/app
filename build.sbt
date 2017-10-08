@@ -51,10 +51,8 @@ lazy val server = (project in file("server"))
 		excludeFilter in (Assets, LessKeys.less) := "_*.less",
 		TwirlKeys.templateImports ++= Seq(
 			"_root_.controllers.base._",
-			"_root_.utils._",
-			"_root_.utils.Timeago.Implicitly"
-		),
-		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500)
+			"_root_.utils._"
+		)
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)
