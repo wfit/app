@@ -34,7 +34,9 @@ abstract class Worker {
 	protected final implicit val executionContext: ExecutionContext = ExecutionContext.global
 
 	// Worker settings
-	private val (fqcn: String, uuid: UUID, parent: WorkerRef) = Worker.newWorkerProperties.value
+	require(Worker.newWorkerProperties.value != Worker.dummyWorkerInitializer,
+		"Worker constructed directly without calling spawn[] or local[].")
+	private val (fqcn, uuid: UUID, parent) = Worker.newWorkerProperties.value
 
 	// References
 	implicit protected val self: WorkerRef.Local = new WorkerRef.Local(uuid)
@@ -133,6 +135,12 @@ abstract class Worker {
 }
 
 object Worker {
+	/** A dummy worker that does not receive messages,
+	  * use that when interested by life-cycles events */
+	abstract class Dummy extends Worker {
+		def receive: Receive = { case _ => ??? }
+	}
+
 	// CHILDREN
 
 	private sealed trait ChildWorker
@@ -282,5 +290,6 @@ object Worker {
 		}
 	}
 
-	private val newWorkerProperties = new DynamicVariable[(String, UUID, WorkerRef)]((null, UUID.zero, WorkerRef.NoWorker))
+	private val dummyWorkerInitializer = (null: String, UUID.zero, WorkerRef.NoWorker)
+	private val newWorkerProperties = new DynamicVariable[(String, UUID, WorkerRef)](dummyWorkerInitializer)
 }
