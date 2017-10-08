@@ -1,6 +1,6 @@
 package gt.modules.composer.fragments
 
-import gt.modules.composer.Composer
+import gt.modules.composer.Editor
 import gt.util.Http
 import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
@@ -36,7 +36,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	private val fakeTier = maxTier.map(_ + 1)
 
 	private val slotsByTier = (tiers product maxTier).map { case (ts, max) =>
-		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(Composer.StandardSlotToonOrdering)).zipWithIndex
+		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(Editor.StandardSlotToonOrdering)).zipWithIndex
 	}
 
 	private def slotsTree(slots: Seq[(Slot, Option[Toon])]) = slots.map { case (slot, toon) =>
@@ -72,21 +72,21 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	}
 
 	def dragStart(e: DragEvent, slot: Slot): Unit = {
-		Composer.dragType = "slot"
-		Composer.dragSlot = slot
+		Editor.dragType = "slot"
+		Editor.dragSlot = slot
 	}
 
 	private def dragEnd(): Unit = {
-		Composer.dragType = null
-		Composer.dragSlot = null
+		Editor.dragType = null
+		Editor.dragSlot = null
 	}
 
 	private def acceptableSlot(tier: Int): Boolean = {
-		Composer.dragType == "slot" && (Composer.dragSlot.fragment != fragment.id || Composer.dragSlot.row != tier)
+		Editor.dragType == "slot" && (Editor.dragSlot.fragment != fragment.id || Editor.dragSlot.row != tier)
 	}
 
 	private def acceptableDrag(tier: Int): Boolean = {
-		Composer.dragType == "toon" || acceptableSlot(tier)
+		Editor.dragType == "toon" || acceptableSlot(tier)
 	}
 
 	private def dragEnter(e: dom.DragEvent, counter: AtomicInteger, tier: Int): Unit = {
@@ -109,8 +109,8 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	private def dragOver(e: dom.DragEvent, tier: Int): Unit = {
 		if (acceptableDrag(tier)) {
 			e.preventDefault()
-			e.dataTransfer.dropEffect = Composer.dragType match {
-				case "slot" if !e.ctrlKey || Composer.dragSlot.fragment == fragment.id => "move"
+			e.dataTransfer.dropEffect = Editor.dragType match {
+				case "slot" if !e.ctrlKey || Editor.dragSlot.fragment == fragment.id => "move"
 				case _ => "copy"
 			}
 		}
@@ -119,9 +119,9 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	private def dragDrop(e: dom.DragEvent, counter: AtomicInteger, tier: Int): Unit = {
 		if (acceptableDrag(tier)) {
 			e.preventDefault()
-			Http.post(s"/composer/${ fragment.doc }/${ fragment.id }/slots", Composer.dragType match {
-				case "toon" => Json.obj("toon" -> Composer.dragToon, "row" -> tier)
-				case "slot" => Json.obj("slot" -> Composer.dragSlot.id, "row" -> tier, "copy" -> e.ctrlKey)
+			Http.post(s"/composer/${ fragment.doc }/${ fragment.id }/slots", Editor.dragType match {
+				case "toon" => Json.obj("toon" -> Editor.dragToon, "row" -> tier)
+				case "slot" => Json.obj("slot" -> Editor.dragSlot.id, "row" -> tier, "copy" -> e.ctrlKey)
 			})
 		}
 		dragLeave(e, counter, drop = true)

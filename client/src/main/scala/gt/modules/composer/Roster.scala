@@ -58,7 +58,7 @@ object Roster {
 		list :+ (ilvlRangeLabel(0, lastIlvl), last)
 	}
 
-	private def toonsButtons(seq: Seq[RosterEntry]) = seq.sortBy(_.toon)(Composer.StandardToonOrdering).map { entry =>
+	private def toonsButtons(seq: Seq[RosterEntry]) = seq.sortBy(_.toon)(Editor.StandardToonOrdering).map { entry =>
 		<span class="toon" wow-class={entry.toon.cls.id.toString} draggable="true" tooltip="true"
 		      picked={FragmentsList.members.map(_ contains entry.toon.uuid)}
 		      ondragstart={(e: dom.DragEvent) => toonDragStart(e, entry.toon.uuid)}
@@ -77,13 +77,13 @@ object Roster {
 	}
 
 	private def toonDragStart(event: dom.DragEvent, uuid: UUID): Unit = {
-		Composer.dragType = "toon"
-		Composer.dragToon = uuid
+		Editor.dragType = "toon"
+		Editor.dragToon = uuid
 	}
 
 	private def toonDragEnd(): Unit = {
-		Composer.dragType = null
-		Composer.dragToon = UUID.zero
+		Editor.dragType = null
+		Editor.dragToon = UUID.zero
 	}
 
 	private def altsSections(sections: Seq[(String, Seq[RosterEntry])]) = sections.map { case (range, toons) =>

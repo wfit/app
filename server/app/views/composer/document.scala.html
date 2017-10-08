@@ -1,10 +1,16 @@
 @import models.composer.Document
-@(doc: Document)(implicit request: UserRequest[_])
+@(doc: Document, frags: Seq[Html])(implicit req: UserRequest[_])
 
-@view(doc.title, "composer", "gt.modules.composer.Composer", styles = Seq("composer/composer")) {
-	@value("document-id", doc.id)
-	<div class="layout-columns">
-		<div class="column" id="composer-sidebar"></div>
-		<div class="flex fragments-mount" id="composer-main"></div>
+<div class="row">
+	<div class="flex">
+		<h3 style="margin: 0;">@doc.title</h3>
+		<div class="gray">@Timeago.format(doc.updated).capitalize</div>
 	</div>
-}
+	@if(req.acl.can("composer.edit")) {
+		<a class="btn alternate" @href(routes.ComposerController.editor(doc.id))>Renommer</a>
+		<a class="btn" @href(routes.ComposerController.editor(doc.id))>Editer</a>
+	}
+</div>
+<div class="column">
+	@frags
+</div>

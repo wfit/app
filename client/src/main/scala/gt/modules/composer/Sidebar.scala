@@ -68,14 +68,14 @@ class Sidebar extends Worker with ViewUtils {
 
 	private def dragEnter(e: DragEvent): Unit = {
 		dndCounter.incrementAndGet()
-		if (Composer.dragType == "slot") {
+		if (Editor.dragType == "slot") {
 			e.preventDefault()
 			trashVisible := true
 		}
 	}
 
 	private def dragOver(e: DragEvent): Unit = {
-		if (Composer.dragType == "slot") {
+		if (Editor.dragType == "slot") {
 			e.preventDefault()
 			e.dataTransfer.dropEffect = "move"
 		}
@@ -89,9 +89,9 @@ class Sidebar extends Worker with ViewUtils {
 	}
 
 	private def drop(e: DragEvent): Unit = {
-		if (Composer.dragType == "slot") {
-			val frag = Composer.dragSlot.fragment
-			val slot = Composer.dragSlot.id
+		if (Editor.dragType == "slot") {
+			val frag = Editor.dragSlot.fragment
+			val slot = Editor.dragSlot.id
 			Http.delete(s"/composer/$doc/$frag/$slot")
 		}
 		dragLeave(e, true)

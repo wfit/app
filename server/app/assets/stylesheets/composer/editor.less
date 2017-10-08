@@ -1,0 +1,195 @@
+
+#composer-sidebar {
+	width: 366px;
+	position: relative;
+
+	.tabs {
+		text-align: center;
+		margin: -24px -24px 0 -24px;
+		padding: 12px 24px;
+		box-shadow: 0 0 10px fade(#000, 75%);
+		z-index: 2;
+
+		li {
+			font-size: 21px;
+			display: inline-block;
+			padding: 0 16px;
+			opacity: 0.5;
+
+			i {
+				padding: 6px 2px 6px 2px;
+				border-bottom: 2px solid transparent;
+			}
+
+			&:hover, &[selected] {
+				opacity: 1;
+				cursor: pointer;
+			}
+
+			&[selected] i {
+				border-color: #dd1f20;
+			}
+		}
+	}
+
+	.content {
+		margin: 0 -24px -24px -24px;
+		position: relative;
+		z-index: 1;
+
+		& > div {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			padding: 24px 24px 24px 24px;
+			overflow: auto;
+		}
+	}
+
+	.trash {
+		display: flex;
+		z-index: 5;
+		align-items: center;
+		justify-content: center;
+		transform: scale(0);
+		opacity: 0;
+		transition: opacity .2s ease-out;
+		will-change: opacity, transform;
+
+		&[visible] {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		i {
+			display: block;
+			padding: 32px;
+			font-size: 84px;
+			background: rgba(17, 17, 17, 0.75);
+			border-radius: 16px;
+		}
+	}
+
+	#composer-sidebar-roster {
+		.toons {
+			margin-left: -4px;
+		}
+
+		h4 {
+			margin: 8px 0;
+		}
+
+		.toon {
+			width: 100px;
+			margin-left: 4px;
+
+			&[picked] {
+				opacity: 0.4;
+			}
+		}
+	}
+}
+
+#composer-main {
+	margin: -12px 0;
+
+	.fragment {
+		padding: 12px 0;
+
+		h3 {
+			display: flex;
+			align-items: center;
+			height: 22px;
+
+			& > i, & > span > i {
+				margin-right: 8px;
+			}
+
+			.focus {
+				opacity: 0.3;
+				&:hover {
+					opacity: 0.6;
+				}
+				&[focused] {
+					color: #dd1f20;
+					opacity: 1;
+				}
+			}
+
+			span {
+				flex: 1;
+			}
+
+			button {
+				font-size: 16px;
+				opacity: 0.3;
+
+				i { margin: 0; }
+				&:hover { opacity: 1; }
+			}
+		}
+
+		&.drag-before {
+			box-shadow: inset 0 15px 15px -10px fade(#dd1f20, 50%);
+		}
+
+		&.drag-after {
+			box-shadow: inset 0 -15px 15px -10px fade(#dd1f20, 50%);
+		}
+	}
+
+	.new {
+		padding: 12px 0;
+
+		button {
+			flex: 1;
+			font-size: 16px;
+			display: block;
+			padding: 24px 24px 18px 24px;
+
+			i {
+				font-size: 24px;
+				display: block;
+				margin: 0 0 16px 0;
+			}
+
+			&:hover {
+				color: #eeeeee;
+			}
+		}
+	}
+}
+
+.group-fragment {
+	.tier {
+		min-height: 27px;
+		margin-top: 6px;
+		margin-left: -4px;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		&.hover {
+			outline: 1px dotted #dd1f20;
+		}
+
+		span {
+			margin-left: 4px;
+		}
+
+		.toon[duplicate] {
+			outline: 1px solid fade(#dd1f20, 70%);
+		}
+	}
+
+	.fake {
+		display: none;
+
+		.drag-toon & {
+			display: block;
+		}
+	}
+}

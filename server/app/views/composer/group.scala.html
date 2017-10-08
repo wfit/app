@@ -1,0 +1,17 @@
+@import models.composer.{Fragment, Slot}
+@(fragment: Fragment, slots: Seq[Slot])
+
+<div class="fragment-group">
+	<h3><i>people</i> @fragment.title</h3>
+	<div class="tiers">
+	@for(ss <- slots.groupBy(_.row).toSeq.sortBy(_._1).map(_._2)) {
+		<div class="tier">
+		@for(slot <- ss) {
+			<span class="toon" wow-class="@slot.cls.id">
+			@slot.name
+			</span>
+		}
+		</div>
+	}
+	</div>
+</div>

@@ -116,23 +116,23 @@ class FragmentsList extends Worker with ViewUtils {
 
 	/** A fragment starts being dragged */
 	private def fragmentDragStart(event: dom.DragEvent, id: UUID): Unit = {
-		Composer.dragType = "fragment"
-		Composer.dragFragment = id
+		Editor.dragType = "fragment"
+		Editor.dragFragment = id
 		event.dataTransfer.dropEffect = "move"
 	}
 
 	/** A fragment stops being dragged */
 	private def fragmentDragEnd(): Unit = {
-		Composer.dragType = null
+		Editor.dragType = null
 	}
 
 	/** Something started being dragged over a fragment */
 	private def fragmentDragEnter(event: dom.DragEvent, counter: AtomicInteger, id: UUID): Unit = {
 		counter.incrementAndGet()
 		val el = event.currentTarget.asInstanceOf[html.Element]
-		if (Composer.dragType == "fragment") {
+		if (Editor.dragType == "fragment") {
 			event.preventDefault()
-		} else if (Composer.dragType == "toon" || Composer.dragType == "slot") {
+		} else if (Editor.dragType == "toon" || Editor.dragType == "slot") {
 			el.classList.add("drag-toon")
 		}
 	}
@@ -140,7 +140,7 @@ class FragmentsList extends Worker with ViewUtils {
 	/** Something is being dragged over a fragment */
 	private def fragmentDragOver(event: dom.DragEvent, id: UUID): Unit = {
 		val el = event.currentTarget.asInstanceOf[html.Element]
-		if (Composer.dragType == "fragment" && Composer.dragFragment != id) {
+		if (Editor.dragType == "fragment" && Editor.dragFragment != id) {
 			event.preventDefault()
 			val rect = el.getBoundingClientRect()
 			val y = event.clientY - rect.top
@@ -167,11 +167,11 @@ class FragmentsList extends Worker with ViewUtils {
 
 	/** Something was dropped over a fragment */
 	private def fragmentDragDrop(event: dom.DragEvent, counter: AtomicInteger, id: UUID): Unit = {
-		if (Composer.dragType == "fragment" && Composer.dragFragment != id) {
+		if (Editor.dragType == "fragment" && Editor.dragFragment != id) {
 			val el = event.currentTarget.asInstanceOf[html.Element]
 			val rect = el.getBoundingClientRect()
 			Http.post(s"/composer/$doc/moveFragment", Json.obj(
-				"source" -> Composer.dragFragment,
+				"source" -> Editor.dragFragment,
 				"target" -> id,
 				"position" -> (if (event.clientY - rect.top < rect.height / 2) "before" else "after")
 			))

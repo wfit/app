@@ -35,6 +35,7 @@ GET           /composer/create                            controllers.ComposerCo
 POST          /composer/create                            controllers.ComposerController.createPost
 GET           /composer/roster                            controllers.ComposerController.roster
 GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
+GET           /composer/:id/editor                        controllers.ComposerController.editor(id: utils.UUID)
 POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
 GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)
 POST          /composer/:id/moveFragment                  controllers.ComposerController.moveFragment(id: utils.UUID)
