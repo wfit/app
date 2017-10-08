@@ -41,6 +41,7 @@ object Tooltip {
 						currentTooltip = tooltip
 						anchor.addEventListener("mousemove", moveListener, useCapture = true)
 						anchor.addEventListener("mouseleave", leaveListener, useCapture = true)
+						anchor.addEventListener("mousedown", leaveListener, useCapture = true)
 						tooltip.classList.add("visible")
 						move(event)
 					}
@@ -62,6 +63,7 @@ object Tooltip {
 		currentAnchor.classList.remove("tooltip-current-anchor")
 		currentAnchor.removeEventListener("mousemove", moveListener, useCapture = true)
 		currentAnchor.removeEventListener("mouseleave", leaveListener, useCapture = true)
+		currentAnchor.removeEventListener("mousedown", leaveListener, useCapture = true)
 		currentAnchor = null
 
 		currentTooltip.classList.remove("visible")

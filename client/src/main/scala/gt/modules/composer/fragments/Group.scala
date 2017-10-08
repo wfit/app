@@ -11,13 +11,18 @@ import org.scalajs.dom.{html, DragEvent}
 import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
+import utils.UUID
 import utils.JsonFormats._
 
 case class Group (fragment: Fragment) extends FragmentTree {
 	private val slots = Var(Seq.empty[(Slot, Option[Toon])])
 
-	val members: Rx[Set[Toon]] = slots.map { ss =>
-		ss.collect { case (_, Some(toon)) => toon }.toSet
+	val members: Rx[Set[UUID]] = slots.map { ss =>
+		ss.collect { case (_, Some(toon)) => toon.uuid }.toSet
+	}
+
+	val ownersCount: Rx[Map[UUID, Int]] = slots.map { ss =>
+		ss.collect { case (_, Some(toon)) => toon.owner }.groupBy(identity).map { case (k, v) => (k, v.size) }
 	}
 
 	private val tiers = slots.map { ss =>
@@ -36,6 +41,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 
 	private def slotsTree(slots: Seq[(Slot, Option[Toon])]) = slots.map { case (slot, toon) =>
 		<span class="toon" wow-class={slot.cls.id.toString} draggable="true"
+		      duplicate={ownersCount.map(oc => toon.flatMap(t => oc.get(t.owner)).getOrElse(1) > 1)}
 		      ondragstart={e: dom.DragEvent => dragStart(e, slot)}
 		      ondragend={e: dom.DragEvent => dragEnd()}>
 			{slot.name}

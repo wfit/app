@@ -84,6 +84,10 @@
 		.toon {
 			width: 100px;
 			margin-left: 4px;
+
+			&[picked] {
+				opacity: 0.4;
+			}
 		}
 	}
 }
@@ -107,6 +111,10 @@
 				opacity: 0.3;
 				&:hover {
 					opacity: 0.6;
+				}
+				&[focused] {
+					color: #dd1f20;
+					opacity: 1;
 				}
 			}
 
@@ -170,6 +178,10 @@
 
 		span {
 			margin-left: 4px;
+		}
+
+		.toon[duplicate] {
+			outline: 1px solid fade(#dd1f20, 70%);
 		}
 	}
 

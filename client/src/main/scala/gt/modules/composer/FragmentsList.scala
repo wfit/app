@@ -5,7 +5,7 @@ import gt.util.{Http, ViewUtils}
 import gt.workers.Worker
 import gt.workers.eventbus.EventBus
 import java.util.concurrent.atomic.AtomicInteger
-import mhtml.Var
+import mhtml.{Rx, Var}
 import models.composer.Fragment
 import org.scalajs.dom
 import org.scalajs.dom.{html, FocusEvent, KeyboardEvent, MouseEvent}
@@ -28,12 +28,36 @@ class FragmentsList extends Worker with ViewUtils {
 	/** A cache of fragment implementations instances */
 	private val fragmentTreeCache = mutable.Map.empty[UUID, FragmentTree]
 
+	/** The DOM tree for a given fragment */
+	private def treeForFragment(fragment: Fragment): FragmentTree = {
+		fragmentTreeCache.getOrElseUpdate(fragment.id, {
+			val instance = fragment.style match {
+				case Fragment.Text => Text(fragment)
+				case Fragment.Group => Group(fragment)
+				case Fragment.Grid => Grid(fragment)
+			}
+			instance.refresh()
+			instance
+		})
+	}
+
 	// The sequence of fragments of this document
 	val fragments = Var(Seq.empty[Fragment])
 	refreshFragments()
 
+	private val fragmentTrees: Rx[Seq[FragmentTree]] = fragments.map(_.map(treeForFragment))
+	private val focusedFragments: Var[Set[UUID]] = Var(Set.empty)
+
+	FragmentsList.currentMembers := (fragmentTrees product focusedFragments).flatMap { case (trees, focused) =>
+		trees.filter(t => focused contains t.fragment.id).map(_.members).foldLeft(Rx(Set.empty[UUID])) {
+			(a, b) => (a product b).map { case (as, bs) => as ++ bs }
+		}
+	}
+
 	private val fragmentsGcBinding = fragments.impure.foreach { frags =>
-		fragmentTreeCache --= (fragmentTreeCache.keySet diff frags.map(f => f.id).toSet)
+		val removed = fragmentTreeCache.keySet diff frags.map(f => f.id).toSet
+		fragmentTreeCache --= removed
+		focusedFragments update (_ diff removed)
 	}
 
 	/** Refreshes the fragment list */
@@ -50,19 +74,6 @@ class FragmentsList extends Worker with ViewUtils {
 		case Fragment.Grid => "border_all"
 	}
 
-	/** The DOM tree for a given fragment */
-	private def treeForFragment(fragment: Fragment): Elem = {
-		fragmentTreeCache.getOrElseUpdate(fragment.id, {
-			val instance = fragment.style match {
-				case Fragment.Text => Text(fragment)
-				case Fragment.Group => Group(fragment)
-				case Fragment.Grid => Grid(fragment)
-			}
-			instance.refresh()
-			instance
-		}).tree
-	}
-
 	/** Builds the DOM block for a specific fragment */
 	private def fragmentBlock(fragment: Fragment): Elem = {
 		val counter = new AtomicInteger(0)
@@ -72,7 +83,8 @@ class FragmentsList extends Worker with ViewUtils {
 		     ondragleave={e: dom.DragEvent => fragmentDragLeave(e, counter)}
 		     ondrop={(e: dom.DragEvent) => fragmentDragDrop(e, counter, fragment.id)}>
 			<h3>
-				<i class="focus">remove_red_eye</i>
+				<i class="focus" focused={focusedFragments.map(_ contains fragment.id)}
+				   onclick={() => toggleFocus(fragment.id)}>remove_red_eye</i>
 				<span draggable="true"
 				      ondragstart={e: dom.DragEvent => fragmentDragStart(e, fragment.id)}
 				      ondragend={() => fragmentDragEnd()}>
@@ -90,9 +102,16 @@ class FragmentsList extends Worker with ViewUtils {
 				</button>
 			</h3>
 			<div>
-				{treeForFragment(fragment)}
+				{treeForFragment(fragment).tree}
 			</div>
 		</div>
+	}
+
+	def toggleFocus(id: UUID): Unit = {
+		focusedFragments.update { set =>
+			if (set contains id) set - id
+			else set + id
+		}
 	}
 
 	/** A fragment starts being dragged */
@@ -247,4 +266,9 @@ class FragmentsList extends Worker with ViewUtils {
 	override def onTerminate(): Unit = {
 		fragmentsGcBinding.cancel
 	}
+}
+
+object FragmentsList {
+	private val currentMembers = Var[Rx[Set[UUID]]](Rx(Set.empty))
+	val members: Rx[Set[UUID]] = currentMembers.flatMap(identity)
 }
