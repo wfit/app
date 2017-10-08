@@ -14,7 +14,10 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-language:reflectiveCalls",
 		"-language:higherKinds",
 		"-opt:l:method"
-	)
+	),
+	sources in (Compile, doc) := Seq.empty,
+	publishArtifact in (Compile, packageDoc) := false,
+	publishArtifact in (Compile, packageSrc) := false
 )
 
 lazy val commonScalaJsSettings: Seq[Def.Setting[_]] = Seq(
