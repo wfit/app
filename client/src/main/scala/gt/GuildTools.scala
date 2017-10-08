@@ -54,6 +54,7 @@ object GuildTools {
 			setupAutoLaunch(Settings.AppAutoLaunch.get)
 		}
 		Interceptor.setup()
+		Tooltip.setup()
 		AutoWorker.start(autoWorkers)
 		Display.init()
 	}

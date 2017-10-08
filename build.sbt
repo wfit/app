@@ -1,5 +1,3 @@
-
-
 name := "wfit"
 
 version in ThisBuild := "latest-SNAPSHOT"
@@ -52,7 +50,8 @@ lazy val server = (project in file("server"))
 			"_root_.controllers.base._",
 			"_root_.utils._",
 			"_root_.utils.Timeago.Implicitly"
-		)
+		),
+		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500)
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)

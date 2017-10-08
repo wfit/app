@@ -104,7 +104,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		if (acceptableDrag(tier)) {
 			e.preventDefault()
 			e.dataTransfer.dropEffect = Composer.dragType match {
-				case "slot" if !e.ctrlKey => "move"
+				case "slot" if !e.ctrlKey || Composer.dragSlot.fragment == fragment.id => "move"
 				case _ => "copy"
 			}
 		}

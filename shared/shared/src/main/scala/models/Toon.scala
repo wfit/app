@@ -23,6 +23,10 @@ case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boo
 	def armoryUrl: String = s"https://worldofwarcraft.com/en-gb/character/$realm/$name".toLowerCase
 
 	def synthetic: Boolean = uuid == UUID.zero
+
+	def crossRealm: Boolean = realm != "Ysondre"
+	def localName: String = if (crossRealm) s"$name*" else name
+	def fullName: String = if (crossRealm) s"$name-$realm" else name
 }
 
 object Toon {
