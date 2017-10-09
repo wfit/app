@@ -42,7 +42,8 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		case Fragment.Text =>
 			Future.successful(views.html.composer.text(fragment))
 		case Fragment.Group =>
-			Slots.filter(s => s.fragment === fragment.id).result.run.map { slots =>
+			val query = Slots filter (s => s.fragment === fragment.id) joinLeft Toons on ((s, t) => s.toon === t.uuid)
+			query.result.run.map { slots =>
 				views.html.composer.group(fragment, slots)
 			}
 		case Fragment.Grid =>

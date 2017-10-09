@@ -77,32 +77,40 @@ class FragmentsList extends Worker with ViewUtils {
 	/** Builds the DOM block for a specific fragment */
 	private def fragmentBlock(fragment: Fragment): Elem = {
 		val counter = new AtomicInteger(0)
+		val instance = treeForFragment(fragment)
 		<div class="fragment"
 		     ondragenter={e: dom.DragEvent => fragmentDragEnter(e, counter, fragment.id)}
 		     ondragover={e: dom.DragEvent => fragmentDragOver(e, fragment.id)}
 		     ondragleave={e: dom.DragEvent => fragmentDragLeave(e, counter)}
 		     ondrop={(e: dom.DragEvent) => fragmentDragDrop(e, counter, fragment.id)}>
-			<h3>
+			<div class="header row">
 				<i class="focus" focused={focusedFragments.map(_ contains fragment.id)}
-				   onclick={() => toggleFocus(fragment.id)}>remove_red_eye</i>
-				<span draggable="true"
-				      ondragstart={e: dom.DragEvent => fragmentDragStart(e, fragment.id)}
-				      ondragend={() => fragmentDragEnd()}>
-					<i>
-						{fragmentIcon(fragment.style)}
-					</i>
-					<span onmouseup={e: dom.MouseEvent => fragmentTitleMouseUp(e)}
-					      onkeydown={e: dom.KeyboardEvent => fragmentTitleKeyDown(e)}
-					      onblur={e: dom.FocusEvent => fragmentTitleBlur(e, fragment)}>
-						{fragment.title}
+				   onclick={() => toggleFocus(fragment.id)}>
+					remove_red_eye
+				</i>
+				<h3 class="flex">
+					<span draggable="true"
+					      ondragstart={e: dom.DragEvent => fragmentDragStart(e, fragment.id)}
+					      ondragend={() => fragmentDragEnd()}>
+						<i>
+							{fragmentIcon(fragment.style)}
+						</i>
+						<span onmouseup={e: dom.MouseEvent => fragmentTitleMouseUp(e)}
+						      onkeydown={e: dom.KeyboardEvent => fragmentTitleKeyDown(e)}
+						      onblur={e: dom.FocusEvent => fragmentTitleBlur(e, fragment)}>
+							{fragment.title}
+						</span>
 					</span>
-				</span>
+				</h3>
+				<div>
+					{instance.settings}
+				</div>
 				<button class="btn alternate" onclick={() => deleteFragment(fragment)}>
 					<i>delete_forever</i>
 				</button>
-			</h3>
+			</div>
 			<div>
-				{treeForFragment(fragment).tree}
+				{instance.tree}
 			</div>
 		</div>
 	}

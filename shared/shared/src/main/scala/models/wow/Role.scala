@@ -2,7 +2,9 @@ package models.wow
 
 import play.api.libs.json._
 
-sealed abstract class Role(val key: String, val order: Int)
+sealed abstract class Role(val key: String, val order: Int) {
+	val icon = s"/assets/images/roles/$key.png"
+}
 
 object Role {
 	object Tank extends Role("TANK", 1)

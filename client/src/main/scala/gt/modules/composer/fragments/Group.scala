@@ -67,7 +67,39 @@ case class Group (fragment: Fragment) extends FragmentTree {
 
 	val tree = {
 		<div class="group-fragment">
-			{tiersTree}
+			<div class="tiers">
+				{tiersTree}
+			</div>
+		</div>
+	}
+
+	private def roundIlvl(sum: Int, count: Int): Double = {
+		if (count < 1) 0
+		else (sum.toDouble / count + 0.5).floor
+	}
+
+	private def computeStats(members: Seq[(Slot, Option[Toon])]): (Int, Double) = {
+		val count = members.size
+		val ilvlSum = members.flatMap { case (_, t) => t }.map(_.ilvl).sum
+		(count, roundIlvl(ilvlSum, count))
+	}
+
+	private val stats = slots.map { ss =>
+		val (count, ilvl) = computeStats(ss)
+		val subStats = ss.groupBy { case (s, _) => s.role }.mapValues(computeStats)
+			.toSeq.sortBy(_._1)
+			.map { case (role, (c, i)) => (Some(role.icon), c, i) }
+		(None, count, ilvl) +: subStats
+	}
+
+	private def renderStat(data: (Option[String], Int, Double)) = data match {
+		case (icon, count, ilvl) =>
+			<span>{icon.map(src => <img src={src} />)}<strong>{count}</strong> <span class="gray">({ilvl})</span></span>
+	}
+
+	override val settings: Elem = {
+		<div class="stats">
+			{stats.map(_.map(renderStat))}
 		</div>
 	}
 
