@@ -1,3 +1,4 @@
+@fragment-width: 700px;
 
 #composer-sidebar {
 	width: 366px;
@@ -95,7 +96,14 @@
 #composer-main {
 	margin: -12px 0;
 
+	.fragments-list {
+		display: flex;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+
 	.fragment {
+		width: @fragment-width;
 		padding: 12px 0;
 
 		.header {
@@ -149,6 +157,8 @@
 	}
 
 	.new {
+		width: @fragment-width;
+		margin: auto;
 		padding: 12px 0;
 
 		button {
@@ -171,29 +181,16 @@
 }
 
 .group-fragment {
-	/*.tiers {
+	.tiers {
 		max-width: 100%;
 		display: flex;
-		justify-content: center;
-	}*/
+		justify-content: flex-start;
+	}
 
 	.tier {
-		/*width: 125px;
-		margin-right: 4px;*/
-
-		//
-		min-height: 27px;
-		margin-top: 6px;
-		margin-left: -4px;
-
-		&:first-child {
-			margin-top: 0;
-		}
-
-		span {
-			margin-left: 4px;
-		}
-		//
+		width: 125px;
+		margin-right: 4px;
+		min-height: 24px;
 
 		&.hover {
 			outline: 1px dotted #dd1f20;
@@ -219,5 +216,13 @@
 		width: 20px;
 		vertical-align: middle;
 		margin-left: 4px;
+	}
+}
+
+@media (min-width: 1884px) {
+	#composer-main {
+		.fragments-list {
+			justify-content: space-between;
+		}
 	}
 }

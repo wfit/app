@@ -1,16 +1,12 @@
 @import models.composer.{Fragment, Slot}
 @(fragment: Fragment, slots: Seq[(Slot, Option[Toon])])
 
-@roles = @{
-	slots.groupBy { case (s, _) => s.role }.map { case (role, ss) =>
-		val ilvls = ss.flatMap(_._2).map(_.ilvl)
-		(role, (ilvls.size, if (ilvls.isEmpty) 0 else ((ilvls.sum.toDouble / ilvls.size) * 10 + 0.5).floor / 10))
-	}.toSeq.sortBy(_._1)
-}
-
 <div class="fragment-group">
 	<div>
 		<h3><i>people</i> @fragment.title</h3>
+		<div class="stats">
+
+		</div>
 	</div>
 	<div class="tiers">
 	@for(ss <- slots.groupBy(_._1.row).toSeq.sortBy(_._1).map(_._2)) {

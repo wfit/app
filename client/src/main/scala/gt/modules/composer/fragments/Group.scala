@@ -1,11 +1,12 @@
 package gt.modules.composer.fragments
 
-import gt.modules.composer.Editor
+import gt.modules.composer.{ComposerUtils, Editor}
 import gt.util.Http
 import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
 import models.Toon
 import models.composer.{Fragment, Slot}
+import models.wow.Relic
 import org.scalajs.dom
 import org.scalajs.dom.{html, DragEvent}
 import play.api.libs.json.Json
@@ -39,12 +40,38 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(Editor.StandardSlotToonOrdering)).zipWithIndex
 	}
 
+	private def relicList(relics: (Relic, Relic, Relic)): String = relics match {
+		case (a, b, c) => Seq(a.name, b.name, c.name).mkString(" / ")
+	}
+
+	private def artifactInfo(toon: Toon) = {
+		<div class="spacer">
+			<div class="line gray">
+				<span>{toon.spec.artifact.name}</span>
+			</div>
+			<div class="line">
+				<span>{relicList(toon.spec.artifact.relics)}</span>
+			</div>
+		</div>
+	}
+
 	private def slotsTree(slots: Seq[(Slot, Option[Toon])]) = slots.map { case (slot, toon) =>
-		<span class="toon" wow-class={slot.cls.id.toString} draggable="true"
+		<span class="toon" wow-class={slot.cls.id.toString} draggable="true" tooltip="1"
 		      duplicate={ownersCount.map(oc => toon.flatMap(t => oc.get(t.owner)).getOrElse(1) > 1)}
 		      ondragstart={e: dom.DragEvent => dragStart(e, slot)}
 		      ondragend={e: dom.DragEvent => dragEnd()}>
-			{slot.name}
+			{toon.map(_.localName) getOrElse slot.name}
+			<div class="tooltip">
+				<div class="line">
+					<span wow-class={slot.cls.id.toString}>
+						{toon.map(_.fullName) getOrElse slot.name}
+					</span>
+					<span>
+						{toon.map(_.ilvl.toString)} ilvl
+					</span>
+				</div>
+				{toon.map(artifactInfo)}
+			</div>
 		</span>
 	}
 
@@ -73,28 +100,15 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		</div>
 	}
 
-	private def roundIlvl(sum: Int, count: Int): Double = {
-		if (count < 1) 0
-		else (sum.toDouble / count + 0.5).floor
-	}
-
-	private def computeStats(members: Seq[(Slot, Option[Toon])]): (Int, Double) = {
-		val count = members.size
-		val ilvlSum = members.flatMap { case (_, t) => t }.map(_.ilvl).sum
-		(count, roundIlvl(ilvlSum, count))
-	}
-
-	private val stats = slots.map { ss =>
-		val (count, ilvl) = computeStats(ss)
-		val subStats = ss.groupBy { case (s, _) => s.role }.mapValues(computeStats)
-			.toSeq.sortBy(_._1)
-			.map { case (role, (c, i)) => (Some(role.icon), c, i) }
-		(None, count, ilvl) +: subStats
-	}
+	private val stats = slots.map(ComposerUtils.computeAllStats)
 
 	private def renderStat(data: (Option[String], Int, Double)) = data match {
 		case (icon, count, ilvl) =>
-			<span>{icon.map(src => <img src={src} />)}<strong>{count}</strong> <span class="gray">({ilvl})</span></span>
+			<span>
+				{icon.map(src => <img src={src}/>)}
+				<strong>{count}</strong>
+				<span class="gray">({ilvl})</span>
+			</span>
 	}
 
 	override val settings: Elem = {

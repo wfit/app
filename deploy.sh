@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-sbt -no-colors docker:stage
+ssh_path=${GIT_SSH:-ssh}
+sbt docker:stage
 cd server/target/docker
-tar -zcvf - stage | ssh debian@app.wfit.ovh "
+tar -zcvf - stage | "${ssh_path}" debian@app.wfit.ovh "
 	tar -xzf -;
 	docker build stage -t wfit-server:latest;
 	rm -R stage;

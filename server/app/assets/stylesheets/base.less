@@ -48,8 +48,16 @@ strong {
 	font-size: 12px;
 }
 
+.red {
+	color: #dd1f20;
+}
+
+.blue {
+	color: #64b4ff;
+}
+
 .gray {
-	color: #bbb;
+	color: #a0a0a0;
 }
 
 .darkgray {
@@ -354,6 +362,11 @@ a.toon, span.toon {
 	box-shadow: 0px 0px 5px rgba(17, 17, 17, 0.75);
 	color: #eee;
 
+	&.visible {
+		display: block;
+		will-change: bottom, left;
+	}
+
 	.line {
 		display: flex;
 
@@ -363,9 +376,8 @@ a.toon, span.toon {
 		}
 	}
 
-	&.visible {
-		display: block;
-		will-change: bottom, left;
+	.spacer {
+		margin-top: 8px;
 	}
 }
 
