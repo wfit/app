@@ -171,15 +171,29 @@
 }
 
 .group-fragment {
-	.tiers {
+	/*.tiers {
 		max-width: 100%;
 		display: flex;
 		justify-content: center;
-	}
+	}*/
 
 	.tier {
-		width: 125px;
-		margin-right: 4px;
+		/*width: 125px;
+		margin-right: 4px;*/
+
+		//
+		min-height: 27px;
+		margin-top: 6px;
+		margin-left: -4px;
+
+		&:first-child {
+			margin-top: 0;
+		}
+
+		span {
+			margin-left: 4px;
+		}
+		//
 
 		&.hover {
 			outline: 1px dotted #dd1f20;
