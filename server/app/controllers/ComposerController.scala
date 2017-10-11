@@ -1,6 +1,6 @@
 package controllers
 
-import controllers.base.AppController
+import controllers.base.{AppController, UserRequest}
 import java.time.LocalDateTime
 import javax.inject.Inject
 import models.{Toons, Users}
@@ -38,7 +38,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	}
 
 	/** Rendered HTML block for a fragment */
-	private def fragmentHtml(fragment: Fragment): Future[Html] = fragment.style match {
+	private def fragmentHtml(fragment: Fragment)(implicit req: UserRequest[_]): Future[Html] = fragment.style match {
 		case Fragment.Text =>
 			Future.successful(views.html.composer.text(fragment))
 		case Fragment.Group =>

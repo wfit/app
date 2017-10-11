@@ -1,5 +1,5 @@
 @import models.composer.{Fragment, Slot}
-@(fragment: Fragment, slots: Seq[(Slot, Option[Toon])])
+@(fragment: Fragment, slots: Seq[(Slot, Option[Toon])])(implicit request: UserRequest[_])
 
 <div class="fragment fragment-group">
 	<div>
@@ -12,7 +12,7 @@
 	@for(ss <- slots.groupBy(_._1.row).toSeq.sortBy(_._1).map(_._2)) {
 		<div class="tier">
 		@for((slot, toon) <- ss) {
-			<span class="toon" wow-class="@slot.cls.id">
+			<span class="toon @if(toon.map(_.owner).contains(request.user.uuid)) { self }" wow-class="@slot.cls.id">
 			@slot.name
 			</span>
 		}

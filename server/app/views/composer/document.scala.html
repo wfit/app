@@ -8,6 +8,7 @@
 			<div class="gray">@Timeago.format(doc.updated).capitalize</div>
 		</div>
 		@if(req.acl.can("composer.edit")) {
+			<a class="btn alternate" @href(routes.ComposerController.editor(doc.id))>Supprimer</a>
 			<a class="btn alternate" @href(routes.ComposerController.editor(doc.id))>Renommer</a>
 			<a class="btn" @href(routes.ComposerController.editor(doc.id))>Editer</a>
 		}
