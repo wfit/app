@@ -16,8 +16,37 @@
 	}
 }
 
+.document-body {
+	width: 700px;
+	margin: 0 auto;
+}
+
+.fragments {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+}
+
+.fragment {
+	width: 700px;
+	margin-top: 16px;
+}
+
 .fragment-group {
-	.tier:not(:first-child) {
-		margin-top: 8px;
+	.tiers {
+		display: flex;
+	}
+
+	.tier {
+		width: 125px;
+		&:not(:first-child) {
+			margin-left: 8px;
+		}
+	}
+}
+
+@media (min-width: 1822px) {
+	.document-body {
+		width: 1416px;
 	}
 }

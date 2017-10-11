@@ -1,16 +1,18 @@
 @import models.composer.Document
 @(doc: Document, frags: Seq[Html])(implicit req: UserRequest[_])
 
-<div class="row">
-	<div class="flex">
-		<h3 style="margin: 0;">@doc.title</h3>
-		<div class="gray">@Timeago.format(doc.updated).capitalize</div>
+<div class="document-body">
+	<div class="row">
+		<div class="flex">
+			<h3 style="margin: 0;">@doc.title</h3>
+			<div class="gray">@Timeago.format(doc.updated).capitalize</div>
+		</div>
+		@if(req.acl.can("composer.edit")) {
+			<a class="btn alternate" @href(routes.ComposerController.editor(doc.id))>Renommer</a>
+			<a class="btn" @href(routes.ComposerController.editor(doc.id))>Editer</a>
+		}
 	</div>
-	@if(req.acl.can("composer.edit")) {
-		<a class="btn alternate" @href(routes.ComposerController.editor(doc.id))>Renommer</a>
-		<a class="btn" @href(routes.ComposerController.editor(doc.id))>Editer</a>
-	}
-</div>
-<div class="column">
-	@frags
+	<div class="fragments">
+		@frags
+	</div>
 </div>
