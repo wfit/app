@@ -4,7 +4,9 @@
 @view("Composer", "composer", "gt.modules.composer.Composer", styles = Seq("composer/composer")) {
 	<div class="layout-columns">
 		<div class="column" id="composer-docs">
-			<a class="btn alternate" @href(routes.ComposerController.create())>Nouveau document</a>
+			@if(request.acl.can("composer.edit")) {
+				<a class="btn alternate" @href(routes.ComposerController.create())>Nouveau document</a>
+			}
 			<div>
 			@for(doc <- docs) {
 				<div class="box mb row doc" data-id="@doc.id">
