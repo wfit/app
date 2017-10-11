@@ -2,6 +2,7 @@ package gt.modules.composer
 
 import models.Toon
 import models.composer.Slot
+import models.wow.Role
 
 object ComposerUtils {
 	def roundIlvl(sum: Int, count: Int): Double = {
@@ -22,4 +23,13 @@ object ComposerUtils {
 			.map { case (role, (c, i)) => (Some(role.icon), c, i) }
 		(None, count, ilvl) +: subStats
 	}
+
+	val StandardOrdering: Ordering[(Role, Int, String)] =
+		Ordering.by { case (role, ilvl, name) => (role, -ilvl, name) }
+
+	val StandardToonOrdering: Ordering[Toon] =
+		StandardOrdering.on(t => (t.spec.role, t.ilvl, t.name))
+
+	val StandardSlotToonOrdering: Ordering[(Slot, Option[Toon])] =
+		StandardOrdering.on { case (slot, toon) => (slot.role, toon.map(_.ilvl) getOrElse 0, slot.name) }
 }

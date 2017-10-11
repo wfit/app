@@ -1,6 +1,7 @@
 package controllers
 
 import controllers.base.{AppController, UserRequest}
+import gt.modules.composer.ComposerUtils
 import java.time.LocalDateTime
 import javax.inject.Inject
 import models.{Toons, Users}
@@ -44,7 +45,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		case Fragment.Group =>
 			val query = Slots filter (s => s.fragment === fragment.id) joinLeft Toons on ((s, t) => s.toon === t.uuid)
 			query.result.run.map { slots =>
-				views.html.composer.group(fragment, slots)
+				views.html.composer.group(fragment, slots.sorted(ComposerUtils.StandardSlotToonOrdering))
 			}
 		case Fragment.Grid =>
 			Future.successful(views.html.composer.grid(fragment))

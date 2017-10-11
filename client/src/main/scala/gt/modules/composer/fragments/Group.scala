@@ -37,7 +37,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	private val fakeTier = maxTier.map(_ + 1)
 
 	private val slotsByTier = (tiers product maxTier).map { case (ts, max) =>
-		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(Editor.StandardSlotToonOrdering)).zipWithIndex
+		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(ComposerUtils.StandardSlotToonOrdering)).zipWithIndex
 	}
 
 	private def relicList(relics: (Relic, Relic, Relic)): String = relics match {
