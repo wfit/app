@@ -1,5 +1,6 @@
 # Assets
 GET           /assets/$tag<[0-9a-f\-]+>-router.js         controllers.HomeController.jsRouter(tag)
+GET           /assets/javascripts/versioned.js            controllers.HomeController.versionedAssets
 GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 
 # EventBus

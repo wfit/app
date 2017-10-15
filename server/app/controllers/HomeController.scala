@@ -65,4 +65,10 @@ class HomeController @Inject()(userAction: UserAction, cached: Cached)
 			Ok(compiler.toSource).as("application/javascript")
 		}
 	}
+
+	def versionedAssets = cached("versioned.js") {
+		Action {
+			Ok("var versioned = {};").as("application/javascript")
+		}
+	}
 }
