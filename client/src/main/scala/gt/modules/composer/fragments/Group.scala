@@ -1,5 +1,6 @@
 package gt.modules.composer.fragments
 
+import gt.Router
 import gt.modules.composer.{ComposerUtils, Editor}
 import gt.util.Http
 import java.util.concurrent.atomic.AtomicInteger
@@ -8,12 +9,12 @@ import models.Toon
 import models.composer.{Fragment, Slot}
 import models.wow.Relic
 import org.scalajs.dom
-import org.scalajs.dom.{html, DragEvent}
+import org.scalajs.dom.{DragEvent, html}
 import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
-import utils.UUID
 import utils.JsonFormats._
+import utils.UUID
 
 case class Group (fragment: Fragment) extends FragmentTree {
 	private val slots = Var(Seq.empty[(Slot, Option[Toon])])
@@ -165,7 +166,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	private def dragDrop(e: dom.DragEvent, counter: AtomicInteger, tier: Int): Unit = {
 		if (acceptableDrag(tier)) {
 			e.preventDefault()
-			Http.post(s"/composer/${ fragment.doc }/${ fragment.id }/slots", Editor.dragType match {
+			Http.post(Router.Composer.setSlot(fragment.doc, fragment.id), Editor.dragType match {
 				case "toon" => Json.obj("toon" -> Editor.dragToon, "row" -> tier)
 				case "slot" => Json.obj("slot" -> Editor.dragSlot.id, "row" -> tier, "copy" -> e.ctrlKey)
 			})
@@ -174,7 +175,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	}
 
 	def refresh(): Unit = {
-		for (res <- Http.get(s"/composer/${ fragment.doc }/${ fragment.id }/slots")) {
+		for (res <- Http.get(Router.Composer.getSlots(fragment.doc, fragment.id))) {
 			slots := res.json.as[Seq[(Slot, Option[Toon])]]
 		}
 	}

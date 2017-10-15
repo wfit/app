@@ -1,9 +1,9 @@
 package gt.workers.eventbus
 
-import gt.GuildTools
 import gt.util.Http
 import gt.workers._
 import gt.workers.eventbus.EventBus.ChannelSet
+import gt.{GuildTools, Router}
 import models.eventbus.Event
 import org.scalajs.dom
 import platform.JsPlatform._
@@ -22,7 +22,7 @@ class EventBus extends Worker {
 	private var bus: dom.EventSource = null
 
 	private def open(): Unit = {
-		bus = new dom.EventSource("/events/bus")
+		bus = new dom.EventSource(Router.EventBus.bus)
 
 		bus.onmessage = { msg =>
 			Event.fromJson(msg.data.asInstanceOf[String]) match {
@@ -36,7 +36,7 @@ class EventBus extends Worker {
 					ready = true
 					val subscriptions = bindings.map { case (c, _) => c }
 					if (subscriptions.nonEmpty) {
-						Http.post("/events/subscribe", Json.obj(
+						Http.post(Router.EventBus.subscribe, Json.obj(
 							"stream" -> uuid,
 							"channels" -> subscriptions.toSeq
 						))
@@ -73,7 +73,7 @@ class EventBus extends Worker {
 		case 'Subscribe ~ ChannelSet(channels) if sender != WorkerRef.NoWorker =>
 			val channelToSubscribe = channels diff bindings.map(KeepChannel)
 			if (ready && channelToSubscribe.nonEmpty) {
-				Http.post("/events/subscribe", Json.obj("stream" -> uuid, "channels" -> channelToSubscribe.toSeq))
+				Http.post(Router.EventBus.subscribe, Json.obj("stream" -> uuid, "channels" -> channelToSubscribe.toSeq))
 			}
 			if (!watched.contains(sender)) {
 				watched += sender
@@ -86,7 +86,7 @@ class EventBus extends Worker {
 			val bindingsToKeep = bindings diff bindingsToRemove
 			val channelToUnsubscribe = bindingsToRemove.map(KeepChannel) diff bindingsToKeep.map(KeepChannel)
 			if (ready && channelToUnsubscribe.nonEmpty) {
-				Http.post("/events/unsubscribe", Json.obj("stream" -> uuid, "channels" -> channelToUnsubscribe.toSeq))
+				Http.post(Router.EventBus.unsubscribe, Json.obj("stream" -> uuid, "channels" -> channelToUnsubscribe.toSeq))
 			}
 			bindings = bindingsToKeep
 			if (watched.contains(sender) && !bindings.map(KeepWorker).contains(sender)) {
@@ -100,7 +100,7 @@ class EventBus extends Worker {
 			watched -= sender
 			val channelToUnsubscribe = collected.map(KeepChannel) diff remaining.map(KeepChannel)
 			if (ready && channelToUnsubscribe.nonEmpty) {
-				Http.post("/events/unsubscribe", Json.obj("stream" -> uuid, "channels" -> channelToUnsubscribe.toSeq))
+				Http.post(Router.EventBus.unsubscribe, Json.obj("stream" -> uuid, "channels" -> channelToUnsubscribe.toSeq))
 			}
 	}
 

@@ -1,5 +1,6 @@
 package gt.modules.composer
 
+import gt.Router
 import gt.util.{Http, ViewUtils, WorkerView}
 import gt.workers.Worker
 import org.scalajs.dom.html
@@ -11,7 +12,7 @@ class Composer extends Worker.Dummy with ViewUtils {
 			doc.classList.add("focused")
 
 			val id = doc.getAttribute("data-id")
-			Http.get(s"/composer/$id").map { res =>
+			Http.get(Router.Composer.document(id)).map { res =>
 				$[html.Element]("#composer-view").innerHTML = res.text
 			}
 		}

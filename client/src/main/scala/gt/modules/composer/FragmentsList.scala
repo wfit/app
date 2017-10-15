@@ -63,7 +63,7 @@ class FragmentsList extends Worker with ViewUtils {
 
 	/** Refreshes the fragment list */
 	def refreshFragments(): Unit = {
-		for (res <- Http.get(s"/composer/$doc/fragments")) {
+		for (res <- Http.get(Router.Composer.fragments(doc))) {
 			fragments := res.json.as[Seq[Fragment]]
 		}
 	}
@@ -179,7 +179,7 @@ class FragmentsList extends Worker with ViewUtils {
 		if (Editor.dragType == "fragment" && Editor.dragFragment != id) {
 			val el = event.currentTarget.asInstanceOf[html.Element]
 			val rect = el.getBoundingClientRect()
-			Http.post(s"/composer/$doc/moveFragment", Json.obj(
+			Http.post(Router.Composer.moveFragment(doc), Json.obj(
 				"source" -> Editor.dragFragment,
 				"target" -> id,
 				"position" -> (if (event.clientY - rect.top < rect.height / 2) "before" else "after")
@@ -224,13 +224,13 @@ class FragmentsList extends Worker with ViewUtils {
 		if (title matches """^\s*$""") {
 			el.textContent = old
 		} else if (title != old) {
-			Http.post(s"/composer/${ fragment.doc }/${ fragment.id }/rename", title)
+			Http.post(Router.Composer.renamePost(fragment.doc, fragment.id), title)
 		}
 	}
 
 	/** Deletes a fragment */
 	private def deleteFragment(fragment: Fragment): Unit = {
-		Http.delete(s"/composer/${ fragment.doc }/${ fragment.id }")
+		Http.delete(Router.Composer.deleteFragment(fragment.doc, fragment.id))
 	}
 
 	private val blocks = fragments.map(frags => frags.map(fragmentBlock))
@@ -260,7 +260,7 @@ class FragmentsList extends Worker with ViewUtils {
 
 	/** Creates a new fragment */
 	private def createFragment(style: String): Unit = {
-		Http.post(Router.ComposerController.createFragment(doc), Json.obj("style" -> style))
+		Http.post(Router.Composer.createFragment(doc), Json.obj("style" -> style))
 	}
 
 	def receive: Receive = {

@@ -1,5 +1,6 @@
 package gt.modules.composer
 
+import gt.Router
 import gt.util.{Http, ViewUtils}
 import gt.workers.Worker
 import java.util.concurrent.atomic.AtomicInteger
@@ -92,7 +93,7 @@ class Sidebar extends Worker with ViewUtils {
 		if (Editor.dragType == "slot") {
 			val frag = Editor.dragSlot.fragment
 			val slot = Editor.dragSlot.id
-			Http.delete(s"/composer/$doc/$frag/$slot")
+			Http.delete(Router.Composer.deleteSlot(doc, frag, slot))
 		}
 		dragLeave(e, true)
 	}

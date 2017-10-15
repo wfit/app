@@ -6,11 +6,25 @@ import scala.scalajs.js
 object Router extends Dynamic {
 	private val routes = js.Dynamic.global.routes
 
-	def selectDynamic(ctrl: String): Controller = Controller(ctrl)
+	//def selectDynamic(ctrl: String): Controller = Controller(ctrl)
+	val Assets = Controller("Assets")
+	val Addons = Controller("AddonsController")
+	val Admin = Controller("AdminController")
+	val Composer = Controller("ComposerController")
+	val Dashboard = Controller("DashboardController")
+	val Electron = Controller("ElectronController")
+	val EventBus = Controller("EventBusController")
+	val Home = Controller("HomeController")
+	val Profile = Controller("ProfileController")
+	val Roster = Controller("RosterController")
+	val Settings = Controller("SettingsController")
 
 	case class Controller (ctrl: String) extends Dynamic {
-		def applyDynamic(endpoint: String)(args: js.Any*): Route = {
-			Route(routes.controllers.selectDynamic(ctrl).applyDynamic(endpoint)(args: _*))
+		def applyDynamic(endpoint: String)(args: Any*): Route = {
+			val effectiveArgs = args.map {
+				case any => any.toString
+			}
+			Route(routes.controllers.selectDynamic(ctrl).applyDynamic(endpoint)(effectiveArgs.asInstanceOf[Seq[js.Any]]: _*))
 		}
 
 		def selectDynamic(ctrl: String): Route = applyDynamic(ctrl)()

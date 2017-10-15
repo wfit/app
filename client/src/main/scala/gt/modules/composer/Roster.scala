@@ -1,5 +1,6 @@
 package gt.modules.composer
 
+import gt.Router
 import gt.util.Http
 import mhtml.{Rx, Var}
 import models.composer.RosterEntry
@@ -115,7 +116,7 @@ object Roster {
 	}
 
 	def refresh(): Unit = {
-		Http.get("/composer/roster").foreach { res =>
+		Http.get(Router.Composer.roster()).foreach { res =>
 			roster := res.json.as[Seq[RosterEntry]]
 		}
 	}
