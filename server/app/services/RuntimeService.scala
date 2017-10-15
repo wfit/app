@@ -2,7 +2,7 @@ package services
 
 import controllers.routes
 import javax.inject.Singleton
-import scalajs.html.scripts
+import org.apache.commons.codec.digest.DigestUtils
 import utils.UUID
 
 @Singleton
@@ -22,8 +22,9 @@ class RuntimeService {
 		selectFirstOf(s"$project-jsdeps.min.js", s"$project-jsdeps.js")
 	}
 
-	lazy val bootstrapScript = scriptForProject("electron")
+	lazy val bootstrapScript: Option[String] = scriptForProject("electron")
+	lazy val launcherDigest: String = DigestUtils.sha1Hex(bootstrapScript.getOrElse(""))
 
-	lazy val clientScript = scriptForProject("client")
-	lazy val clientDependencies = dependenciesForProject("client")
+	lazy val clientScript: Option[String] = scriptForProject("client")
+	lazy val clientDependencies: Option[String] = dependenciesForProject("client")
 }

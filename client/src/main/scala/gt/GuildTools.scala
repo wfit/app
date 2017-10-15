@@ -1,12 +1,12 @@
 package gt
 
+import facades.electron.{BrowserWindow, ElectronModule, LoginItemSettings, RemoteModule}
 import facades.html5
-import facades.electron.{ElectronModule, LoginItemSettings, RemoteModule}
 import gt.workers.AutoWorker
 import org.scalajs.dom
 import scala.scalajs.js
-import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import scala.scalajs.js.Dynamic.{literal, global => g}
+import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 import utils.UserAcl
 
 @JSExportAll
@@ -15,9 +15,11 @@ object GuildTools {
 	// Runtime constants
 	lazy val isApp: Boolean = g.GT_APP.asInstanceOf[Boolean]
 	lazy val isAuthenticated: Boolean = g.GT_AUTHENTICATED.asInstanceOf[Boolean]
-	lazy val isMain: Boolean = g.GT_MAIN.asInstanceOf[js.UndefOr[Boolean]] getOrElse false
-	lazy val isWorker: Boolean = !isMain
+	lazy val isMain: Boolean = !isDual && !isWorker
+	lazy val isDual: Boolean = dom.window.navigator.userAgent contains "DualPanel"
+	lazy val isWorker: Boolean = g.GT_MAIN.asInstanceOf[js.UndefOr[Boolean]].isEmpty
 	lazy val stateHash: String = g.STATE_HASH.asInstanceOf[String]
+	lazy val instanceLauncher: String = g.INSTANCE_LAUNCHER.asInstanceOf[String]
 	lazy val instanceUUID: String = g.INSTANCE_UUID.asInstanceOf[String]
 	lazy val clientScripts: js.Array[String] = g.CLIENT_SCRIPTS.asInstanceOf[js.Array[String]]
 	lazy val sharedWorkers: js.Dictionary[String] = {
@@ -29,6 +31,7 @@ object GuildTools {
 	def require[T](module: String): T = g.require(module).asInstanceOf[T]
 	lazy val electron: ElectronModule = require[ElectronModule]("electron")
 	lazy val remote: RemoteModule = electron.remote
+	lazy val root = remote.getGlobal[String]("electronRoot")
 
 	lazy val version: Int = if (!isApp) -1 else {
 		g.GT_APP_VERSION.asInstanceOf[js.UndefOr[Int]] getOrElse buildVersionNumber
@@ -48,9 +51,11 @@ object GuildTools {
 
 	def init(autoWorkers: js.Array[String]): Unit = {
 		if (isApp) {
-			setupAppMenuToggle()
+			if (isMain) {
+				setupAppMenuToggle()
+				setupCacheClearOnHide()
+			}
 			setupWindowControls()
-			setupCacheClearOnHide()
 			setupAutoLaunch(Settings.AppAutoLaunch.get)
 		}
 		Interceptor.setup()
@@ -104,6 +109,43 @@ object GuildTools {
 				args = js.Array("--at-login")
 			))
 		}
+	}
+
+	final type ?[T] = js.UndefOr[T]
+	final val ? = js.undefined
+
+	def open(url: String,
+	         width: ?[Int] = 1200, height: ?[Int] = 700,
+	         minWidth: ?[Int] = 1200, minHeight: ?[Int] = 700,
+	         maxWidth: ?[Int] = ?, maxHeight: ?[Int] = ?): BrowserWindow = {
+
+		val win = js.Dynamic.newInstance(GuildTools.remote.BrowserWindow)(js.Dynamic.literal(
+			width = width,
+			height = height,
+			minWidth = minWidth,
+			minHeight = minHeight,
+			maxWidth = maxWidth,
+			maxHeight = maxHeight,
+			show = true,
+			title = "Wait For It",
+			icon = root + "/build/icon.ico",
+			frame = false,
+			autoHideMenuBar = true,
+			backgroundColor = "#131313",
+			webPreferences = js.Dynamic.literal(
+				nodeIntegration = true,
+				nodeIntegrationInWorker = true,
+				devTools = true,
+				textAreasAreResizable = false,
+				defaultEncoding = "UTF-8"
+			)
+		)).asInstanceOf[BrowserWindow]
+		win.webContents.setUserAgent(win.webContents.getUserAgent() + " DualPanel")
+		url match {
+			case absolute if url startsWith "http" => win.loadURL(absolute)
+			case relative if url startsWith "/" => win.loadURL(dom.window.location.origin + relative)
+		}
+		win
 	}
 
 	def reload(target: js.UndefOr[String] = js.undefined): Unit = {

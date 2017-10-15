@@ -25,6 +25,19 @@ header {
 	right: 0;
 	z-index: 10;
 
+	html[dual-panel] & {
+		height: 32px;
+
+		h1 {
+			display: none;
+		}
+
+		h2 {
+			font-size: 16px;
+			padding-left: 8px;
+		}
+	}
+
 	h1 {
 		@size: 56px;
 		@padding: 5px;
@@ -108,7 +121,7 @@ header {
 	#app-buttons {
 		display: none;
 		align-items: flex-start;
-		height: 56px;
+		height: 100%;
 
 		html[app] & {
 			display: flex;
@@ -203,6 +216,10 @@ nav#modules-nav {
 		box-shadow: none;
 	}
 
+	html[dual-panel] & {
+		display: none;
+	}
+
 	ul {
 		list-style: none;
 		padding-top: 10px;
@@ -252,6 +269,11 @@ section#content {
 	html[unauthenticated] & {
 		left: 0;
 		box-shadow: none;
+	}
+
+	html[dual-panel] & {
+		left: 0;
+		top: 32px;
 	}
 }
 

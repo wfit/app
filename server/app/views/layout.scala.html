@@ -13,7 +13,7 @@
 	@content
 } else {
 	<!DOCTYPE html>
-	<html @if(request.isElectron) {app} @if(!request.authenticated) {unauthenticated}>
+	<html @if(request.isApp) {app} @if(!request.authenticated) {unauthenticated} @if(request.isDual) {dual-panel}>
 	<head>
 		<title>@title</title>
 		<link rel="icon" type="image/png" href="@routes.Assets.versioned("images/wfit.png")">
@@ -27,7 +27,7 @@
 	<body>
 		<header>
 			<h1>
-				@if(request.isElectron) {
+				@if(request.isApp && request.isMain) {
 					<nav id="app-nav">
 						<h3>Wait for it</h3>
 						<ul>
@@ -46,7 +46,7 @@
 			</h1>
 			<h2>@title</h2>
 			<div class="spacer"></div>
-			@if(request.authenticated) {
+			@if(request.authenticated && request.isMain) {
 				<div id="user-badge">
 					<span class="dot"></span>
 					<span wow-class="@request.main.cls.id">@request.main.name</span>
@@ -59,7 +59,7 @@
 				<button data-action="close"><i>close</i></button>
 			</div>
 		</header>
-		@if(request.authenticated) {
+		@if(request.authenticated && request.isMain) {
 			<nav id="modules-nav">
 				<ul>
 					@nav("dashboard", "dashboard", routes.DashboardController.dashboard().url)
@@ -68,7 +68,7 @@
 					@nav("flash_on", "slacks", null, Some("slacks.access"))
 					@nav("pages", "composer", routes.ComposerController.composer().url, Some("composer.access"))
 					@nav("group", "roster", routes.RosterController.roster().url, Some("roster.access"))
-					@if(request.isElectron) {
+					@if(request.isApp) {
 						@nav("extension", "addons", routes.AddonsController.list().url, Some("addons.access"))
 						@nav("screen_share", "tv", null, Some("tv.access"))
 					} else {
@@ -83,15 +83,16 @@
 		<script>
 			GT_LOADED = true;
 			GT_MAIN = true;
-			GT_APP = @Html(JsBoolean(request.isElectron).toString);
+			GT_APP = @Html(JsBoolean(request.isApp).toString);
 			GT_AUTHENTICATED = @Html(JsBoolean(request.authenticated).toString);
+			INSTANCE_LAUNCHER = @Html(JsString(request.meta.instanceLauncher).toString);
 			INSTANCE_UUID = @Html(JsString(request.meta.instanceUUID.toString).toString);
 			STATE_HASH = @Html(JsString(request.stateHash.toString).toString);
 			CLIENT_SCRIPTS = @Html(JsArray(request.meta.clientScripts.map(JsString.apply)).toString);
 			USER_ACL = @Html(JsObject(request.acl.grants.map { case (k, v) => (k, JsNumber(v))}.toSeq).toString);
 		</script>
 		@for(script <- request.meta.clientScripts) {
-			<script type="text/javascript" src="@script"></script>
+			<script src="@script"></script>
 		}
 		<script>
 			gt.init(@Html(JsArray(request.autoWorkers.map(JsString.apply)).toString));

@@ -1,15 +1,16 @@
 package controllers.base
 
-import play.api.libs.json.JsValue
-import play.api.libs.json.Json.JsValueWrapper
 import scala.concurrent.Future
 import services.RuntimeService
 import utils.UUID
 
 class RuntimeMetadata (service: RuntimeService) {
+	def instanceLauncher: String = service.launcherDigest
 	def instanceUUID: UUID = service.instanceUUID
 
 	val clientScripts: Seq[String] = Seq(
+		controllers.routes.Assets.versioned("javascripts/versioned.js").url,
+		controllers.routes.HomeController.jsRouter(instanceUUID.toString).url,
 		service.clientDependencies.get,
 		service.clientScript.get
 	)

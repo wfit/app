@@ -4,7 +4,7 @@ import controllers.base.UserRequest.Parameter
 import models.{Toon, User}
 import play.api.libs.json.{JsLookupResult, JsValue, Reads}
 import play.api.mvc.{Request, WrappedRequest}
-import utils.{UserAcl, UserError, UUID}
+import utils.{UUID, UserAcl, UserError}
 
 case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, acl: UserAcl,
                            meta: RuntimeMetadata, request: Request[A]) extends WrappedRequest[A](request) {
@@ -12,7 +12,9 @@ case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, 
 
 	val user: User = optUser.orNull
 
-	lazy val isElectron: Boolean = request.headers.get("user-agent").exists(_.contains("Electron"))
+	lazy val isApp: Boolean = request.headers.get("user-agent").exists(_.contains("Electron"))
+	lazy val isMain: Boolean = !isDual
+	lazy val isDual: Boolean = request.headers.get("user-agent").exists(_.contains("DualPanel"))
 	lazy val isFetch: Boolean = request.headers.get("gt-fetch").isDefined
 
 	def param(key: String)(implicit aIsJsValue: A =:= JsValue): Parameter = {
@@ -24,7 +26,7 @@ case class UserRequest[A] (optUser: Option[User], toons: Seq[Toon], main: Toon, 
 	lazy val autoWorkers: Seq[String] = Seq(
 		("gt.workers.ui.UIWorker", true),
 		("gt.workers.eventbus.EventBus", authenticated),
-		("gt.workers.updater.Updater", isElectron && acl.can("addons.access")),
+		("gt.workers.updater.Updater", isApp && isMain && acl.can("addons.access")),
 	).collect {
 		case (worker, true) => worker
 	}

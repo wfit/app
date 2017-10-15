@@ -1,5 +1,6 @@
 package gt.modules.composer
 
+import gt.Router
 import gt.modules.composer.fragments.{FragmentTree, Grid, Group, Text}
 import gt.util.{Http, ViewUtils}
 import gt.workers.Worker
@@ -8,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
 import models.composer.Fragment
 import org.scalajs.dom
-import org.scalajs.dom.{html, FocusEvent, KeyboardEvent, MouseEvent}
+import org.scalajs.dom.{FocusEvent, KeyboardEvent, MouseEvent, html}
 import play.api.libs.json.Json
 import scala.collection.mutable
 import scala.xml.Elem
@@ -259,7 +260,7 @@ class FragmentsList extends Worker with ViewUtils {
 
 	/** Creates a new fragment */
 	private def createFragment(style: String): Unit = {
-		Http.post(s"/composer/$doc/create", Json.obj("style" -> style))
+		Http.post(Router.ComposerController.createFragment(doc), Json.obj("style" -> style))
 	}
 
 	def receive: Receive = {

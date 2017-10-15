@@ -41,7 +41,8 @@ lazy val server = (project in file("server"))
 			"com.typesafe.slick" %% "slick" % "3.2.1",
 			"com.typesafe.play" %% "play-slick" % "3.0.2",
 			"org.mariadb.jdbc" % "mariadb-java-client" % "2.1.2",
-			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final"
+			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final",
+			"com.google.javascript" % "closure-compiler" % "v20170910"
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -49,6 +50,8 @@ lazy val server = (project in file("server"))
 		compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
 		includeFilter in (Assets, LessKeys.less) := "*.less",
 		excludeFilter in (Assets, LessKeys.less) := "_*.less",
+		DigestKeys.indexPath := Some("javascripts/versioned.js"),
+		DigestKeys.indexWriter ~= { writer => index => s"var versioned = ${ writer(index) };" },
 		TwirlKeys.templateImports ++= Seq(
 			"_root_.controllers.base._",
 			"_root_.utils._"
@@ -61,7 +64,7 @@ lazy val client = (project in file("client"))
 	.settings(
 		commonSettings,
 		commonScalaJsSettings,
-		//scalaJSUseMainModuleInitializer := true,
+		scalaJSUseMainModuleInitializer := true,
 		libraryDependencies ++= Seq(
 			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
 			"com.typesafe.play" %%% "play-json" % "2.6.3",

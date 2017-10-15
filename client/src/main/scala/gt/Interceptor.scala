@@ -3,8 +3,8 @@ package gt
 import facades.html5
 import gt.util.{CustomEvent, Http}
 import org.scalajs.dom
-import org.scalajs.dom.html
 import org.scalajs.dom.ext._
+import org.scalajs.dom.html
 import play.api.libs.json._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
@@ -94,27 +94,33 @@ object Interceptor {
 	}
 
 	private def setupLinkIntercept(): Unit = {
-		dom.document.addEventListener("click", (e: dom.Event) => {
-			Option(e.target.asInstanceOf[html5.HTMLElement].closest("a[href]")) match {
-				case Some(link) => linkClicked(e, link.asInstanceOf[html.Anchor])
-				case None => // ignore
+		val handler = (event: dom.MouseEvent) => {
+			val link = Option(event.target.asInstanceOf[html5.HTMLElement].closest("a[href]"))
+			(link, event.button) match {
+				case (Some(link), 0 | 1) => linkClicked(event, link.asInstanceOf[html.Anchor])
+				case _ => // ignore
 			}
-		})
+		}
+		dom.document.addEventListener("click", handler)
+		dom.document.addEventListener("auxclick", handler)
 	}
 
-	private def linkClicked(event: dom.Event, link: html.Anchor): Unit = {
+	private def linkClicked(event: dom.MouseEvent, link: html.Anchor): Unit = {
 		Option(link.getAttribute("href")) match {
 			case Some("") =>
 				event.preventDefault()
 			case Some(href) if href startsWith "/" =>
 				event.preventDefault()
-				Display.navigate(href, Option(link.getAttribute("method")).getOrElse("GET"))
+				if (event.button == 1) {
+					GuildTools.open(href)
+				} else {
+					Display.navigate(href, Option(link.getAttribute("method")).getOrElse("GET"))
+				}
 			case Some(external) if external startsWith "http" =>
 				event.preventDefault()
 				if (GuildTools.isApp) GuildTools.electron.shell.openExternal(external)
 				else dom.window.open(external)
-			case _ =>
-			// ignore
+			case _ => // ignore
 		}
 	}
 

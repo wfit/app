@@ -1,4 +1,5 @@
 # Assets
+GET           /assets/$tag<[0-9a-f\-]+>-router.js         controllers.HomeController.jsRouter(tag)
 GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 
 # EventBus
@@ -35,6 +36,10 @@ GET           /composer/create                            controllers.ComposerCo
 POST          /composer/create                            controllers.ComposerController.createPost
 GET           /composer/roster                            controllers.ComposerController.roster
 GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
+GET           /composer/:id/rename                        controllers.ComposerController.rename(id: utils.UUID)
+POST          /composer/:id/rename                        controllers.ComposerController.renamePost(id: utils.UUID)
+GET           /composer/:id/delete                        controllers.ComposerController.delete(id: utils.UUID)
+POST          /composer/:id/delete                        controllers.ComposerController.deletePost(id: utils.UUID)
 GET           /composer/:id/editor                        controllers.ComposerController.editor(id: utils.UUID)
 POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
 GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)

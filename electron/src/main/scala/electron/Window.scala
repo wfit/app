@@ -29,6 +29,7 @@ object Window {
 	private var isReady = false
 
 	def setup(): Unit = {
+		win.webContents.setUserAgent(win.webContents.getUserAgent() + " MainPanel")
 		win.loadURL(Electron.base)
 
 		win.once("ready-to-show", () => {

@@ -4,18 +4,18 @@ import controllers.base.{AppController, UserRequest}
 import gt.modules.composer.ComposerUtils
 import java.time.LocalDateTime
 import javax.inject.Inject
-import models.{Toons, Users}
 import models.acl.AclView
 import models.composer._
+import models.{Toons, Users}
 import play.api.libs.json.Json
 import play.twirl.api.Html
 import scala.concurrent.Future
 import scala.util.{Success, Try}
 import services.EventBus
 import slick.jdbc.TransactionIsolation
-import utils.UUID
 import utils.JsonFormats._
 import utils.SlickAPI._
+import utils.UUID
 
 class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	private def ComposerAction = UserAction andThen CheckAcl("composer.access")
@@ -60,6 +60,22 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		} yield {
 			Ok(views.html.composer.document(doc, html))
 		}
+	}
+
+	def rename(id: UUID) = ComposerEditAction { implicit req =>
+		Ok
+	}
+
+	def renamePost(id: UUID) = ComposerEditAction { implicit req =>
+		Ok
+	}
+
+	def delete(id: UUID) = ComposerEditAction { implicit req =>
+		Ok
+	}
+
+	def deletePost(id: UUID) = ComposerEditAction { implicit req =>
+		Ok
 	}
 
 	/** The composer editor */
