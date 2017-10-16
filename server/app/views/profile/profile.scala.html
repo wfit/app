@@ -2,7 +2,7 @@
 
 @editable = @{ request.acl.can("profile.edit") || request.user.uuid == user.uuid }
 
-@view("Profil et personnages", "profile", styles = Seq("profile/profile")) {
+@view("Profil et personnages", "profile") {
 	<div class="layout-columns" id="profile">
 		<div class="left column">
 			<div id="profile-card">

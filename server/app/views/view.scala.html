@@ -1,11 +1,10 @@
-@(title: String, module: String = null, view: String = null, styles: Seq[String] = Seq.empty)(content: Html)(implicit request: UserRequest[_])
+@(title: String, module: String = null, view: String = null)(content: Html)(implicit request: UserRequest[_])
 
 @layout(title) {
 	@content
 	@metadata(
 		"title" -> title,
 		"module" -> module,
-		"view" -> view,
-		"styles" -> styles.map(name => routes.Assets.versioned(s"stylesheets/$name.css").url)
+		"view" -> view
 	)
 }

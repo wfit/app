@@ -7,7 +7,7 @@
 		.sortBy { case (r, _) => r }
 }
 
-@view("Roster", "roster", styles = Seq()) {
+@view("Roster", "roster") {
 	<div class="layout-columns">
 		<div class="column" style="width: 302px">
 		@for((role, members) <- rosterPlayers) {

@@ -39,22 +39,22 @@ header {
 	}
 
 	h1 {
-		@size: 56px;
-		@padding: 5px;
+		$size: 56px;
+		$padding: 5px;
 
 		position: relative;
 		background: #333;
-		width: @size;
-		height: @size;
+		width: $size;
+		height: $size;
 		margin-right: 24px;
 		-webkit-app-region: no-drag;
 
 		img {
 			position: absolute;
-			top: @padding;
-			left: @padding;
-			width: @size - @padding * 2;
-			height: @size - @padding * 2;
+			top: $padding;
+			left: $padding;
+			width: $size - $padding * 2;
+			height: $size - $padding * 2;
 			transform: translateZ(0);
 			transition: opacity .2s ease-out;
 			pointer-events: none;
@@ -65,10 +65,10 @@ header {
 
 		.lds-dual-ring {
 			position: absolute;
-			top: @padding * 2;
-			left: @padding * 2;
-			width: @size - @padding * 4;
-			height: @size - @padding * 4;
+			top: $padding * 2;
+			left: $padding * 2;
+			width: $size - $padding * 4;
+			height: $size - $padding * 4;
 			opacity: 0;
 			transition: opacity .2s ease-out;
 			pointer-events: none;
@@ -150,13 +150,13 @@ header {
 	}
 
 	nav#app-nav {
-		@width: 230px;
+		$width: 230px;
 
 		position: fixed;
 		top: 0;
-		left: -@width - 5px;
-		width: @width;
-		background: fade(#333, 95%);
+		left: -$width - 5px;
+		width: $width;
+		background: fade-out(#333, 0.05);
 		border: solid #444;
 		border-width: 0 1px 1px 0;
 		box-shadow: 0 0 5px 1px rgba(17, 17, 17, 0);
@@ -205,7 +205,7 @@ nav#modules-nav {
 	bottom: 0;
 	z-index: 5;
 	width: 56px + 0px;
-	background-color: fade(#333, 60%);
+	background-color: fade-out(#333, 0.40);
 	user-select: none;
 	box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
 	transition: all .2s ease-out;
@@ -243,11 +243,11 @@ nav#modules-nav {
 		}
 
 		&:hover {
-			background: fade(#444, 20%);
+			background: fade-out(#444, 0.80);
 		}
 
 		&.active {
-			background: fade(#444, 50%);
+			background: fade-out(#444, 0.50);
 			a {
 				border-right: 2px solid #dd1f20;
 			}
@@ -285,7 +285,7 @@ section#content {
 	width: 350px;
 
 	.toast {
-		background: fade(#131313, 90%);
+		background: fade-out(#131313, 0.10);
 		overflow: hidden;
 		margin-top: 12px;
 		box-shadow: 0 0 10px #000;

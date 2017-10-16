@@ -4,7 +4,7 @@
 	width: 250px;
 
 	&.focused {
-		outline: 1px solid fade(#dd1f20, 70%);
+		outline: 1px solid fade-out(#dd1f20, 0.30);
 	}
 
 	h3 {
@@ -19,6 +19,10 @@
 .document-body {
 	width: 700px;
 	margin: 0 auto;
+
+	@media (min-width: 1822px) {
+		width: 1416px;
+	}
 }
 
 .fragments {
@@ -50,8 +54,3 @@
 	}
 }
 
-@media (min-width: 1822px) {
-	.document-body {
-		width: 1416px;
-	}
-}

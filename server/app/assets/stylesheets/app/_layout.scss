@@ -13,7 +13,7 @@
 		overflow: auto;
 
 		&:first-child {
-			background: fade(#222, 50%);
+			background: fade-out(#222, 0.50);
 			min-width: 220px;
 			flex-shrink: 0;
 		}

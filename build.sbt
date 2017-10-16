@@ -48,8 +48,6 @@ lazy val server = (project in file("server"))
 		pipelineStages in Assets := Seq(scalaJSPipeline),
 		pipelineStages := Seq(digest, gzip),
 		compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value,
-		includeFilter in (Assets, LessKeys.less) := "*.less",
-		excludeFilter in (Assets, LessKeys.less) := "_*.less",
 		DigestKeys.indexPath := Some("javascripts/versioned.js"),
 		DigestKeys.indexWriter ~= { writer => index => s"var versioned = ${ writer(index) };" },
 		TwirlKeys.templateImports ++= Seq(

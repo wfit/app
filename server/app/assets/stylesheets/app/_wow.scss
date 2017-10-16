@@ -1,3 +1,19 @@
+
+a.toon, span.toon {
+	background: rgba(0, 0, 0, 0.3);
+	border: 1px solid fade-out(#444, 0.50);
+	padding: 3px 6px;
+	display: inline-block;
+	width: 125px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+
+	&:hover {
+		border-color: fade-out(#444, 0.20);
+	}
+}
+
 [wow-class] {
 	color: #64b4ff !important;
 }

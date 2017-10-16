@@ -2,12 +2,12 @@ package gt
 
 import gt.util.{Http, View}
 import org.scalajs.dom
-import org.scalajs.dom.html
 import org.scalajs.dom.experimental.HttpMethod
 import org.scalajs.dom.ext.PimpedNodeList
+import org.scalajs.dom.html
 import play.api.libs.json._
-import scala.concurrent.{Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.scalajs.js
 import scala.scalajs.js.URIUtils
 import scala.scalajs.reflect.Reflect
@@ -24,7 +24,6 @@ object Display {
 	private var currentView: Option[DelayedViewInit] = None
 	private var tasks: Set[Future[_]] = Set.empty
 	private var ready: Future[_] = Future.unit
-	private var activeStyles: Set[html.Link] = Set.empty
 	private var navigationInProgress: Boolean = false
 
 	private var loading: Int = 0
@@ -82,7 +81,6 @@ object Display {
 	  */
 	private def loadMetadata(node: dom.NodeSelector): Unit = {
 		tasks = Set.empty
-		activeStyles = Set.empty
 		Option(node.querySelector("script[type='application/gt-metadata']"))
 			.map(_.textContent)
 			.map(_.replace('+', ' '))
@@ -95,7 +93,6 @@ object Display {
 					case ("module", JsString(module)) => setModule(module)
 					case ("module", JsNull) => setModule("none")
 					case ("view", JsString(path)) => loadView(resolveView(path))
-					case ("styles", JsArray(urls)) => loadStyles(urls.map(_.as[String]))
 					case _ => // Ignore
 				}
 				ready = Future.sequence[Any, Set](tasks)
@@ -209,7 +206,6 @@ object Display {
 	  */
 	def loadSnippet(source: String, sourceUrl: Option[String] = None): Unit = {
 		unloadView()
-		val oldStyles = activeStyles
 
 		val freshContainer = createContainer()
 		freshContainer.innerHTML = source
@@ -225,7 +221,6 @@ object Display {
 
 		val view = currentView
 		for (_ <- ready) {
-			oldStyles.foreach(style => style.parentElement.removeChild(style))
 			if (view == currentView) {
 				val oldContainer = currentContainer
 				oldContainer.parentNode.replaceChild(freshContainer, oldContainer)
@@ -234,34 +229,6 @@ object Display {
 					node.asInstanceOf[html.Input].focus()
 				}
 			}
-		}
-	}
-
-	/**
-	  * Loads a view-specific set of stylesheets.
-	  *
-	  * Every stylesheets to be loaded will be associated with a future that will
-	  * be resolved once the spreadsheet is loaded. Each of these future is stored
-	  * in the tasks array that will be waited on before displaying the page to
-	  * the user.
-	  *
-	  * @param urls the set of stylesheets
-	  */
-	private def loadStyles(urls: Seq[String]): Unit = {
-		for (url <- urls) {
-			val style = dom.document.createElement("link").asInstanceOf[html.Link]
-			style.rel = "stylesheet"
-			style.`type` = "text/css"
-			style.href = url
-
-			val promise = Promise[Unit]()
-			tasks += promise.future
-
-			style.addEventListener("load", (e: dom.Event) => promise.success(()))
-			style.addEventListener("error", (e: dom.Event) => promise.success(()))
-
-			activeStyles += style
-			dom.document.head.appendChild(style)
 		}
 	}
 

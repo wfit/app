@@ -1,6 +1,6 @@
 @()(implicit req: UserRequest[_])
 
-@view("Connexion", "login", "gt.modules.login.Form", styles = Seq("login")) {
+@view("Connexion", "login", "gt.modules.login.Form") {
 	<div id="login">
 		<h2><img src="@routes.Assets.versioned("images/banner.png")"></h2>
 		<form class="box" action="@routes.HomeController.performLogin()">

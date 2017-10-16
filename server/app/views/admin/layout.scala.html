@@ -1,10 +1,10 @@
-@(title: String, section: String = null, path: String = null, styles: Seq[String] = Seq.empty)(content: Html)(implicit request: UserRequest[_])
+@(title: String, section: String = null, path: String = null)(content: Html)(implicit request: UserRequest[_])
 
 @nav(title: String, sectionId: String, target: Call) = {
 	<a href="@target" class="btn @if(section != sectionId) {alternate}">@title</a>
 }
 
-@view(title, "admin", path, styles) {
+@view(title, "admin", path) {
 	<div class="layout-columns">
 		<div class="column">
 			@if(request.acl.can("admin.acl")) {

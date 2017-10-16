@@ -2,7 +2,7 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.6")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.3")
 addSbtPlugin("com.typesafe.sbt" % "sbt-gzip" % "1.0.2")
-addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.2")
+addSbtPlugin("org.irundaia.sbt" % "sbt-sassify" % "1.4.11")
 
 addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.6")
 

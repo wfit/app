@@ -1,7 +1,7 @@
 @import models.composer.Document
 @(doc: Document)(implicit request: UserRequest[_])
 
-@view(doc.title, "composer", "gt.modules.composer.Editor", styles = Seq("composer/editor")) {
+@view(doc.title, "composer", "gt.modules.composer.Editor") {
 	@value("document-id", doc.id)
 	<div class="layout-columns">
 		<div class="column" id="composer-sidebar"></div>

@@ -1,7 +1,7 @@
 @import models.composer.Document
 @(docs: Seq[Document])(implicit request: UserRequest[_])
 
-@view("Composer", "composer", "gt.modules.composer.Composer", styles = Seq("composer/composer")) {
+@view("Composer", "composer", "gt.modules.composer.Composer") {
 	<div class="layout-columns">
 		<div class="column" id="composer-docs">
 			@if(request.acl.can("composer.edit")) {
