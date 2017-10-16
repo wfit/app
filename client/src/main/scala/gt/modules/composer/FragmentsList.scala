@@ -224,7 +224,7 @@ class FragmentsList extends Worker with ViewUtils {
 		if (title matches """^\s*$""") {
 			el.textContent = old
 		} else if (title != old) {
-			Http.post(Router.Composer.renamePost(fragment.doc, fragment.id), title)
+			Http.post(Router.Composer.renameFragment(fragment.doc, fragment.id), title)
 		}
 	}
 
