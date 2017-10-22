@@ -1,7 +1,7 @@
 name := "wfit"
 
 version in ThisBuild := "latest-SNAPSHOT"
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.4"
 
 lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 	scalacOptions ++= Seq(
@@ -53,13 +53,15 @@ lazy val server = (project in file("server"))
 		TwirlKeys.templateImports ++= Seq(
 			"_root_.controllers.base._",
 			"_root_.utils._"
-		)
+		),
+		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500)
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)
 
 lazy val client = (project in file("client"))
 	.settings(
+		name := "wfit-client",
 		commonSettings,
 		commonScalaJsSettings,
 		scalaJSUseMainModuleInitializer := true,
@@ -79,6 +81,7 @@ lazy val client = (project in file("client"))
 
 lazy val electron = (project in file("electron"))
 	.settings(
+		name := "wfit-electron",
 		commonSettings,
 		commonScalaJsSettings,
 		scalaJSUseMainModuleInitializer := true
@@ -91,7 +94,7 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		name := "shared",
 		commonSettings,
 		libraryDependencies ++= Seq(
-			"com.typesafe.play" %%% "play-json" % "2.6.3"
+			"com.typesafe.play" %%% "play-json" % "2.6.6"
 		)
 	)
 	.jsSettings(

@@ -22,9 +22,9 @@ class RuntimeService {
 		selectFirstOf(s"$project-jsdeps.min.js", s"$project-jsdeps.js")
 	}
 
-	lazy val bootstrapScript: Option[String] = scriptForProject("electron")
+	lazy val bootstrapScript: Option[String] = scriptForProject("wfit-electron")
 	lazy val launcherDigest: String = DigestUtils.sha1Hex(bootstrapScript.getOrElse(""))
 
-	lazy val clientScript: Option[String] = scriptForProject("client")
-	lazy val clientDependencies: Option[String] = dependenciesForProject("client")
+	lazy val clientScript: Option[String] = scriptForProject("wfit-client")
+	lazy val clientDependencies: Option[String] = dependenciesForProject("wfit-client")
 }
