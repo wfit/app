@@ -1,56 +1,69 @@
-.doc {
-	cursor: pointer;
-	align-items: center;
-	width: 250px;
+#composer-docs {
+	.doc {
+		cursor: pointer;
+		align-items: center;
+		width: 250px;
 
-	&.focused {
-		outline: 1px solid fade-out(#dd1f20, 0.30);
-	}
+		&.focused {
+			outline: 1px solid fade-out(#dd1f20, 0.30);
+		}
 
-	h3 {
-		margin: 0;
-	}
+		h3 {
+			margin: 0;
+		}
 
-	i {
-		font-size: 18px;
+		i {
+			font-size: 18px;
+		}
 	}
 }
 
-.document-body {
+#composer-document-body {
 	width: 700px;
 	margin: 0 auto;
 
 	@media (min-width: 1822px) {
 		width: 1416px;
 	}
-}
 
-.fragments {
-	display: flex;
-	justify-content: space-between;
-	flex-wrap: wrap;
-	margin-top: 8px;
-}
-
-.fragment {
-	width: 700px;
-	margin-top: 16px;
-}
-
-.self {
-	outline: 1px solid;
-}
-
-.fragment-group {
-	.tiers {
+	.fragments {
 		display: flex;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		margin-top: 8px;
 	}
 
-	.tier {
-		width: 125px;
-		&:not(:first-child) {
-			margin-left: 8px;
+	.fragment {
+		width: 700px;
+		margin-top: 16px;
+
+		.header {
+			display: flex;
+			h3 {
+				flex: 1;
+			}
+		}
+	}
+
+	.self {
+		outline: 1px solid;
+	}
+
+	.fragment-group {
+
+		.tiers {
+			display: flex;
+		}
+
+		.tier {
+			width: 125px;
+			&:not(:first-child) {
+				margin-left: 8px;
+			}
+		}
+
+		.stats {
+			margin-right: 45px;
 		}
 	}
 }
-

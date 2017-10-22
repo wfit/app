@@ -1,11 +1,18 @@
+@import gt.modules.composer.ComposerUtils
 @import models.composer.{Fragment, Slot}
 @(fragment: Fragment, slots: Seq[(Slot, Option[Toon])])(implicit request: UserRequest[_])
 
 <div class="fragment fragment-group">
-	<div>
+	<div class="header">
 		<h3><i>people</i> @fragment.title</h3>
 		<div class="stats">
-
+			@for((icon, count, ilvl) <- ComposerUtils.computeAllStats(slots)) {
+				<span>
+					@icon.map { src => <img src="@src"> }
+					<strong>@count</strong>
+					<span class="gray">(@ilvl)</span>
+				</span>
+			}
 		</div>
 	</div>
 	<div class="tiers">

@@ -23,7 +23,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 	/** The main composer view */
 	def composer = ComposerAction.async { implicit req =>
-		Documents.sortBy(doc => doc.updated.desc).result map (docs => Ok(views.html.composer.composer(docs)))
+		Documents.sortBy(doc => doc.updated.desc).result map (docs => Ok(views.html.composer.index(docs)))
 	}
 
 	/** Create a new composer document */

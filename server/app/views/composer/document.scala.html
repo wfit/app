@@ -1,7 +1,7 @@
 @import models.composer.Document
 @(doc: Document, frags: Seq[Html])(implicit req: UserRequest[_])
 
-<div class="document-body">
+<div id="composer-document-body">
 	<div class="row">
 		<div class="flex">
 			<h3 style="margin: 0;">@doc.title</h3>
