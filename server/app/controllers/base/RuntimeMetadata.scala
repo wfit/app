@@ -11,7 +11,7 @@ class RuntimeMetadata (service: RuntimeService) {
 	val clientScripts: Seq[String] = Seq(
 		controllers.routes.Assets.versioned("javascripts/versioned.js").url,
 		controllers.routes.HomeController.jsRouter(instanceUUID.toString).url,
-		service.clientDependencies.get,
+		//service.clientDependencies.get,
 		service.clientScript.get
 	)
 }

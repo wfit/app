@@ -13,19 +13,19 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-language:implicitConversions",
 		"-language:reflectiveCalls",
 		"-language:higherKinds",
-		"-opt:l:method"
+		"-opt:l:method",
 	),
 	sources in (Compile, doc) := Seq.empty,
 	publishArtifact in (Compile, packageDoc) := false,
-	publishArtifact in (Compile, packageSrc) := false
+	publishArtifact in (Compile, packageSrc) := false,
 )
 
 lazy val commonScalaJsSettings: Seq[Def.Setting[_]] = Seq(
-	scalacOptions += "-P:scalajs:sjsDefinedByDefault"
+	scalacOptions += "-P:scalajs:sjsDefinedByDefault",
 )
 
 lazy val root = project.in(file(".")).aggregate(server).settings(
-	run := { (run in server in Compile).evaluated }
+	run := { (run in server in Compile).evaluated },
 )
 
 lazy val server = (project in file("server"))
@@ -42,7 +42,7 @@ lazy val server = (project in file("server"))
 			"com.typesafe.play" %% "play-slick" % "3.0.2",
 			"org.mariadb.jdbc" % "mariadb-java-client" % "2.1.2",
 			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final",
-			"com.google.javascript" % "closure-compiler" % "v20170910"
+			"com.google.javascript" % "closure-compiler" % "v20170910",
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -52,9 +52,9 @@ lazy val server = (project in file("server"))
 		DigestKeys.indexWriter ~= { writer => index => s"var versioned = ${ writer(index) };" },
 		TwirlKeys.templateImports ++= Seq(
 			"_root_.controllers.base._",
-			"_root_.utils._"
+			"_root_.utils._",
 		),
-		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500)
+		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500),
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)
@@ -66,15 +66,11 @@ lazy val client = (project in file("client"))
 		commonScalaJsSettings,
 		scalaJSUseMainModuleInitializer := true,
 		libraryDependencies ++= Seq(
-			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
-			"com.typesafe.play" %%% "play-json" % "2.6.3",
 			"in.nvilla" %%% "monadic-html" % "0.3.2",
-			"org.webjars.npm" % "dexie" % "1.4.1"
 		),
 		jsDependencies ++= Seq(
-			"org.webjars.npm" % "dexie" % "1.4.1" / "1.4.1/dist/dexie.min.js"
 		),
-		skip in packageJSDependencies := false
+		skip in packageJSDependencies := false,
 	)
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb, JSDependenciesPlugin)
 	.dependsOn(sharedJs)
@@ -84,7 +80,7 @@ lazy val electron = (project in file("electron"))
 		name := "wfit-electron",
 		commonSettings,
 		commonScalaJsSettings,
-		scalaJSUseMainModuleInitializer := true
+		scalaJSUseMainModuleInitializer := true,
 	)
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
 	.dependsOn(sharedJs)
@@ -94,18 +90,18 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		name := "shared",
 		commonSettings,
 		libraryDependencies ++= Seq(
-			"com.typesafe.play" %%% "play-json" % "2.6.6"
+			"com.typesafe.play" %%% "play-json" % "2.6.6",
 		)
 	)
 	.jsSettings(
 		commonScalaJsSettings,
 		libraryDependencies ++= Seq(
 			"io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
-			"org.scala-js" %%% "scalajs-dom" % "0.9.3"
+			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
 		)
 	)
 	.jvmSettings(
-		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.19" % "provided"
+		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.19" % "provided",
 	)
 
 lazy val sharedJvm = shared.jvm
