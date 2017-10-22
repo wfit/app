@@ -1,15 +1,15 @@
 package models.composer
 
-import java.time.LocalDateTime
-import utils.UUID
+import java.time.Instant
 import utils.SlickAPI._
+import utils.UUID
 
 class Documents (tag: Tag) extends Table[Document](tag, "gt_composer_docs") {
 	def id = column[UUID]("id", O.PrimaryKey)
 	def title = column[String]("title")
-	def updated = column[LocalDateTime]("updated")
+	def updated = column[Instant]("updated")
 
-	def * = (id, title, updated) <> (Document.tupled, Document.unapply)
+	def * = (id, title, updated) <> ((Document.apply _).tupled, Document.unapply)
 }
 
 object Documents extends TableQuery(new Documents(_))

@@ -236,24 +236,31 @@ class FragmentsList extends Worker with ViewUtils {
 	private val blocks = fragments.map(frags => frags.map(fragmentBlock))
 
 	mount("#composer-main")(
-		<div class="fragments-list">
-			{blocks}
+		<div class="toolbar">
+			<button>Filtrer Mains</button>
+			<div class="spacer"></div>
+			<a href={Router.Composer.composer().url} class="btn alternate">Fermer</a>
 		</div>,
-		<div class="new">
-			<h3 class="gray">Nouvelle section</h3>
-			<div class="row">
-				<button class="gray alternate" onclick={() => createFragment("text")}>
-					<i>text_fields</i>
-					Texte
-				</button>
-				<button class="gray alternate" onclick={() => createFragment("group")}>
-					<i>people</i>
-					Groupe
-				</button>
-				<button class="gray alternate" onclick={() => createFragment("grid")}>
-					<i>border_all</i>
-					Grid
-				</button>
+		<div class="scroll-pane">
+			<div class="fragments-list">
+				{blocks}
+			</div>
+			<div class="new">
+				<h3 class="gray">Nouvelle section</h3>
+				<div class="row">
+					<button class="gray alternate" onclick={() => createFragment("text")}>
+						<i>text_fields</i>
+						Texte
+					</button>
+					<button class="gray alternate" onclick={() => createFragment("group")}>
+						<i>people</i>
+						Groupe
+					</button>
+					<button class="gray alternate" onclick={() => createFragment("grid")}>
+						<i>border_all</i>
+						Grid
+					</button>
+				</div>
 			</div>
 		</div>
 	)

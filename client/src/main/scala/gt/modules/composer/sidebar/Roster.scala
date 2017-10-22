@@ -1,6 +1,7 @@
-package gt.modules.composer
+package gt.modules.composer.sidebar
 
 import gt.Router
+import gt.modules.composer.{ComposerUtils, Editor, FragmentsList}
 import gt.util.Http
 import mhtml.{Rx, Var}
 import models.composer.RosterEntry
@@ -8,7 +9,7 @@ import org.scalajs.dom
 import scala.concurrent.ExecutionContext.Implicits.global
 import utils.UUID
 
-object Roster {
+class Roster extends SidebarTree {
 	private val roster = Var(Seq.empty[RosterEntry])
 
 	private val rosterBuckets = roster.map { entries =>
@@ -23,10 +24,10 @@ object Roster {
 		rosterBuckets.map(_.getOrElse(bucket, Seq.empty))
 	}
 
-	val rosterMains = rosterBucket('Mains)
-	val rosterFriends = rosterBucket('Friends)
+	private val rosterMains = rosterBucket('Mains)
+	private val rosterFriends = rosterBucket('Friends)
 
-	val rosterAlts = rosterBucket('Alts).map { alts =>
+	private val rosterAlts = rosterBucket('Alts).map { alts =>
 		if (alts.isEmpty) Seq.empty
 		else {
 			val ilvlMax = alts.map(_.toon.ilvl).max
@@ -98,7 +99,7 @@ object Roster {
 		</div>
 	}
 
-	val tree = {
+	val tree = Rx {
 		<div id="composer-sidebar-roster">
 			<h3>Roster</h3>
 			<div class="toons">

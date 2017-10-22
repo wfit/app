@@ -1,10 +1,11 @@
 package utils
 
-import play.api.libs.functional.syntax._
+import java.time.Instant
 import play.api.libs.json._
+import scala.util.Try
 
 object JsonFormats {
-	implicit def tuple2Reads[A: Reads, B: Reads]: Reads[(A, B)] =
+	/*implicit def tuple2Reads[A: Reads, B: Reads]: Reads[(A, B)] =
 		(JsPath(0).read[A] and
 		 JsPath(1).read[B]).tupled
 
@@ -30,7 +31,7 @@ object JsonFormats {
 		 JsPath(1).format[B] and
 		 JsPath(2).format[C] and
 		 JsPath(4).format[D] and
-		 JsPath().format[E]).tupled
+		 JsPath().format[E]).tupled*/
 
 	implicit def option[A: Format]: Format[Option[A]] = new Format[Option[A]] {
 		def writes(o: Option[A]): JsValue = o.map(Json.toJson(_)).getOrElse(JsNull)
@@ -38,5 +39,16 @@ object JsonFormats {
 			case JsNull => JsSuccess(None)
 			case other => Json.fromJson[A](other).map(Some.apply)
 		}
+	}
+
+	implicit object InstantFormat extends Format[Instant] {
+		def reads(json: JsValue): JsResult[Instant] = json.validate[String].flatMap { iso =>
+			Try(Instant.parse(iso)).fold(
+				err => JsError(err.toString),
+				instant => JsSuccess(instant)
+			)
+		}
+
+		def writes(i: Instant): JsValue = JsString(i.toString)
 	}
 }

@@ -2,6 +2,7 @@ package gt.workers
 
 import protocol.MessageSerializer
 
+/** A worker control message */
 case class WorkerControl(symbol: Symbol) extends AnyVal
 
 object WorkerControl {

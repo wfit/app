@@ -1,53 +1,55 @@
 package gt.modules.composer
 
 import gt.Router
+import gt.modules.composer.sidebar.{DocumentInfo, Dummy, Roster, SidebarTree}
 import gt.util.{Http, ViewUtils}
 import gt.workers.Worker
 import java.util.concurrent.atomic.AtomicInteger
-import mhtml.{Rx, Var}
+import mhtml.Var
+import models.composer.Document
 import org.scalajs.dom
 import org.scalajs.dom.DragEvent
 
-class Sidebar extends Worker with ViewUtils {
-	private val doc = value[String]("document-id")
+class Sidebar extends Worker.Dummy with ViewUtils {
+	/** This document id */
+	private val doc = value[Document]("document")
 
-	private val tab = Var("none")
-	selectTab("roster")
+	// Sidebar elements
+	lazy val roster = new Roster
+	lazy val documentInfo = new DocumentInfo
 
-	private def selectTab(selection: String): Unit = {
-		tab := selection
-		selection match {
-			case "roster" => Roster.refresh()
-			case _ => // ignore
-		}
+	/** The current tab key */
+	private val tab = Var[String]("roster")
+
+	/** The current tab tree */
+	private val tabTree = tab.map[SidebarTree] {
+		case "roster" => roster
+		case "doc" => documentInfo
+		case _ => new Dummy()
+	}.flatMap { block =>
+		block.refresh()
+		block.tree
 	}
 
-	private def tabSelected(key: String): Rx[Boolean] = tab.map(_ == key)
-
-	private def genTabs(items: (String, String)*) = items.map { case (key, icon) =>
-		<li onclick={() => selectTab(key)} selected={tabSelected(key)}>
+	/** The list of tabs nodes */
+	private val tabs = Seq(
+		"roster" -> "people",
+		"slacks" -> "flash_on",
+		"wishes" -> "star",
+		"check" -> "lightbulb_outline",
+		"doc" -> "insert_drive_file",
+	).map { case (key, icon) =>
+		<li onclick={() => tab := key} selected={tab.map(_ == key)}>
 			<i>
 				{icon}
 			</i>
 		</li>
 	}
 
-	private val tabs = genTabs(
-		"roster" -> "people",
-		"slacks" -> "flash_on",
-		"wishes" -> "star",
-		"check" -> "lightbulb_outline"
-	)
-
-	private val tree = tab.map {
-		case "roster" => Roster.tree
-		case _ => <!-- Nothing -->
-	}
-
 	private val trashVisible = Var(false)
 	private val dndCounter = new AtomicInteger(0)
 
-	private val binding = mount("#composer-sidebar")(
+	mount("#composer-sidebar")(
 		<div class="tabs-container">
 			<ul class="tabs">
 				{tabs}
@@ -62,7 +64,7 @@ class Sidebar extends Worker with ViewUtils {
 				<i>delete_forever</i>
 			</div>
 			<div>
-				{tree}
+				{tabTree}
 			</div>
 		</div>
 	)
@@ -93,16 +95,8 @@ class Sidebar extends Worker with ViewUtils {
 		if (Editor.dragType == "slot") {
 			val frag = Editor.dragSlot.fragment
 			val slot = Editor.dragSlot.id
-			Http.delete(Router.Composer.deleteSlot(doc, frag, slot))
+			Http.delete(Router.Composer.deleteSlot(doc.id, frag, slot))
 		}
-		dragLeave(e, true)
-	}
-
-	def receive: Receive = {
-		case _ => ???
-	}
-
-	override def onTerminate(): Unit = {
-		binding.cancel
+		dragLeave(e, drop = true)
 	}
 }

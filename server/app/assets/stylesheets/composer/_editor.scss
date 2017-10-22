@@ -1,105 +1,51 @@
+@import "editor_sidebar";
+
 $fragment-width: 700px;
 
-#composer-sidebar {
-	width: 366px;
-	position: relative;
+#composer-main {
+	padding: 0;
+	display: flex;
+	flex-direction: column;
 
-	.tabs {
-		text-align: center;
-		margin: -24px -24px 0 -24px;
+	.toolbar {
+		height: 59px;
+		background: #1a1a1a;
 		padding: 12px 24px;
-		box-shadow: 0 0 10px fade-out(#000, 0.25);
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.75);
 		z-index: 2;
 
-		li {
-			font-size: 21px;
-			display: inline-block;
-			padding: 0 16px;
-			opacity: 0.5;
-
-			i {
-				padding: 6px 2px 6px 2px;
-				border-bottom: 2px solid transparent;
-			}
-
-			&:hover, &[selected] {
-				opacity: 1;
-				cursor: pointer;
-			}
-
-			&[selected] i {
-				border-color: #dd1f20;
-			}
-		}
-	}
-
-	.content {
-		margin: 0 -24px -24px -24px;
-		position: relative;
-		z-index: 1;
-
-		& > div {
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			padding: 24px 24px 24px 24px;
-			overflow: auto;
-		}
-	}
-
-	.trash {
 		display: flex;
-		z-index: 5;
 		align-items: center;
-		justify-content: center;
-		transform: scale(0);
-		opacity: 0;
-		transition: opacity .2s ease-out;
-		will-change: opacity, transform;
 
-		&[visible] {
-			opacity: 1;
-			transform: scale(1);
-		}
+		button {
+			background: none;
+			box-shadow: none;
+			display: inline-block;
+			padding: 6px 0;
+			border: 2px solid transparent;
+			opacity: 0.6;
 
-		i {
-			display: block;
-			padding: 32px;
-			font-size: 84px;
-			background: rgba(17, 17, 17, 0.75);
-			border-radius: 16px;
-		}
-	}
-
-	#composer-sidebar-roster {
-		.toons {
-			margin-left: -4px;
-		}
-
-		h4 {
-			margin: 8px 0;
-		}
-
-		.toon {
-			width: 100px;
-			margin-left: 4px;
-
-			&[picked] {
-				opacity: 0.4;
+			&:hover, &.active {
+				opacity: 1;
+				border-bottom: 2px solid $color-primary;
 			}
 		}
 	}
-}
 
-#composer-main {
-	margin: -12px 0;
+	.scroll-pane {
+		flex: 1;
+		overflow: auto;
+	}
 
 	.fragments-list {
 		display: flex;
 		justify-content: center;
 		flex-wrap: wrap;
+		padding: 0 24px;
+
+		@media (min-width: 1916px) {
+			justify-content: space-between;
+		}
 	}
 
 	.fragment {
@@ -219,10 +165,3 @@ $fragment-width: 700px;
 	}
 }
 
-@media (min-width: 1916px) {
-	#composer-main {
-		.fragments-list {
-			justify-content: space-between;
-		}
-	}
-}

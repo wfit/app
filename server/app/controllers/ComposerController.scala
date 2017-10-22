@@ -2,7 +2,7 @@ package controllers
 
 import controllers.base.{AppController, UserRequest}
 import gt.modules.composer.ComposerUtils
-import java.time.LocalDateTime
+import java.time.Instant
 import javax.inject.Inject
 import models.acl.AclView
 import models.composer._
@@ -34,7 +34,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	/** Form handler for new composer document creation */
 	def createPost = ComposerEditAction(parse.json).async { implicit req =>
 		val title = req.param("title").asString
-		val doc = Document(UUID.random, title, LocalDateTime.now)
+		val doc = Document(UUID.random, title, Instant.now)
 		(Documents += doc) andThen Redirect(routes.ComposerController.composer())
 	}
 
@@ -62,20 +62,14 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		}
 	}
 
-	def rename(id: UUID) = ComposerEditAction { implicit req =>
-		Ok
+	def rename(id: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+		Documents.filter(d => d.id === id).map(d => d.title).update(req.param("name").asString) andThen {
+			Redirect(routes.ComposerController.editor(id))
+		}
 	}
 
-	def renamePost(id: UUID) = ComposerEditAction { implicit req =>
-		Ok
-	}
-
-	def delete(id: UUID) = ComposerEditAction { implicit req =>
-		Ok
-	}
-
-	def deletePost(id: UUID) = ComposerEditAction { implicit req =>
-		Ok
+	def delete(id: UUID) = ComposerEditAction.async { implicit req =>
+		Documents.filter(d => d.id === id).delete andThen Redirect(routes.ComposerController.composer())
 	}
 
 	/** The composer editor */
@@ -106,7 +100,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 	/** Updates the last modification time of a document */
 	private def touchDocument(doc: UUID): PartialFunction[Try[_], Unit] = {
-		case _ => Documents.filter(d => d.id === doc).map(_.updated).update(LocalDateTime.now).run
+		case _ => Documents.filter(d => d.id === doc).map(_.updated).update(Instant.now).run
 	}
 
 	/** Creates a new fragment in a document */
@@ -269,7 +263,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 			case Success(source) =>
 				eventBus.publish(s"composer:$doc:fragment.update", frag)
 				for (s <- source) eventBus.publish(s"composer:$doc:fragment.update", s)
-		} map (_ => Ok) andThen touchDocument (doc)
+		} map (_ => Ok) andThen touchDocument(doc)
 	}
 
 	/** Delete a slot in a fragment */
