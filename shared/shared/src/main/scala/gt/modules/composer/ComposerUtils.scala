@@ -24,12 +24,15 @@ object ComposerUtils {
 		(None, count, ilvl) +: subStats
 	}
 
-	val StandardOrdering: Ordering[(Role, Int, String)] =
-		Ordering.by { case (role, ilvl, name) => (role, -ilvl, name) }
+	val StandardOrdering: Ordering[(Boolean, Role, Int, String)] =
+		Ordering.by { case (main, role, ilvl, name) => (!main, role, -ilvl, name) }
 
 	val StandardToonOrdering: Ordering[Toon] =
-		StandardOrdering.on(t => (t.spec.role, t.ilvl, t.name))
+		StandardOrdering.on(t => (t.main, t.spec.role, t.ilvl, t.name))
 
-	val StandardSlotToonOrdering: Ordering[(Slot, Option[Toon])] =
-		StandardOrdering.on { case (slot, toon) => (slot.role, toon.map(_.ilvl) getOrElse 0, slot.name) }
+	val StandardSlotToonOrdering: Ordering[(Slot, Option[Toon])] = {
+		StandardOrdering.on { case (slot, toon) =>
+			(toon.exists(_.main), slot.role, toon.map(_.ilvl) getOrElse 0, slot.name)
+		}
+	}
 }

@@ -80,6 +80,8 @@ class FragmentsList extends Worker with View {
 		val counter = new AtomicInteger(0)
 		val instance = treeForFragment(fragment)
 		<div class="fragment"
+		     filter-mains={Editor.filterMains}
+		     show-stats={Editor.showStats}
 		     ondragenter={e: dom.DragEvent => fragmentDragEnter(e, counter, fragment.id)}
 		     ondragover={e: dom.DragEvent => fragmentDragOver(e, fragment.id)}
 		     ondragleave={e: dom.DragEvent => fragmentDragLeave(e, counter)}
