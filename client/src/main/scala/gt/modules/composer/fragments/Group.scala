@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
 import models.Toon
 import models.composer.{Fragment, Slot}
-import models.wow.Relic
+import models.wow.{Armor, Relic, Token}
 import org.scalajs.dom
 import org.scalajs.dom.{DragEvent, html}
 import play.api.libs.json.Json
@@ -31,7 +31,7 @@ case class Group (fragment: Fragment) extends FragmentTree {
 	}
 
 	/** The number of toons for every distinct owner,
-	  * used to compute conflicts*/
+	  * used to compute conflicts */
 	val ownersCount: Rx[Map[UUID, Int]] = slots.map { ss =>
 		ss.collect { case (_, Some(toon)) => toon.owner }.groupBy(identity).map { case (k, v) => (k, v.size) }
 	}
@@ -107,19 +107,86 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		}
 	}
 
-	/** The complete DOM tree for this fragment */
-	val tree = {
-		<div class="group-fragment">
-			<div class="tiers">
-				{tiersTree}
-			</div>
-		</div>
-	}
-
 	/** Filters out non-main from stats if such filter is enabled */
 	private val statsSlots = (slots product Editor.filterMains).map {
 		case (ss, false) => ss
 		case (ss, true) => ss.filter { case (_, toon) => toon.exists(_.main) }
+	}
+
+	/** All possibles tags, with associated category */
+	private val tags = Map(
+		Armor.Cloth.name -> 1,
+		Armor.Leather.name -> 1,
+		Armor.Mail.name -> 1,
+		Armor.Plate.name -> 1,
+
+		Token.Conqueror.name -> 2,
+		Token.Protector.name -> 2,
+		Token.Vanquisher.name -> 2,
+
+		Relic.Arcane.name -> 3,
+		Relic.Blood.name -> 3,
+		Relic.Fel.name -> 3,
+		Relic.Fire.name -> 3,
+		Relic.Frost.name -> 3,
+		Relic.Holy.name -> 3,
+		Relic.Iron.name -> 3,
+		Relic.Life.name -> 3,
+		Relic.Shadow.name -> 3,
+		Relic.Storm.name -> 3,
+		Relic.Water.name -> 3,
+	)
+
+	/** Computes the set of conflicts tags for the toon */
+	private def tagsForToon(toon: Toon): Set[String] = {
+		val relics = toon.spec.artifact.relics match {
+			case (a, b, c) => Set(a.name, b.name, c.name)
+		}
+		Set(toon.cls.armor.name, toon.cls.token.name) ++ relics
+	}
+
+	private val conflicts = statsSlots.map { ss =>
+		val tagged = ss.flatMap {
+			case (_, Some(toon)) => tagsForToon(toon)
+			case _ => Set.empty[String]
+		}
+		tags.map { case (tag, cat) => (tag, cat) -> tagged.count(_ == tag) }
+			.groupBy { case ((_, c), _) => c }
+			.mapValues { cat =>
+				cat.toSeq.map { case ((tag, _), count) => (tag, count) }.sortBy { case (tag, _) => tag }
+			}
+			.toSeq
+			.sortBy { case (cat, _) => cat }
+			.map { case (_, ts) => ts }
+	}
+
+	private def renderConflicts(conflicts: Seq[Seq[(String, Int)]]): Seq[Elem] = conflicts.map { ts =>
+		val tags = ts.map { case (tag, count) =>
+			<div>
+				<span class="tag">{tag}</span>
+				<span class="count">{count}</span>
+			</div>
+		}
+		<div class="cat">{tags}</div>
+	}
+
+	private val conflictsTree = Editor.showStats.map {
+		case false =>
+			<!-- Conflicts -->
+		case true =>
+			<div class="conflicts">
+				{conflicts.map(renderConflicts)}
+			</div>
+	}
+
+	/** The complete DOM tree for this fragment */
+	val tree = {
+		<div class="group-fragment">
+			{conflictsTree}
+			<div class="tiers">
+				{tiersTree}
+			</div>
+		</div>
 	}
 
 	/** Composition stats: counts and average ilvl */

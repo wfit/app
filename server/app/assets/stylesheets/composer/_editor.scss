@@ -113,6 +113,42 @@ $fragment-width: 700px;
 	}
 
 	.group-fragment {
+		.conflicts {
+			border: 1px solid #222;
+			padding: 4px;
+			margin-bottom: 5px;
+			display: flex;
+			font-size: 13px;
+
+			.cat {
+				padding: 0 4px;
+			}
+
+			.cat:nth-child(1), .cat:nth-child(2) {
+				width: 126px;
+				flex-shrink: 0;
+				margin-right: 15px;
+			}
+
+			.cat > div {
+				display: inline-flex;
+				width: 118px;
+			}
+
+			.cat:nth-child(3) > div {
+				margin-right: 23px;
+
+				&:nth-child(3n) {
+					margin-right: 0;
+				}
+			}
+
+			.tag {
+				flex: 1;
+				font-family: 'Roboto Condensed', sans-serif;
+			}
+		}
+
 		.tiers {
 			max-width: 100%;
 			display: flex;
