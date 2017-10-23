@@ -1,6 +1,7 @@
 package gt
 
 import gt.util.{Http, View}
+import gt.workers.{Worker, WorkerRef}
 import org.scalajs.dom
 import org.scalajs.dom.experimental.HttpMethod
 import org.scalajs.dom.ext.PimpedNodeList
@@ -21,7 +22,7 @@ import scala.scalajs.reflect.Reflect
   * It also manages navigation and history book-keeping.
   */
 object Display {
-	private var currentView: Option[DelayedViewInit] = None
+	private var currentView: Option[ViewWorker] = None
 	private var tasks: Set[Future[_]] = Set.empty
 	private var ready: Future[_] = Future.unit
 	private var navigationInProgress: Boolean = false
@@ -92,7 +93,7 @@ object Display {
 					case ("title", JsString(title)) => setTitle(title)
 					case ("module", JsString(module)) => setModule(module)
 					case ("module", JsNull) => setModule("none")
-					case ("view", JsString(path)) => loadView(resolveView(path))
+					case ("view", JsString(path)) => loadView(path)
 					case _ => // Ignore
 				}
 				ready = Future.sequence[Any, Set](tasks)
@@ -100,45 +101,10 @@ object Display {
 	}
 
 	/**
-	  * Resolves the view to load based on its fully qualified class name.
-	  *
-	  * First a Scala `object` is searched and used as a view. If no such object are
-	  * found or the object is not an instance of [[View]], then a class with the
-	  * given fqcn is looked for instead.
-	  *
-	  * If no matching view can be found a [[ClassNotFoundException]] is thrown.
-	  *
-	  * @param path the view fqcn
-	  */
-	private def resolveView(path: String): DelayedViewInit = {
-		val objView = (Reflect.lookupLoadableModuleClass(path) orElse
-		               Reflect.lookupLoadableModuleClass(path + "$")).flatMap { loadable =>
-			// Ensure we did not match the companion object of a class-based view
-			loadable.loadModule() match {
-				case view: View => Some(new DelayedViewInit(view))
-				case _ => None
-			}
-		}
-		def clsView = Reflect.lookupInstantiatableClass(path).map { instantiatable =>
-			new DelayedViewInit(instantiatable.newInstance().asInstanceOf[View])
-		}
-		objView orElse clsView getOrElse (throw new ClassNotFoundException(s"Unable to load view: $path"))
-	}
-
-	/**
 	  * Loads the given view.
-	  *
-	  * This code is mostly legacy since the view initialization will
-	  * be delayed until every additional dependencies are available.
-	  *
-	  * The view is given as a [[DelayedViewInit]] object to prevent
-	  * early initialization of class-based views.
-	  *
-	  * @see [[loadSnippet]]
-	  * @param view the view to load
 	  */
-	private def loadView(view: DelayedViewInit): Unit = {
-		currentView = Some(view)
+	private def loadView(path: String): Unit = {
+		currentView = Some(ViewWorker(path))
 	}
 
 	/**
@@ -224,7 +190,7 @@ object Display {
 			if (view == currentView) {
 				val oldContainer = currentContainer
 				oldContainer.parentNode.replaceChild(freshContainer, oldContainer)
-				view.foreach(_.init())
+				for (v <- view) v.init()
 				for (node <- Option(freshContainer.querySelector("[autofocus]"))) {
 					node.asInstanceOf[html.Input].focus()
 				}
@@ -256,27 +222,16 @@ object Display {
 		}
 	}
 
-	/**
-	  * An utility class that ensure that a view instance is not created before the
-	  * invocation of its init method ought to be called.
-	  *
-	  * This is used to allow class-based view in addition to object-based view that
-	  * are guaranteed to be instantiated just before their init method is called and
-	  * can thus use the constructor body in place of overriding the init method while
-	  * still being executing with the full and final DOM tree available.
-	  *
-	  * @param provider the view provider
-	  */
-	class DelayedViewInit(provider: => View) {
-		private var instance: Option[View] = None
+	case class ViewWorker(path: String) {
+		private var instance = WorkerRef.NoWorker
 
 		def init(): Unit = {
-			require(instance.isEmpty, "DelayedViewInit: double initialization")
-			val view = provider
-			view.init()
-			instance = Some(view)
+			instance = Worker.localDynamic(path)
 		}
 
-		def unload(): Unit = instance.foreach(_.unload())
+		def unload(): Unit = {
+			instance.terminate()
+			instance = WorkerRef.NoWorker
+		}
 	}
 }

@@ -264,7 +264,10 @@ object Worker {
 
 	/** Spawns a new worker of type T in a new thread */
 	def spawn[T <: Worker : ClassTag](implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef = {
-		val fqcn = implicitly[ClassTag[T]].runtimeClass.getName
+		spawnDynamic(implicitly[ClassTag[T]].runtimeClass.getName)
+	}
+
+	def spawnDynamic[T <: Worker](fqcn: String)(implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef = {
 		val id = UUID.random
 		val blob = new dom.Blob(js.Array(threadInit(fqcn, id, parent)), blobOptions)
 		val url = dom.URL.createObjectURL(blob)
@@ -276,7 +279,11 @@ object Worker {
 
 	/** Spawns a new worker of type T in this thread */
 	def local[T <: Worker : ClassTag](implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef.Local = {
-		localWithUUID(implicitly[ClassTag[T]].runtimeClass.getName, UUID.random, parent)
+		localDynamic[T](implicitly[ClassTag[T]].runtimeClass.getName)
+	}
+
+	def localDynamic[T <: Worker](fqcn: String)(implicit parent: WorkerRef = WorkerRef.NoWorker): WorkerRef.Local = {
+		localWithUUID(fqcn, UUID.random, parent)
 	}
 
 	/** Constructs a new local worker with the given UUID */
@@ -289,7 +296,7 @@ object Worker {
 				registerWorker(uuid, LocalWorker(instance))
 				new WorkerRef.Local(uuid)
 			case None =>
-				throw new ClassNotFoundException(s"Unable to find class '$fqcn'")
+				throw new ClassNotFoundException(s"Unable to find class for worker '$fqcn'")
 		}
 	}
 

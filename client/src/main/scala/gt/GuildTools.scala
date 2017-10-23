@@ -52,7 +52,7 @@ object GuildTools {
 	def init(autoWorkers: js.Array[String]): Unit = {
 		if (isApp) {
 			if (isMain) {
-				setupAppMenuToggle()
+				if (isAuthenticated) setupAppMenuToggle()
 				setupCacheClearOnHide()
 			}
 			setupWindowControls()

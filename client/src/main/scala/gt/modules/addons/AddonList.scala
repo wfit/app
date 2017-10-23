@@ -1,16 +1,16 @@
 package gt.modules.addons
 
-import gt.{GuildTools, Settings}
-import gt.util.{ViewUtils, WorkerView}
+import gt.util.View
 import gt.workers.Worker
 import gt.workers.updater.{Manifest, Updater}
+import gt.{GuildTools, Settings}
 import mhtml._
 import org.scalajs.dom
 import org.scalajs.dom.html
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic.literal
 
-class AddonList extends Worker with ViewUtils {
+class AddonList extends Worker with View {
 	private val updater = Updater.ref
 	updater ! 'RegisterView ~ self
 
@@ -152,5 +152,3 @@ class AddonList extends Worker with ViewUtils {
 		updater ! 'UnregisterView
 	}
 }
-
-object AddonList extends WorkerView[AddonList]

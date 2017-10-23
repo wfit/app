@@ -5,12 +5,12 @@
 	background: fade-out(#111, 0.10);
 	border: 1px solid #333;
 	padding: 8px;
-	box-shadow: 0px 0px 5px rgba(17, 17, 17, 0.75);
+	box-shadow: 0 0 5px rgba(17, 17, 17, 0.75);
 	color: #eee;
 
 	&.visible {
 		display: block;
-		will-change: bottom, left;
+		will-change: top, right, left, bottom;
 	}
 
 	.line {

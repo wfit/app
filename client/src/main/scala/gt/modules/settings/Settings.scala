@@ -8,7 +8,7 @@ import org.scalajs.dom
 import org.scalajs.dom.html
 import org.scalajs.dom.ext._
 
-class Settings extends View {
+class Settings extends View.Simple {
 	def findSettingForKey(key: String) = Registry.settings(key)
 
 	for (node <- dom.document.querySelectorAll("input[type=checkbox][data-key]");

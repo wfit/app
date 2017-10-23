@@ -2,7 +2,7 @@ package gt.modules.composer
 
 import gt.Router
 import gt.modules.composer.fragments.{FragmentTree, Grid, Group, Text}
-import gt.util.{Http, ViewUtils}
+import gt.util.{Http, View}
 import gt.workers.Worker
 import gt.workers.eventbus.EventBus
 import java.util.concurrent.atomic.AtomicInteger
@@ -15,7 +15,7 @@ import scala.collection.mutable
 import scala.xml.Elem
 import utils.UUID
 
-class FragmentsList extends Worker with ViewUtils {
+class FragmentsList extends Worker with View {
 	// The current composer document
 	val doc = value[String]("document-id")
 

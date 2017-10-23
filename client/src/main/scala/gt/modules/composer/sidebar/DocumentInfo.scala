@@ -1,7 +1,7 @@
 package gt.modules.composer.sidebar
 
 import gt.Router
-import gt.util.ViewUtils
+import gt.util.{View, ViewUtils}
 import mhtml.Rx
 import models.composer.Document
 import org.scalajs.dom

@@ -1,11 +1,11 @@
 package gt.modules.composer
 
 import gt.Router
-import gt.util.{Http, ViewUtils, WorkerView}
+import gt.util.{Http, View}
 import gt.workers.Worker
 import org.scalajs.dom.html
 
-class Composer extends Worker.Dummy with ViewUtils {
+class Composer extends Worker.Dummy with View {
 	for (doc <- $$[html.Div]("#composer-docs .doc")) {
 		doc.onclick = { _ =>
 			$$[html.Element]("#composer-docs .focused").foreach(_.classList.remove("focused"))
@@ -18,5 +18,3 @@ class Composer extends Worker.Dummy with ViewUtils {
 		}
 	}
 }
-
-object Composer extends WorkerView[Composer]

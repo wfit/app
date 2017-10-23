@@ -163,6 +163,10 @@ header {
 		transition: all ease-out .1s;
 		-webkit-app-region: no-drag;
 
+		html[unauthenticated] & {
+			display: none;
+		}
+
 		&.open {
 			left: 0;
 			box-shadow: 0 0 5px 1px rgba(17, 17, 17, 0.8);

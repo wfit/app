@@ -2,7 +2,7 @@ package gt.modules.composer
 
 import gt.Router
 import gt.modules.composer.sidebar.{DocumentInfo, Dummy, Roster, SidebarTree}
-import gt.util.{Http, ViewUtils}
+import gt.util.{Http, View}
 import gt.workers.Worker
 import java.util.concurrent.atomic.AtomicInteger
 import mhtml.Var
@@ -10,7 +10,7 @@ import models.composer.Document
 import org.scalajs.dom
 import org.scalajs.dom.DragEvent
 
-class Sidebar extends Worker.Dummy with ViewUtils {
+class Sidebar extends Worker.Dummy with View {
 	/** This document id */
 	private val doc = value[Document]("document")
 
