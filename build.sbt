@@ -24,9 +24,16 @@ lazy val commonScalaJsSettings: Seq[Def.Setting[_]] = Seq(
 	scalacOptions += "-P:scalajs:sjsDefinedByDefault",
 )
 
-lazy val root = project.in(file(".")).aggregate(server).settings(
-	run := { (run in server in Compile).evaluated },
-)
+lazy val root = project.in(file("."))
+	.aggregate(
+		server,
+		client,
+		electron,
+		sharedJvm,
+		sharedJs,
+	).settings(
+		run := { (run in server in Compile).evaluated },
+	)
 
 lazy val server = (project in file("server"))
 	.settings(
@@ -101,7 +108,7 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		)
 	)
 	.jvmSettings(
-		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.19" % "provided",
+		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.20" % "provided",
 	)
 
 lazy val sharedJvm = shared.jvm
