@@ -31,14 +31,8 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		ss.groupBy { case (s, _) => s.row }
 	}
 
-	private val maxTier = tiers.map { ts =>
-		if (ts.isEmpty) -1 else ts.keys.max
-	}
-
-	private val fakeTier = maxTier.map(_ + 1)
-
-	private val slotsByTier = (tiers product maxTier).map { case (ts, max) =>
-		(0 to max).map(idx => ts.getOrElse(idx, Seq.empty).sorted(ComposerUtils.StandardSlotToonOrdering)).zipWithIndex
+	private val slotsByTier = tiers.map { case ts =>
+		(0 to 4).map(idx => ts.getOrElse(idx, Seq.empty).sorted(ComposerUtils.StandardSlotToonOrdering)).zipWithIndex
 	}
 
 	private def relicList(relics: (Relic, Relic, Relic)): String = relics match {
@@ -87,10 +81,10 @@ case class Group (fragment: Fragment) extends FragmentTree {
 		</div>
 	}
 
-	val tiersTree = (slotsByTier product fakeTier).map { case (ts, fakeId) =>
+	private val tiersTree = slotsByTier.map { ts =>
 		ts.map { case (ss, tier) =>
 			tierTree(tier, slotsTree(ss))
-		} :+ tierTree(fakeId, cls = "tier fake")
+		}
 	}
 
 	val tree = {

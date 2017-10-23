@@ -24,8 +24,9 @@ $fragment-width: 700px;
 			padding: 6px 0;
 			border: 2px solid transparent;
 			opacity: 0.6;
+			margin-right: 16px;
 
-			&:hover, &.active {
+			&:hover, &[active] {
 				opacity: 1;
 				border-bottom: 2px solid $color-primary;
 			}
@@ -102,6 +103,54 @@ $fragment-width: 700px;
 		}
 	}
 
+	.group-fragment {
+		.tiers {
+			max-width: 100%;
+			display: flex;
+			justify-content: flex-start;
+		}
+
+		.tier {
+			width: 136px;
+			min-height: 35px;
+			margin-right: 5px;
+			padding: 4px;
+			border: 1px solid #222;
+			display: flex;
+			flex-direction: column;
+
+			&:last-child {
+				margin-right: 0;
+			}
+
+			&.hover {
+				outline: 1px dotted #dd1f20;
+			}
+
+			.toon {
+				width: 126px;
+				margin-top: 4px;
+
+				&:first-child {
+					margin-top: 0;
+				}
+			}
+
+			.toon[duplicate] {
+				outline: 1px solid fade-out(#dd1f20, 0.30);
+			}
+		}
+	}
+
+	.header .stats {
+		img {
+			height: 20px;
+			width: 20px;
+			vertical-align: middle;
+			margin-left: 4px;
+		}
+	}
+
 	.new {
 		width: $fragment-width;
 		margin: auto;
@@ -125,43 +174,3 @@ $fragment-width: 700px;
 		}
 	}
 }
-
-.group-fragment {
-	.tiers {
-		max-width: 100%;
-		display: flex;
-		justify-content: flex-start;
-	}
-
-	.tier {
-		width: 125px;
-		margin-right: 4px;
-		min-height: 24px;
-
-		&.hover {
-			outline: 1px dotted #dd1f20;
-		}
-
-		.toon[duplicate] {
-			outline: 1px solid fade-out(#dd1f20, 0.30);
-		}
-	}
-
-	.fake {
-		display: none;
-
-		.drag-toon & {
-			display: block;
-		}
-	}
-}
-
-.header .stats {
-	img {
-		height: 20px;
-		width: 20px;
-		vertical-align: middle;
-		margin-left: 4px;
-	}
-}
-

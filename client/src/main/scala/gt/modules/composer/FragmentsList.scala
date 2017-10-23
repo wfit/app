@@ -235,9 +235,20 @@ class FragmentsList extends Worker with View {
 
 	private val blocks = fragments.map(frags => frags.map(fragmentBlock))
 
+	private val togglesButtons = Seq[(String, Editor => Var[Boolean])](
+		"Mains" -> (e => e.filterMains),
+		"Stats" -> (e => e.showStats),
+		"Duplicates" -> (e => e.showDuplicates),
+	).map { case (label, opt) =>
+		Editor.current.map { editor =>
+			def clicked(): Unit = opt(editor) update (!_)
+			<button active={opt(editor)} onclick={() => clicked()}>{label}</button>
+		}
+	}.foldRight(Rx(List.empty[Elem]))((btn, seq) => (btn product seq) map { case (e, s) => e :: s })
+
 	mount("#composer-main")(
 		<div class="toolbar">
-			<button>Filtrer Mains</button>
+			{togglesButtons}
 			<div class="spacer"></div>
 			<a href={Router.Composer.composer().url} class="btn alternate">Fermer</a>
 		</div>,
