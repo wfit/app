@@ -56,7 +56,10 @@ class AuthService @Inject()(rosterService: RosterService)
 
 	def createSession(user: UUID): Future[UUID] = {
 		val session = UUID.random
-		(Sessions += Session(session, user)) andThen DBIO.successful(session)
+		AclView.filter(e => e.user === user && e.key === "login").map(e => e.value).take(1).result.headOption.flatMap {
+			case Some(v) if v > 0 => (Sessions += Session(session, user)) andThen DBIO.successful(session)
+			case _ => DBIO.failed(UserError(s"Accès non-autorisé."))
+		}
 	}
 
 	def loadSession(id: UUID): Future[Option[UUID]] = cache.getOrElseUpdate(s"auth:session:$id", 5.minute) {

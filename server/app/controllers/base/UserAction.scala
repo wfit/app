@@ -26,8 +26,10 @@ class UserAction @Inject()(authService: AuthService, rosterService: RosterServic
 		val toons = rosterService.toonsForUser(userId)
 		val main = user.flatMap(rosterService.mainForUser)
 		val acl = authService.loadAcl(userId)
-		for (u <- user; t <- toons; a <- acl; m <- main; meta <- rtMetadata)
-			yield UserRequest(Some(u), t, m, a, meta, request)
+		for (u <- user; t <- toons; a <- acl; m <- main; meta <- rtMetadata) yield {
+			if (a.can("login")) UserRequest(Some(u), t, m, a, meta, request)
+			else UserRequest(None, Seq.empty, Toon.dummy(User.guest), UserAcl.empty, meta, request)
+		}
 	}
 
 	private def loadSession[A](request: Request[A], session: String): Future[UserRequest[A]] = {
