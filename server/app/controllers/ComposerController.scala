@@ -62,12 +62,14 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		}
 	}
 
+	/** Renames a document */
 	def rename(id: UUID) = ComposerEditAction(parse.json).async { implicit req =>
 		Documents.filter(d => d.id === id).map(d => d.title).update(req.param("name").asString) andThen {
 			Redirect(routes.ComposerController.editor(id))
 		}
 	}
 
+	/** Deletes a document */
 	def delete(id: UUID) = ComposerEditAction.async { implicit req =>
 		Documents.filter(d => d.id === id).delete andThen Redirect(routes.ComposerController.composer())
 	}
@@ -161,8 +163,8 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	}
 
 	/** Renames a fragment */
-	def renameFragment(doc: UUID, frag: UUID) = ComposerEditAction(parse.text).async { implicit req =>
-		val title = req.body
+	def renameFragment(doc: UUID, frag: UUID) = ComposerEditAction(parse.json).async { implicit req =>
+		val title = req.param("title").asString
 		if (title matches """^\s*$""") {
 			UnprocessableEntity("Titre non-acceptable")
 		} else {

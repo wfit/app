@@ -4,12 +4,12 @@ import gt.{Display, GuildTools, Toast}
 import org.scalajs.dom
 import org.scalajs.dom.experimental.{RequestInit, Response => JSResponse, _}
 import org.scalajs.dom.window.location
-import play.api.libs.json.{Json, JsValue}
-import scala.concurrent.Future
+import play.api.libs.json.{JsValue, Json}
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.scalajs.js
-import scala.scalajs.js.{JSON, URIUtils}
 import scala.scalajs.js.typedarray.Uint8Array
+import scala.scalajs.js.{JSON, URIUtils}
 
 object Http {
 	val defaultHeaders = Map("Gt-Fetch" -> "1")
@@ -72,7 +72,7 @@ object Http {
 	object HttpBody {
 		implicit object StringBody extends HttpBody[String] {
 			val hasBody: Boolean = true
-			val contentType: String = "text/plain"
+			val contentType: String = "text/plain; charset=utf-8"
 			def asString(body: String): String = body
 		}
 
