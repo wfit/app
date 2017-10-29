@@ -13,7 +13,7 @@ class Cron @Inject()(as: ActorSystem, rosterService: RosterService)
                     (implicit ec: ExecutionContext) {
 
 	// Characters updater
-	as.scheduler.schedule(15.minutes, 15.minutes) {
+	as.scheduler.schedule(15.minutes, 5.minutes) {
 		for (batch <- Toons.filter(t => t.active && !t.invalid).sortBy(t => t.lastUpdate.asc).take(5).result.run) {
 			for (toon <- batch) yield {
 				rosterService.updateToon(toon.uuid)
