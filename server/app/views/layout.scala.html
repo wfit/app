@@ -63,6 +63,7 @@
 					@nav("account_circle", "profile", routes.ProfileController.profile(request.user.uuid).url)
 					@nav("event", "calendar", null, Some("calendar.access"))
 					@nav("flash_on", "slacks", null, Some("slacks.access"))
+					@nav("loyalty", "wishlist", routes.WishlistController.wishlist().url, Some("wishlist.access"))
 					@nav("pages", "composer", routes.ComposerController.composer().url, Some("composer.access"))
 					@nav("group", "roster", routes.RosterController.roster().url, Some("roster.access"))
 					@if(request.isApp) {

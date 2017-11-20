@@ -2,6 +2,7 @@ package gt.workers
 
 import gt.GuildTools
 import gt.util.Microtask
+import models.UUID
 import org.scalajs.dom
 import org.scalajs.dom.webworkers.DedicatedWorkerGlobalScope.{self => selfThread}
 import org.scalajs.dom.webworkers.{Worker => Thread}
@@ -21,7 +22,6 @@ import scala.scalajs.reflect.Reflect
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
 import scala.util.DynamicVariable
 import scala.util.control.NonFatal
-import utils.UUID
 
 /**
   * A JavaScript worker.

@@ -1,20 +1,16 @@
 package controllers
 
-import controllers.base.UserAction
+import base.{AppComponents, AppController, UserAction}
 import javax.inject._
 import play.api.cache.Cached
-import play.api.mvc._
 import play.api.routing.{JavaScriptReverseRoute, JavaScriptReverseRouter}
-import scala.concurrent.ExecutionContext
 import services.AuthService
 import utils.CustomStatus
 
 @Singleton
 class HomeController @Inject()(userAction: UserAction, cached: Cached)
                               (authService: AuthService)
-                              (implicit executionContext: ExecutionContext)
-	extends InjectedController {
-
+                              (cc: AppComponents) extends AppController(cc) {
 	def index = userAction { req =>
 		if (req.authenticated) Redirect(routes.DashboardController.dashboard())
 		else Redirect(routes.HomeController.login())
@@ -41,11 +37,10 @@ class HomeController @Inject()(userAction: UserAction, cached: Cached)
 			import com.google.javascript.jscomp._
 			def from(ctrl: Any): Seq[JavaScriptReverseRoute] = {
 				ctrl.getClass.getDeclaredMethods.toSeq
-					.filterNot(m => m.getName startsWith "_")
-					.map(m => m.invoke(ctrl).asInstanceOf[JavaScriptReverseRoute])
+				.filterNot(m => m.getName startsWith "_")
+				.map(m => m.invoke(ctrl).asInstanceOf[JavaScriptReverseRoute])
 			}
 			val endpoints = Seq(
-				from(routes.javascript.Assets),
 				from(routes.javascript.AddonsController),
 				from(routes.javascript.AdminController),
 				from(routes.javascript.ComposerController),

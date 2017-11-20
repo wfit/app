@@ -1,17 +1,18 @@
 package services
 
+import base.{AppComponents, AppService}
 import controllers.routes
-import javax.inject.Singleton
+import javax.inject.{Inject, Singleton}
+import models.UUID
 import org.apache.commons.codec.digest.DigestUtils
-import utils.UUID
 
 @Singleton
-class RuntimeService {
+class RuntimeService @Inject()(cc: AppComponents) extends AppService(cc) {
 	val instanceUUID: UUID = UUID.random
 
 	private def selectFirstOf(scripts: String*): Option[String] = {
 		scripts.find(name => getClass.getResource(s"/public/$name") != null)
-			.map(name => routes.Assets.versioned(name).toString)
+		.map(name => routes.Assets.versioned(name).toString)
 	}
 
 	private def scriptForProject(project: String): Option[String] = {

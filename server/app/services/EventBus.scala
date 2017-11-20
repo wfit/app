@@ -1,25 +1,24 @@
 package services
 
 import akka.NotUsed
-import akka.stream.{Materializer, OverflowStrategy}
+import akka.stream.OverflowStrategy
 import akka.stream.scaladsl._
+import base.{AppComponents, AppService}
 import javax.inject.{Inject, Singleton}
+import models.UUID
 import models.eventbus.Event
 import protocol.MessageSerializer
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 import services.EventBus.Stream
-import utils.UUID
 
 @Singleton
 class EventBus @Inject()(val runtimeService: RuntimeService)
-                        (implicit private val materializer: Materializer,
-                         private val executionContext: ExecutionContext) {
+                        (cc: AppComponents) extends AppService(cc) {
 	private val (queue, out) =
 		Source.queue[Event](bufferSize = 64, OverflowStrategy.dropHead)
-			.toMat(BroadcastHub.sink[Event])(Keep.both)
-			.mapMaterializedValue { case (q, o) => o.runWith(Sink.ignore); (q, o) }
-			.run()
+		.toMat(BroadcastHub.sink[Event])(Keep.both)
+		.mapMaterializedValue { case (q, o) => o.runWith(Sink.ignore); (q, o) }
+		.run()
 
 	private var streams = Map.empty[UUID, Stream]
 	private var users = Map.empty[UUID, Set[Stream]]
@@ -63,8 +62,8 @@ object EventBus {
 
 		private val filteredBus =
 			busIn.buffer(size = 16, OverflowStrategy.dropHead)
-				.filter(event => event.system || isSubscribed(event.channel))
-				.map(event => event.toString)
+			.filter(event => event.system || isSubscribed(event.channel))
+			.map(event => event.toString)
 
 		private val prefixMessages = Source(List(
 			Event("eventbus.instanceid", bus.runtimeService.instanceUUID, system = true),
@@ -73,13 +72,13 @@ object EventBus {
 
 		private val ((queue, done), pub) =
 			Source.queue[String](bufferSize = 16, OverflowStrategy.dropHead)
-				.merge(filteredBus)
-				.prepend(prefixMessages)
-				.keepAlive(30.seconds, () => Tick)
-				.backpressureTimeout(30.seconds)
-				.watchTermination()(Keep.both)
-				.toMat(Sink.asPublisher(false))(Keep.both)
-				.run()(bus.materializer)
+			.merge(filteredBus)
+			.prepend(prefixMessages)
+			.keepAlive(30.seconds, () => Tick)
+			.backpressureTimeout(30.seconds)
+			.watchTermination()(Keep.both)
+			.toMat(Sink.asPublisher(false))(Keep.both)
+			.run()(bus.materializer)
 
 		bus.open(this)
 		done.onComplete(_ => bus.closed(this))(bus.executionContext)

@@ -1,0 +1,12 @@
+@(toons: Seq[Toon], selected: UUID)
+
+<div id="wishlist-selector">
+	@for(toon <- toons) {
+		<a class="box mb row" href="@routes.WishlistController.toon(toon.uuid).url"
+			@if(toon.uuid == selected) { selected="1" }>
+			<img src="@toon.thumbnailUrl">
+			<h3 wow-class="@toon.cls.id" class="flex">@toon.name</h3>
+			<i>chevron_right</i>
+		</a>
+	}
+</div>

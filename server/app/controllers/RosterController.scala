@@ -1,14 +1,15 @@
 package controllers
 
-import controllers.base.AppController
+import base.{AppComponents, AppController}
+import db.acl.AclView
+import db.api._
+import db.{Toons, Users}
 import javax.inject.{Inject, Singleton}
-import models.{Toon, Toons, User, Users}
-import models.acl.AclView
+import models.{Toon, User}
 import scala.concurrent.Future
-import utils.SlickAPI._
 
 @Singleton
-class RosterController @Inject()() extends AppController {
+class RosterController @Inject()(cc: AppComponents) extends AppController(cc) {
 	private val rosterQuery = (for {
 		user <- Users
 		rank <- AclView.filter(e => e.user === user.uuid && e.key === "rank").map(_.value)

@@ -7,13 +7,13 @@ import gt.workers.Worker
 import gt.workers.eventbus.EventBus
 import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
+import models.UUID
 import models.composer.Fragment
 import org.scalajs.dom
 import org.scalajs.dom.{FocusEvent, KeyboardEvent, MouseEvent, html}
 import play.api.libs.json.Json
 import scala.collection.mutable
 import scala.xml.Elem
-import utils.UUID
 
 class FragmentsList extends Worker with View {
 	// The current composer document

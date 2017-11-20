@@ -1,23 +1,18 @@
 package controllers
 
-import akka.stream.Materializer
-import controllers.base.{CheckAcl, UserAction}
+import base.{AppComponents, AppController}
 import javax.inject.{Inject, Singleton}
 import play.api.cache.{AsyncCacheApi, NamedCache}
 import play.api.libs.ws.WSClient
-import play.api.mvc.{Action, AnyContent, InjectedController}
-import scala.concurrent.ExecutionContext
+import play.api.mvc.{Action, AnyContent}
 import scala.concurrent.duration._
 import services.EventBus
 
 @Singleton
-class AddonsController @Inject()(userAction: UserAction, checkAcl: CheckAcl, ws: WSClient)
-                                (eventBus: EventBus)
+class AddonsController @Inject()(ws: WSClient, eventBus: EventBus)
                                 (@NamedCache("ws") wsCache: AsyncCacheApi)
-                                (implicit ec: ExecutionContext, mat: Materializer)
-	extends InjectedController {
-
-	private val addonsAction = userAction andThen checkAcl("addons.access")
+                                (cc: AppComponents) extends AppController(cc) {
+	private val addonsAction = UserAction andThen CheckAcl("addons.access")
 
 	def list = addonsAction { implicit req =>
 		Ok(views.html.addons.list())

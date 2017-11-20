@@ -3,6 +3,10 @@ GET           /assets/$tag<[0-9a-f\-]+>-router.js         controllers.HomeContro
 GET           /assets/javascripts/versioned.js            controllers.HomeController.versionedAssets
 GET           /assets/*file                               controllers.Assets.versioned(path="/public", file: Asset)
 
+# GraphQL
+GET           /graphql                                    controllers.GraphQLController.graphql
+GET           /graphiql                                   controllers.GraphQLController.graphiql
+
 # EventBus
 GET           /events/bus                                 controllers.EventBusController.bus
 POST          /events/subscribe                           controllers.EventBusController.subscribe
@@ -19,35 +23,40 @@ GET           /dashboard                                  controllers.DashboardC
 
 # Profile
 GET           /profile                                    controllers.ProfileController.autoProfile
-GET           /profile/:user                              controllers.ProfileController.profile(user: utils.UUID)
-GET           /profile/:user/edit                         controllers.ProfileController.edit(user: utils.UUID)
-POST          /profile/:user/edit                         controllers.ProfileController.editSubmit(user: utils.UUID)
-GET           /profile/:user/bind                         controllers.ProfileController.bind(user: utils.UUID)
-POST          /profile/:user/bind                         controllers.ProfileController.bindPost(user: utils.UUID)
-POST          /profile/:user/toon/:toon/disable           controllers.ProfileController.toonDisable(user: utils.UUID, toon: utils.UUID)
-POST          /profile/:user/toon/:toon/enable            controllers.ProfileController.toonEnable(user: utils.UUID, toon: utils.UUID)
-POST          /profile/:user/toon/:toon/promote           controllers.ProfileController.toonPromote(user: utils.UUID, toon: utils.UUID)
-POST          /profile/:user/toon/:toon/update            controllers.ProfileController.toonUpdate(user: utils.UUID, toon: utils.UUID)
-POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: utils.UUID, toon: utils.UUID)
-PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: utils.UUID, toon: utils.UUID, spec: Int)
+GET           /profile/:user                              controllers.ProfileController.profile(user: models.UUID)
+GET           /profile/:user/edit                         controllers.ProfileController.edit(user: models.UUID)
+POST          /profile/:user/edit                         controllers.ProfileController.editSubmit(user: models.UUID)
+GET           /profile/:user/bind                         controllers.ProfileController.bind(user: models.UUID)
+POST          /profile/:user/bind                         controllers.ProfileController.bindPost(user: models.UUID)
+POST          /profile/:user/toon/:toon/disable           controllers.ProfileController.toonDisable(user: models.UUID, toon: models.UUID)
+POST          /profile/:user/toon/:toon/enable            controllers.ProfileController.toonEnable(user: models.UUID, toon: models.UUID)
+POST          /profile/:user/toon/:toon/promote           controllers.ProfileController.toonPromote(user: models.UUID, toon: models.UUID)
+POST          /profile/:user/toon/:toon/update            controllers.ProfileController.toonUpdate(user: models.UUID, toon: models.UUID)
+POST          /profile/:user/toon/:toon/remove            controllers.ProfileController.toonRemove(user: models.UUID, toon: models.UUID)
+PUT           /profile/:user/toon/:toon/spec/:spec        controllers.ProfileController.toonSetSpec(user: models.UUID, toon: models.UUID, spec: Int)
+
+# Wishlist
+GET           /wishlist                                   controllers.WishlistController.wishlist
+GET           /wishlist/:id                               controllers.WishlistController.toon(id: models.UUID)
+POST          /wishlist/:id                               controllers.WishlistController.save(id: models.UUID)
 
 # Composer
 GET           /composer                                   controllers.ComposerController.composer
 GET           /composer/create                            controllers.ComposerController.create
 POST          /composer/create                            controllers.ComposerController.createPost
 GET           /composer/roster                            controllers.ComposerController.roster
-GET           /composer/:id                               controllers.ComposerController.document(id: utils.UUID)
-POST          /composer/:id/rename                        controllers.ComposerController.rename(id: utils.UUID)
-POST          /composer/:id/delete                        controllers.ComposerController.delete(id: utils.UUID)
-GET           /composer/:id/editor                        controllers.ComposerController.editor(id: utils.UUID)
-POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: utils.UUID)
-GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: utils.UUID)
-POST          /composer/:id/moveFragment                  controllers.ComposerController.moveFragment(id: utils.UUID)
-POST          /composer/:id/:frag/rename                  controllers.ComposerController.renameFragment(id: utils.UUID, frag: utils.UUID)
-DELETE        /composer/:id/:frag                         controllers.ComposerController.deleteFragment(id: utils.UUID, frag: utils.UUID)
-GET           /composer/:id/:frag/slots                   controllers.ComposerController.getSlots(id: utils.UUID, frag: utils.UUID)
-POST          /composer/:id/:frag/slots                   controllers.ComposerController.setSlot(id: utils.UUID, frag: utils.UUID)
-DELETE        /composer/:id/:frag/:slot                   controllers.ComposerController.deleteSlot(id: utils.UUID, frag: utils.UUID, slot: utils.UUID)
+GET           /composer/:id                               controllers.ComposerController.document(id: models.UUID)
+POST          /composer/:id/rename                        controllers.ComposerController.rename(id: models.UUID)
+POST          /composer/:id/delete                        controllers.ComposerController.delete(id: models.UUID)
+GET           /composer/:id/editor                        controllers.ComposerController.editor(id: models.UUID)
+POST          /composer/:id/create                        controllers.ComposerController.createFragment(id: models.UUID)
+GET           /composer/:id/fragments                     controllers.ComposerController.fragments(id: models.UUID)
+POST          /composer/:id/moveFragment                  controllers.ComposerController.moveFragment(id: models.UUID)
+POST          /composer/:id/:frag/rename                  controllers.ComposerController.renameFragment(id: models.UUID, frag: models.UUID)
+DELETE        /composer/:id/:frag                         controllers.ComposerController.deleteFragment(id: models.UUID, frag: models.UUID)
+GET           /composer/:id/:frag/slots                   controllers.ComposerController.getSlots(id: models.UUID, frag: models.UUID)
+POST          /composer/:id/:frag/slots                   controllers.ComposerController.setSlot(id: models.UUID, frag: models.UUID)
+DELETE        /composer/:id/:frag/:slot                   controllers.ComposerController.deleteSlot(id: models.UUID, frag: models.UUID, slot: models.UUID)
 
 # Roster
 GET           /roster                                     controllers.RosterController.roster
@@ -65,18 +74,18 @@ GET           /settings                                   controllers.SettingsCo
 # Admin
 GET           /admin                                      controllers.AdminController.home
 GET           /admin/acl/users                            controllers.AclController.users
-GET           /admin/acl/users/:user                      controllers.AclController.user(user: utils.UUID)
-POST          /admin/acl/users/:user/invite               controllers.AclController.userInvite(user: utils.UUID)
-DELETE        /admin/acl/users/:user/kick                 controllers.AclController.userKick(user: utils.UUID, group: utils.UUID, backToGroup: Boolean ?= false)
+GET           /admin/acl/users/:user                      controllers.AclController.user(user: models.UUID)
+POST          /admin/acl/users/:user/invite               controllers.AclController.userInvite(user: models.UUID)
+DELETE        /admin/acl/users/:user/kick                 controllers.AclController.userKick(user: models.UUID, group: models.UUID, backToGroup: Boolean ?= false)
 GET           /admin/acl/groups                           controllers.AclController.groups
 POST          /admin/acl/groups                           controllers.AclController.createGroup
-GET           /admin/acl/groups/:group                    controllers.AclController.group(group: utils.UUID)
-POST          /admin/acl/groups/:group/grant              controllers.AclController.groupGrant(group: utils.UUID)
-DELETE        /admin/acl/groups/:group/revoke             controllers.AclController.groupRevoke(group: utils.UUID, key: utils.UUID)
-DELETE        /admin/acl/groups/:group                    controllers.AclController.deleteGroup(group: utils.UUID)
+GET           /admin/acl/groups/:group                    controllers.AclController.group(group: models.UUID)
+POST          /admin/acl/groups/:group/grant              controllers.AclController.groupGrant(group: models.UUID)
+DELETE        /admin/acl/groups/:group/revoke             controllers.AclController.groupRevoke(group: models.UUID, key: models.UUID)
+DELETE        /admin/acl/groups/:group                    controllers.AclController.deleteGroup(group: models.UUID)
 GET           /admin/acl/keys                             controllers.AclController.keys
 POST          /admin/acl/keys                             controllers.AclController.createKey
-DELETE        /admin/acl/keys/:key                        controllers.AclController.deleteKey(key: utils.UUID)
+DELETE        /admin/acl/keys/:key                        controllers.AclController.deleteKey(key: models.UUID)
 
 # Electron support
 GET           /electron/bootstrap                         controllers.ElectronController.bootstrap

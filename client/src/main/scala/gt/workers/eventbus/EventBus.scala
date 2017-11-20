@@ -4,6 +4,7 @@ import gt.util.Http
 import gt.workers._
 import gt.workers.eventbus.EventBus.ChannelSet
 import gt.{GuildTools, Router}
+import models.UUID
 import models.eventbus.Event
 import org.scalajs.dom
 import platform.JsPlatform._
@@ -11,7 +12,6 @@ import play.api.libs.json._
 import protocol.MessageSerializer
 import scala.concurrent.duration._
 import scala.scalajs.js
-import utils.UUID
 
 class EventBus extends Worker {
 	private var uuid = UUID.zero

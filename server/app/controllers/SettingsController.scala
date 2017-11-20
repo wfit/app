@@ -1,12 +1,11 @@
 package controllers
 
-import controllers.base.UserAction
+import base.{AppComponents, AppController}
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.InjectedController
 
 @Singleton
-class SettingsController @Inject()(userAction: UserAction) extends InjectedController {
-	def settings = userAction.async { implicit req =>
+class SettingsController @Inject()(cc: AppComponents) extends AppController(cc) {
+	def settings = UserAction.async { implicit req =>
 		Ok(views.html.settings.settings())
 	}
 }

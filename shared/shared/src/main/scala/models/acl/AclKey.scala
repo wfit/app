@@ -1,5 +1,5 @@
 package models.acl
 
-import utils.UUID
+import models.UUID
 
-case class AclKey (id: UUID, key: String, desc: String)
+case class AclKey(id: UUID, key: String, desc: String)

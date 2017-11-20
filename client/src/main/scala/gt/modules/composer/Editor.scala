@@ -3,8 +3,8 @@ package gt.modules.composer
 import gt.util.View
 import gt.workers.Worker
 import mhtml.Var
+import models.UUID
 import models.composer.Slot
-import utils.UUID
 
 class Editor extends Worker.Dummy with View {
 	// Current document object

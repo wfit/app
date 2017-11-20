@@ -1,12 +1,11 @@
 package controllers
 
-import controllers.base.UserAction
+import base.{AppComponents, AppController}
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.InjectedController
 
 @Singleton
-class AdminController @Inject()(userAction: UserAction) extends InjectedController {
-	def home = userAction.authenticated { implicit req =>
+class AdminController @Inject()(cc: AppComponents) extends AppController(cc) {
+	def home = UserAction.authenticated { implicit req =>
 		Ok(views.html.admin.home())
 	}
 }

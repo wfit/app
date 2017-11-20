@@ -1,12 +1,16 @@
 package controllers
 
-import controllers.base.{AppController, UserRequest}
+import base.{AppComponents, AppController, UserRequest}
+import db.acl.AclView
+import db.api._
+import db.composer.{Documents, Fragments, Slots}
+import db.wishlist.WishlistsTmp
+import db.{Toons, Users}
 import gt.modules.composer.ComposerUtils
 import java.time.Instant
 import javax.inject.Inject
-import models.acl.AclView
+import models.UUID
 import models.composer._
-import models.{Toons, Users}
 import play.api.libs.json.Json
 import play.twirl.api.Html
 import scala.concurrent.Future
@@ -14,10 +18,9 @@ import scala.util.{Success, Try}
 import services.EventBus
 import slick.jdbc.TransactionIsolation
 import utils.JsonFormats._
-import utils.SlickAPI._
-import utils.UUID
 
-class ComposerController @Inject() (eventBus: EventBus) extends AppController {
+class ComposerController @Inject()(eventBus: EventBus)
+                                  (cc: AppComponents) extends AppController(cc) {
 	private def ComposerAction = UserAction andThen CheckAcl("composer.access")
 	private def ComposerEditAction = UserAction andThen CheckAcl("composer.access", "composer.edit")
 
@@ -35,7 +38,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	def createPost = ComposerEditAction(parse.json).async { implicit req =>
 		val title = req.param("title").asString
 		val doc = Document(UUID.random, title, Instant.now)
-		(Documents += doc) andThen Redirect(routes.ComposerController.composer())
+		(Documents += doc) andThen DBIO.successful(Redirect(routes.ComposerController.composer()))
 	}
 
 	/** Rendered HTML block for a fragment */
@@ -64,14 +67,14 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 	/** Renames a document */
 	def rename(id: UUID) = ComposerEditAction(parse.json).async { implicit req =>
-		Documents.filter(d => d.id === id).map(d => d.title).update(req.param("name").asString) andThen {
+		Documents.filter(d => d.id === id).map(d => d.title).update(req.param("name").asString) andThen DBIO.successful {
 			Redirect(routes.ComposerController.editor(id))
 		}
 	}
 
 	/** Deletes a document */
 	def delete(id: UUID) = ComposerEditAction.async { implicit req =>
-		Documents.filter(d => d.id === id).delete andThen Redirect(routes.ComposerController.composer())
+		Documents.filter(d => d.id === id).delete andThen DBIO.successful(Redirect(routes.ComposerController.composer()))
 	}
 
 	/** The composer editor */
@@ -84,15 +87,20 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 	/** The roster sidebar content */
 	def roster = ComposerEditAction.async { implicit req =>
-		(for {
+		val base = for {
 			userId <- AclView.queryKey("composer.include")(_ > 0)
 			user <- Users.filter(u => u.uuid === userId)
 			rank <- AclView.granted(userId, "rank")
 			toon <- Toons.filter(t => t.active && t.owner === userId)
-		} yield (user, rank, toon)).result.map { res =>
-			val entries = res.map((RosterEntry.apply _).tupled)
-			Ok(Json.toJson(entries))
-		}
+		} yield (user, rank, toon)
+		(base joinLeft WishlistsTmp on { case ((_, _, toon), w) => w.toon === toon.uuid })
+			.result
+			.map { res =>
+				val entries = res.map { case ((user, rank, toon), wish) =>
+					RosterEntry(user, rank, toon, wish.map(_.text.trim).filter(_.nonEmpty))
+				}
+				Ok(Json.toJson(entries))
+			}
 	}
 
 	/** The list of fragments for a document */
@@ -118,7 +126,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 		val shape = Fragments.map(f => (f.id, f.doc, f.sort, f.style, f.title))
 		val insert = shape forceInsertExpr (uuid, doc, sort, style, title)
-		val action = (insert andThen Fragments.filter(f => f.id === uuid).result.head).transactionally andThen Created
+		val action = (insert andThen Fragments.filter(f => f.id === uuid).result.head).transactionally andThen DBIO.successful(Created)
 
 		action.run andThen touchDocument(doc) andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
@@ -155,7 +163,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 				// Nothing to do if moving fragment before its next neighbor or after its previous one
 				DBIO.successful(0)
 			}
-		} andThen Ok
+		} andThen DBIO.successful(Ok)
 
 		action.transactionally.run andThen touchDocument(doc) andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
@@ -168,7 +176,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 		if (title matches """^\s*$""") {
 			UnprocessableEntity("Titre non-acceptable")
 		} else {
-			val action = Fragments.filter(f => f.id === frag && f.doc === doc).map(_.title).update(title) andThen Ok
+			val action = Fragments.filter(f => f.id === frag && f.doc === doc).map(_.title).update(title) andThen DBIO.successful(Ok)
 			action.run andThen touchDocument(doc) andThen {
 				case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
 			}
@@ -186,7 +194,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 			DBIO.seq(
 				query.delete,
 				DBIO.sequence(moveActions)
-			).transactionally andThen Ok
+			).transactionally andThen DBIO.successful(Ok)
 		}.run andThen touchDocument(doc) andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragments.refresh", ())
 		}
@@ -205,9 +213,9 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 	/** Retrieves the set of slots for a given fragment */
 	def getSlots(doc: UUID, frag: UUID) = ComposerEditAction.async { implicit req =>
 		slotsForDocAndFrag(doc, frag)
-			.joinLeft(Toons).on((gs, t) => gs.toon === t.uuid)
-			.result
-			.map(res => Ok(Json.toJson(res)))
+		.joinLeft(Toons).on((gs, t) => gs.toon === t.uuid)
+		.result
+		.map(res => Ok(Json.toJson(res)))
 	}
 
 	/** Set a slot in a fragment */
@@ -226,11 +234,11 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 				}
 			case None =>
 				Slots.filter(s => s.fragment in validFragmentsForDoc(doc))
-					.filter(s => s.id === req.param("slot").asUUID)
-					.forUpdate.result.head
-					.map { slot =>
-						(slot.toon, slot.name, slot.role, slot.cls, Some(slot.id), Some(slot.fragment))
-					}
+				.filter(s => s.id === req.param("slot").asUUID)
+				.forUpdate.result.head
+				.map { slot =>
+					(slot.toon, slot.name, slot.role, slot.cls, Some(slot.id), Some(slot.fragment))
+				}
 		}).flatMap { case (toon, name, role, cls, id, source) =>
 			// Only manipulate slots owned by the target fragment
 			val slots = Slots.filter(s => s.fragment === frag)
@@ -260,7 +268,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 				duplicateToonRemove,
 				duplicateLocationRemove,
 				slotInsert
-			) andThen source
+			) andThen DBIO.successful(source)
 		}.transactionally.withTransactionIsolation(TransactionIsolation.Serializable).run andThen {
 			case Success(source) =>
 				eventBus.publish(s"composer:$doc:fragment.update", frag)
@@ -270,7 +278,7 @@ class ComposerController @Inject() (eventBus: EventBus) extends AppController {
 
 	/** Delete a slot in a fragment */
 	def deleteSlot(doc: UUID, frag: UUID, slot: UUID) = ComposerEditAction.async { implicit req =>
-		val action = slotsForDocAndFrag(doc, frag).filter(s => s.id === slot).delete andThen Ok
+		val action = slotsForDocAndFrag(doc, frag).filter(s => s.id === slot).delete andThen DBIO.successful(Ok)
 		action.run andThen touchDocument(doc) andThen {
 			case _ => eventBus.publish(s"composer:$doc:fragment.update", frag)
 		}

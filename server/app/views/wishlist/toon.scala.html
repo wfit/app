@@ -1,0 +1,21 @@
+@(toons: Seq[Toon], selected: UUID, text: String)(implicit req: UserRequest[_])
+
+@toon = @{ toons.find(t => t.uuid == selected).get }
+
+@view("Wishlist", "wishlist") {
+	<div class="layout-columns" id="wishlist-toon">
+		<div class="left column">
+		@selector(toons, selected)
+		</div>
+		<div class="right">
+			<h3>Wishlist for <span wow-class="@toon.cls.id">@toon.name</span></h3>
+			<form method="post" action="@routes.WishlistController.save(selected)">
+				<label>
+					Wishlist
+					<textarea name="text">@text</textarea>
+				</label>
+				<button>Sauvegarder</button>
+			</form>
+		</div>
+	</div>
+}

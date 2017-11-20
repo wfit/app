@@ -1,15 +1,14 @@
 package models
 
 import java.time.LocalDate
-import utils.UUID
 
-case class Profile (user: UUID,
-                    name: Option[String], nameVisibility: Int,
-                    birthday: Option[LocalDate], birthdayVisibility: Int,
-                    location: Option[String], locationVisibility: Int,
-                    btag: Option[String], btagVisibility: Int,
-                    mail: Option[String], mailVisibility: Int,
-                    phone: Option[String], phoneVisibility: Int) {
+case class Profile(user: UUID,
+                   name: Option[String], nameVisibility: Int,
+                   birthday: Option[LocalDate], birthdayVisibility: Int,
+                   location: Option[String], locationVisibility: Int,
+                   btag: Option[String], btagVisibility: Int,
+                   mail: Option[String], mailVisibility: Int,
+                   phone: Option[String], phoneVisibility: Int) {
 
 	def viewForRank(rank: Int): Profile = copy(
 		name = if (rank >= nameVisibility) name else None,
@@ -22,6 +21,7 @@ case class Profile (user: UUID,
 }
 
 object Profile {
+
 	object Visibility {
 		final val Everyone = 0
 		final val Friend = 1

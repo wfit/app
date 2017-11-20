@@ -1,6 +1,6 @@
 package models.acl
 
-import utils.UUID
+import models.UUID
 
 trait AclGrant {
 	val subject: UUID

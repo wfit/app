@@ -1,5 +1,5 @@
 package models.acl
 
-import utils.UUID
+import models.UUID
 
-case class AclGroup (uuid: UUID, title: String, forumGroup: Option[Int])
+case class AclGroup(uuid: UUID, title: String, forumGroup: Option[Int])

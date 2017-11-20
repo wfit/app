@@ -1,7 +1,7 @@
 package gt.workers
 
 import gt.util.Microtask
-import utils.UUID
+import models.UUID
 
 trait Stash extends Worker {
 	private var buffer = List.empty[(UUID, Any)]

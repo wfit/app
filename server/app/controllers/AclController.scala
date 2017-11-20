@@ -1,23 +1,21 @@
 package controllers
 
-import controllers.base.{CheckAcl, UserAction}
+import base.{AppComponents, AppController}
+import db.Users
+import db.acl.{AclGroupGrants, AclGroups, AclKeys, AclMemberships}
+import db.api._
 import javax.inject.{Inject, Singleton}
 import models._
 import models.acl._
 import play.api.cache.AsyncCacheApi
-import play.api.mvc.InjectedController
-import scala.concurrent.ExecutionContext
 import services.AuthService
-import utils.{FutureOps, UUID}
-import utils.SlickAPI._
+import utils.FutureOps
 
 @Singleton
-class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authService: AuthService)
-                             (cache: AsyncCacheApi)
-                             (implicit executionContext: ExecutionContext)
-	extends InjectedController {
+class AclController @Inject()(authService: AuthService, cache: AsyncCacheApi)
+                             (cc: AppComponents) extends AppController(cc) {
 
-	private def aclAction = userAction.authenticated andThen checkAcl("admin.acl")
+	private def aclAction = UserAction.authenticated andThen CheckAcl("admin.acl")
 
 	def users = aclAction.async { implicit req =>
 		Users.sortBy(_.name).result.map(users => Ok(views.html.admin.aclUsers(users)))
@@ -37,15 +35,15 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 
 	def userInvite(user: UUID) = aclAction(parse.json).async { implicit req =>
 		val entry = AclMembership(user, req.param("group").asUUID)
-		val action = (AclMemberships += entry) andThen Redirect(routes.AclController.user(user))
+		val action = (AclMemberships += entry) andThen DBIO.successful(Redirect(routes.AclController.user(user)))
 		action.run andThenAsync authService.flushUserAcl(user)
 	}
 
 	def userKick(user: UUID, group: UUID, backToGroup: Boolean) = aclAction.async { implicit req =>
-		val action = AclMemberships.filter(m => m.user === user && m.group === group).delete andThen Redirect(
+		val action = AclMemberships.filter(m => m.user === user && m.group === group).delete andThen DBIO.successful(Redirect(
 			if (backToGroup) routes.AclController.group(group)
 			else routes.AclController.user(user)
-		)
+		))
 		action.run andThenAsync authService.flushUserAcl(user)
 	}
 
@@ -59,7 +57,7 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	def createGroup = aclAction(parse.json).async { implicit req =>
 		val title = req.param("title").validate[String](_.nonEmpty, "Le nom du groupe doit être défini.")
 		val forumGroup = req.param("forumGroup").asOpt[Int].filter(_ > 0)
-		(AclGroups += AclGroup(UUID.random, title, forumGroup)) andThen Redirect(routes.AclController.groups())
+		(AclGroups += AclGroup(UUID.random, title, forumGroup)) andThen DBIO.successful(Redirect(routes.AclController.groups()))
 	}
 
 	def group(uuid: UUID) = aclAction.async { implicit req =>
@@ -81,15 +79,15 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 
 	def groupGrant(uuid: UUID) = aclAction(parse.json).async { implicit req =>
 		val grant = AclGroupGrant(uuid, req.param("key").asUUID, req.param("value").asInt, req.param("negate").asBoolean)
-		(AclGroupGrants insertOrUpdate grant) andThen authService.flushAclCaches() andThen Redirect(routes.AclController.group(uuid))
+		(AclGroupGrants insertOrUpdate grant) andThen DBIO.from(authService.flushAclCaches()) andThen DBIO.successful(Redirect(routes.AclController.group(uuid)))
 	}
 
 	def groupRevoke(uuid: UUID, key: UUID) = aclAction.async { implicit req =>
-		AclGroupGrants.filter(g => g.subject === uuid && g.key === key).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.group(uuid))
+		AclGroupGrants.filter(g => g.subject === uuid && g.key === key).delete andThen DBIO.from(authService.flushAclCaches()) andThen DBIO.successful(Redirect(routes.AclController.group(uuid)))
 	}
 
 	def deleteGroup(uuid: UUID) = aclAction.async { implicit req =>
-		AclGroups.filter(_.uuid === uuid).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.groups())
+		AclGroups.filter(_.uuid === uuid).delete andThen DBIO.from(authService.flushAclCaches()) andThen DBIO.successful(Redirect(routes.AclController.groups()))
 	}
 
 	def keys = aclAction.async { implicit req =>
@@ -99,10 +97,10 @@ class AclController @Inject()(userAction: UserAction, checkAcl: CheckAcl, authSe
 	def createKey = aclAction(parse.json).async { implicit req =>
 		val key = req.param("key").validate[String](_.matches("^[a-z\\.]{3,}$"), "Nom de permission invalide.")
 		val entry = AclKey(UUID.random, key, req.param("desc").asString)
-		(AclKeys insertOrUpdate entry) andThen Redirect(routes.AclController.keys())
+		(AclKeys insertOrUpdate entry) andThen DBIO.successful(Redirect(routes.AclController.keys()))
 	}
 
 	def deleteKey(id: UUID) = aclAction.async { implicit req =>
-		AclKeys.filter(_.id === id).delete andThen authService.flushAclCaches() andThen Redirect(routes.AclController.keys())
+		AclKeys.filter(k => k.id === id).delete andThen DBIO.from(authService.flushAclCaches()) andThen DBIO.successful(Redirect(routes.AclController.keys()))
 	}
 }

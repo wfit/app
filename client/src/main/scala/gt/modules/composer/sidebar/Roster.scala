@@ -4,10 +4,10 @@ import gt.Router
 import gt.modules.composer.{ComposerUtils, Editor, FragmentsList}
 import gt.util.Http
 import mhtml.{Rx, Var}
+import models.UUID
 import models.composer.RosterEntry
 import org.scalajs.dom
 import scala.concurrent.ExecutionContext.Implicits.global
-import utils.UUID
 
 class Roster extends SidebarTree {
 	private val roster = Var(Seq.empty[RosterEntry])
@@ -73,6 +73,9 @@ class Roster extends SidebarTree {
 				</div>
 				<div class="line">
 					<span class="gray">{entry.owner.name}</span>
+				</div>
+				<div class="line mt" hidden={entry.wish.isEmpty}>
+					<span class="small">{entry.wish}</span>
 				</div>
 			</div>
 		</span>

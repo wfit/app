@@ -1,8 +1,8 @@
 package gt.modules.composer.fragments
 
 import mhtml.Rx
+import models.UUID
 import models.composer.Fragment
-import utils.UUID
 
 case class Grid (fragment: Fragment) extends FragmentTree {
 	val members: Rx[Set[UUID]] = Rx(Set.empty)

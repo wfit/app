@@ -1,16 +1,16 @@
 package services
 
 import akka.actor.ActorSystem
+import base.{AppComponents, AppService}
+import db.Toons
+import db.api._
 import java.time.Instant
 import javax.inject.{Inject, Singleton}
-import models.Toons
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-import utils.SlickAPI._
 
 @Singleton
 class Cron @Inject()(as: ActorSystem, rosterService: RosterService)
-                    (implicit ec: ExecutionContext) {
+                    (cc: AppComponents) extends AppService(cc) {
 
 	// Characters updater
 	as.scheduler.schedule(15.minutes, 5.minutes) {

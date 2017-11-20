@@ -8,7 +8,7 @@ object CompoundMessage {
 	case class ~[+A, +B](a: A, b: B)(implicit val as: MessageSerializer[A@uncheckedVariance],
 	                                 val bs: MessageSerializer[B@uncheckedVariance])
 
-	implicit class CompoundBuilder[T: MessageSerializer] (lhs: T) {
+	implicit class CompoundBuilder[T: MessageSerializer](lhs: T) {
 		def ~[U: MessageSerializer] (rhs: U): T ~ U = new ~(lhs, rhs)
 	}
 

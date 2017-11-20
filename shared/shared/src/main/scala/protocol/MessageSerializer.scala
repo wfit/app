@@ -1,11 +1,11 @@
 package protocol
 
+import models.UUID
 import play.api.libs.json
 import play.api.libs.json.{Format, JsValue}
 import protocol.Message.CanUseSerializer
 import scala.annotation.unchecked.uncheckedVariance
 import scala.scalajs.reflect.annotation.EnableReflectiveInstantiation
-import utils.UUID
 
 @EnableReflectiveInstantiation
 trait MessageSerializer[-T] {
@@ -67,7 +67,7 @@ object MessageSerializer {
 		(serializer.deserialize(data), serializer)
 	}
 
-	abstract class Lambda[T] (sfn: T => String, dfn: String => T) extends MessageSerializer[T] {
+	abstract class Lambda[T](sfn: T => String, dfn: String => T) extends MessageSerializer[T] {
 		final def serialize(value: T)(implicit cus: CanUseSerializer): String = {
 			sfn(value)
 		}
@@ -77,7 +77,7 @@ object MessageSerializer {
 		}
 	}
 
-	abstract class Json[T] (val format: Format[T]) extends MessageSerializer[T] {
+	abstract class Json[T](val format: Format[T]) extends MessageSerializer[T] {
 		final def serialize(value: T)(implicit cus: CanUseSerializer): String = {
 			format.writes(value).toString()
 		}
@@ -87,10 +87,10 @@ object MessageSerializer {
 		}
 	}
 
-	abstract class Singleton[T] (singleton: T) extends Lambda[T](_ => "", _ => singleton)
+	abstract class Singleton[T](singleton: T) extends Lambda[T](_ => "", _ => singleton)
 
 	class Using[T, U](asU: T => U, asT: U => T)
-	                          (implicit other: MessageSerializer[U]) extends MessageSerializer[T] {
+	                 (implicit other: MessageSerializer[U]) extends MessageSerializer[T] {
 		def serialize(value: T)(implicit cus: CanUseSerializer): String = {
 			other.serialize(asU(value))
 		}

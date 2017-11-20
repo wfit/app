@@ -62,7 +62,7 @@ label {
 	}
 }
 
-input:not([type=checkbox]), select {
+input:not([type=checkbox]), select, textarea {
 	font-family: 'Roboto', sans-serif;
 	font-size: 14px;
 	padding: 3px 0;

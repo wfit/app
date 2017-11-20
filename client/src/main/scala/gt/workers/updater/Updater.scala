@@ -1,16 +1,16 @@
 package gt.workers.updater
 
 import facades.node
-import gt.{GuildTools, Settings}
 import gt.util.Http
-import gt.workers.{AutoWorker, Stash, Worker, WorkerRef}
 import gt.workers.eventbus.EventBus
 import gt.workers.ui.UIWorker
 import gt.workers.updater.Digest._
+import gt.workers.{AutoWorker, Stash, Worker, WorkerRef}
+import gt.{GuildTools, Settings}
 import org.scalajs.dom
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionException, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionException, Future}
 import scala.scalajs.js
 import scala.util.{Failure, Success, Try}
 
@@ -138,9 +138,24 @@ class Updater extends Worker with Stash {
 		case 'Done =>
 			updateState { status = Status.Enabled; message = null }
 			become(enabled)
-			unstash()
-			if (Updater.updated.nonEmpty) Updater.notifyUpdates()
-			if (shouldUpdateAgain) self !< 'Update
+			val renamedAddonsStatus = Legacy.renamed.map { case (oldName, newName) =>
+				for {
+					oldExists <- Updater.fs.stat(s"${ Updater.path }/$oldName").map(_.isDirectory()).recover { case _ => false }
+					newExists <- Updater.fs.stat(s"${ Updater.path }/$newName").map(_.isDirectory()).recover { case _ => false }
+				} yield {
+					(oldExists && !newExists, newName)
+				}
+			}
+			Future.find(renamedAddonsStatus)({ case (shouldInstall, _) => shouldInstall })
+				.foreach {
+					case Some((true, newName)) =>
+						self !< 'Install ~ newName
+					case _ =>
+						unstash()
+						if (Updater.updated.nonEmpty) Updater.notifyUpdates()
+						if (shouldUpdateAgain) self !< 'Update
+				}
+
 
 		case ('Fail, cause: String) =>
 			updateState { status = Status.Failure; message = cause }
@@ -273,7 +288,11 @@ object Updater extends AutoWorker.Spawn[Updater] {
 			case UpdateFile(file, hash) => Pipe.urlToFile(s"/addons/blob/$hash", s"$path$file")
 			case DeleteFile(file, _) => fs.unlink(s"$path$file")
 			case CreateDirectory(dir, _) => fs.mkdir(s"$path$dir")
-			case DeleteDirectory(dir, _) => fs.rmdir(s"$path$dir")
+			case DeleteDirectory(dir, _) =>
+				for {
+					_ <- fs.unlink(s"$path$dir/.pkg.metadata").recover { case _ => () }
+					_ <- fs.rmdir(s"$path$dir")
+				} yield ()
 		}
 	}
 

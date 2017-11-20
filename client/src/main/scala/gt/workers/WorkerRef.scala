@@ -1,10 +1,10 @@
 package gt.workers
 
+import models.UUID
 import org.scalajs.dom
 import protocol.MessageSerializer
 import scala.concurrent.{Future, Promise}
 import scala.scalajs.js
-import utils.UUID
 
 /**
   * A reference to a worker instance.

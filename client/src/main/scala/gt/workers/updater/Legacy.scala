@@ -17,5 +17,12 @@ object Legacy {
 		"WFI_Core" -> Seq("/FS_Core"),
 		"WFI_SmartColor" -> Seq("/FS_SmartColor"),
 		"WFI_UpdaterStatus" -> Seq("/FS_UpdaterStatus"),
+		"Oken_Core" -> Seq("/WFI_Core"),
+		"Oken_Cooldowns" -> Seq("/WFI_Cooldowns"),
+	)
+
+	val renamed: Map[String, String] = Map(
+		"WFI_Core" -> "Oken_Core",
+		"WFI_Cooldowns" -> "Oken_Cooldowns",
 	)
 }

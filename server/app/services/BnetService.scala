@@ -1,17 +1,18 @@
 package services
 
+import base.{AppComponents, AppService}
 import java.time.Instant
 import javax.inject.{Inject, Singleton}
-import models.Toon
 import models.wow.Class
+import models.{Toon, UUID}
 import play.api.Configuration
 import play.api.libs.ws.WSClient
-import scala.concurrent.{ExecutionContext, Future}
-import utils.{UserError, UUID}
+import scala.concurrent.Future
+import utils.UserError
 
 @Singleton
 class BnetService @Inject()(conf: Configuration, ws: WSClient)
-                           (implicit executionContext: ExecutionContext) {
+                           (cc: AppComponents) extends AppService(cc) {
 	private final val base = "https://eu.api.battle.net/"
 	private val key = conf.get[String]("bnet.key")
 	private val secret = conf.get[String]("bnet.secret")

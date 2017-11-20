@@ -1,7 +1,7 @@
 package protocol
 
+import models.UUID
 import play.api.libs.json.{Format, Json}
-import utils.UUID
 
 case class Message private (dest: UUID, sender: UUID, body: String, optimistic: Boolean, ttl: Int = 15) {
 	def payload(implicit decoder: SerializerLookup): Any = MessageSerializer.deserialize(body)

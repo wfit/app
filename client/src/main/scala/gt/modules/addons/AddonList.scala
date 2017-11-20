@@ -33,7 +33,7 @@ class AddonList extends Worker with View {
 			case "enabled" =>
 				<div class="row">
 					<button class="flex alternate" onclick={() => updater ! 'Update}>Actualiser</button>
-					<button class="flex alternate" onclick={() => respawnUpdater()}>Désactiver</button>
+					<button class="flex alternate" onclick={() => disableUpdater()}>Désactiver</button>
 				</div>
 			case "failure" =>
 				<div class="row">
@@ -81,6 +81,7 @@ class AddonList extends Worker with View {
 			val choice = res.head
 			Settings.UpdaterPath := choice
 			path := Some(choice)
+			manifest := Manifest.empty
 			updater.respawn()
 		}
 	}

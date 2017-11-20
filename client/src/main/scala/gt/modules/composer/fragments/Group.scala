@@ -5,7 +5,7 @@ import gt.modules.composer.{ComposerUtils, Editor}
 import gt.util.Http
 import java.util.concurrent.atomic.AtomicInteger
 import mhtml.{Rx, Var}
-import models.Toon
+import models.{Toon, UUID}
 import models.composer.{Fragment, Slot}
 import models.wow.{Armor, Relic, Token}
 import org.scalajs.dom
@@ -14,7 +14,6 @@ import play.api.libs.json.Json
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.xml.Elem
 import utils.JsonFormats._
-import utils.UUID
 
 /**
   * A group is a structure of 5 tiers in which toons can be placed.

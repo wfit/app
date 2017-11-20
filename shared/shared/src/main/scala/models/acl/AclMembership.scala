@@ -1,5 +1,5 @@
 package models.acl
 
-import utils.UUID
+import models.UUID
 
 case class AclMembership(user: UUID, group: UUID)

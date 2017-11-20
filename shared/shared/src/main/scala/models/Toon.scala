@@ -3,11 +3,10 @@ package models
 import java.time.Instant
 import models.wow.{Class, Spec}
 import play.api.libs.json.{Format, Json}
-import utils.UUID
 
-case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boolean, active: Boolean,
-                 cls: Class, spec: Spec, race: Int, gender: Int, level: Int, thumbnail: Option[String], ilvl: Int,
-                 lastUpdate: Instant, invalid: Boolean, failures: Int) {
+case class Toon(uuid: UUID, name: String, realm: String, owner: UUID, main: Boolean, active: Boolean,
+                cls: Class, spec: Spec, race: Int, gender: Int, level: Int, thumbnail: Option[String], ilvl: Int,
+                lastUpdate: Instant, invalid: Boolean, failures: Int) {
 
 	def thumbnailUrl: String = {
 		thumbnail match {
@@ -25,7 +24,9 @@ case class Toon (uuid: UUID, name: String, realm: String, owner: UUID, main: Boo
 	def synthetic: Boolean = uuid == UUID.zero
 
 	def crossRealm: Boolean = realm != "Ysondre"
+
 	def localName: String = if (crossRealm) s"$name*" else name
+
 	def fullName: String = if (crossRealm) s"$name-$realm" else name
 }
 

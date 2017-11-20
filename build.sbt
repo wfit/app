@@ -47,9 +47,12 @@ lazy val server = (project in file("server"))
 			"org.mindrot" % "jbcrypt" % "0.4",
 			"com.typesafe.slick" %% "slick" % "3.2.1",
 			"com.typesafe.play" %% "play-slick" % "3.0.2",
-			"org.mariadb.jdbc" % "mariadb-java-client" % "2.1.2",
+			"org.mariadb.jdbc" % "mariadb-java-client" % "2.2.0",
 			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final",
-			"com.google.javascript" % "closure-compiler" % "v20170910",
+			"com.google.javascript" % "closure-compiler" % "v20171112",
+			"org.sangria-graphql" %% "sangria" % "1.3.2",
+			"org.sangria-graphql" %% "sangria-play-json" % "1.0.4",
+			"org.sangria-graphql" %% "sangria-akka-streams" % "1.0.0",
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -58,10 +61,12 @@ lazy val server = (project in file("server"))
 		DigestKeys.indexPath := Some("javascripts/versioned.js"),
 		DigestKeys.indexWriter ~= { writer => index => s"var versioned = ${ writer(index) };" },
 		TwirlKeys.templateImports ++= Seq(
-			"_root_.controllers.base._",
+			"_root_.base._",
 			"_root_.utils._",
+			"_root_.models.UUID",
 		),
 		PlayKeys.fileWatchService := play.dev.filewatch.FileWatchService.polling(500),
+		fork := true,
 	)
 	.enablePlugins(PlayScala, DockerPlugin)
 	.dependsOn(sharedJvm)
@@ -97,7 +102,7 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		name := "shared",
 		commonSettings,
 		libraryDependencies ++= Seq(
-			"com.typesafe.play" %%% "play-json" % "2.6.6",
+			"com.typesafe.play" %%% "play-json" % "2.6.7",
 		)
 	)
 	.jsSettings(
@@ -105,10 +110,12 @@ lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
 		libraryDependencies ++= Seq(
 			"io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
 			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
+			"org.akka-js" %%% "akkajsactor" % "1.2.5.6",
+			"org.akka-js" %%% "akkajsactorstream" % "1.2.5.6",
 		)
 	)
 	.jvmSettings(
-		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.20" % "provided",
+		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.21" % "provided",
 	)
 
 lazy val sharedJvm = shared.jvm

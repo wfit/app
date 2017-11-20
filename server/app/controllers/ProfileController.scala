@@ -1,24 +1,21 @@
 package controllers
 
-import base.{UserAction, UserRequest}
-import java.sql.Timestamp
+import base.{AppComponents, AppController, UserAction, UserRequest}
+import db.api._
+import db.{Profiles, Toons}
 import java.time._
-import java.time.temporal.TemporalUnit
-import java.util.TimeZone
 import javax.inject.{Inject, Singleton}
-import models.{Profile, Profiles, Toon, Toons}
 import models.wow.Spec
+import models.{Profile, Toon, UUID}
 import play.api.mvc._
 import scala.concurrent.{ExecutionContext, Future}
 import services.{BnetService, RosterService}
-import utils.{FutureOps, UserError, UUID}
-import utils.SlickAPI._
+import utils.{FutureOps, UserError}
 
 @Singleton
 class ProfileController @Inject()(userAction: UserAction)
                                  (bnetService: BnetService, rosterService: RosterService)
-                                 (implicit executionContext: ExecutionContext)
-	extends InjectedController {
+                                 (cc: AppComponents) extends AppController(cc) {
 
 	private val unknownUser = UserError("Ce joueur n'existe pas.")
 	private val alreadyBoundToon = UserError("Ce personnage est déjà associé à un compte utilisateur.")
@@ -34,7 +31,7 @@ class ProfileController @Inject()(userAction: UserAction)
 	private def editAction(user: UUID) = userAction.authenticated andThen EditPermissionFilter(user)
 
 	private def profileForUser(user: UUID): Future[Profile] = {
-		Profiles.filter(_.user === user).result.headOption.map(_ getOrElse Profile.empty)
+		Profiles.filter(_.user === user).result.headOption.map(_ getOrElse Profile.empty).run
 	}
 
 	def autoProfile = userAction.authenticated { req =>
@@ -76,7 +73,7 @@ class ProfileController @Inject()(userAction: UserAction)
 			mail = field("mail"), mailVisibility = fieldVisiblity("mail"),
 			phone = field("phone"), phoneVisibility = fieldVisiblity("phone")
 		)
-		(Profiles insertOrUpdate profile) andThen Redirect(routes.ProfileController.profile(user))
+		(Profiles insertOrUpdate profile) andThen DBIO.successful(Redirect(routes.ProfileController.profile(user)))
 	}
 
 	def bind(user: UUID) = editAction(user) { implicit req =>
@@ -94,7 +91,7 @@ class ProfileController @Inject()(userAction: UserAction)
 	                      (impl: Query[Toons, Toon, Seq] => DBIOAction[_, NoStream, Nothing]): Action[AnyContent] = {
 		editAction(user).async {
 			val query = Toons.filter(t => t.uuid === toon && t.owner === user)
-			val action = impl(query) andThen Redirect(routes.ProfileController.profile(user))
+			val action = impl(query) andThen DBIO.successful(Redirect(routes.ProfileController.profile(user)))
 			action.run andThenAsync rosterService.flushUserCaches(user)
 		}
 	}

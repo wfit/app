@@ -1,0 +1,12 @@
+@(toons: Seq[Toon])(implicit req: UserRequest[_])
+
+@view("Wishlist", "wishlist") {
+	<div class="layout-columns" id="wishlist-index">
+		<div class="left column">
+			@selector(toons, UUID.zero)
+		</div>
+		<div class="right">
+			Wishlist
+		</div>
+	</div>
+}
