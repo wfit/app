@@ -1,0 +1,57 @@
+
+#availability-index {
+	table {
+		tr:first-child {
+			th {
+				padding: 4px 2px;
+				border-left: 1px solid #393939;
+			}
+		}
+
+		tr:not(:first-child) {
+			border-top: 1px solid #393939;
+
+			th {
+				text-align: right;
+				padding: 4px 8px;
+
+				span {
+					margin-left: 8px;
+				}
+			}
+
+			// Highlight lockout resets
+			&[data-dow="3"] th {
+				background-color: transparentize(#fff, 0.8);
+			}
+
+			td {
+				border-left: 1px solid #393939;
+
+				&:nth-child(2n+1) {
+					border-left: 0;
+				}
+
+				padding: 0;
+				width: 13px;
+				height: 10px;
+
+				&:hover, &.selected {
+					background-color: transparentize($color-primary, 0.6);
+				}
+
+				&.available {
+					background-color: transparentize($color-primary, 0.3);
+				}
+
+				&.unselected {
+					background-color: transparentize(#000, 0.7);
+				}
+
+				&.available.unselected {
+					background-color: transparentize($color-primary, 0.6);
+				}
+			}
+		}
+	}
+}

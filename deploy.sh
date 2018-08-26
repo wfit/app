@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ssh_path=${GIT_SSH:-ssh}
-sbt -no-colors docker:stage
+JAVA_OPTS="-XX:-UseGCOverheadLimit -Xmx8g" sbt -no-colors -java-home "C:\Program Files\Java\jdk1.8.0_171" docker:stage
 cd server/target/docker
 tar -zcvf - stage | "${ssh_path}" debian@app.wfit.ovh "
 	tar -xzf -;

@@ -11,6 +11,7 @@ $color-primary: #dd1f20;
 @import "app/wow";
 
 // Modules
+@import "availability/availability";
 @import "composer/composer";
 @import "composer/editor";
 @import "home/login";

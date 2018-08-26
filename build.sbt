@@ -1,7 +1,9 @@
+import sbtcrossproject.CrossPlugin.autoImport.{CrossType, crossProject}
+
 name := "wfit"
 
 version in ThisBuild := "latest-SNAPSHOT"
-scalaVersion in ThisBuild := "2.12.4"
+scalaVersion in ThisBuild := "2.12.6"
 
 lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 	scalacOptions ++= Seq(
@@ -13,7 +15,7 @@ lazy val commonSettings: Seq[Def.Setting[_]] = Seq(
 		"-language:implicitConversions",
 		"-language:reflectiveCalls",
 		"-language:higherKinds",
-		"-opt:l:method",
+		//"-opt:l:method",
 	),
 	sources in (Compile, doc) := Seq.empty,
 	publishArtifact in (Compile, packageDoc) := false,
@@ -43,16 +45,13 @@ lazy val server = (project in file("server"))
 			guice,
 			ehcache,
 			ws,
-			"com.vmunier" %% "scalajs-scripts" % "1.1.1",
+			"com.vmunier" %% "scalajs-scripts" % "1.1.2",
 			"org.mindrot" % "jbcrypt" % "0.4",
-			"com.typesafe.slick" %% "slick" % "3.2.1",
-			"com.typesafe.play" %% "play-slick" % "3.0.2",
-			"org.mariadb.jdbc" % "mariadb-java-client" % "2.2.0",
-			"org.ocpsoft.prettytime" % "prettytime" % "4.0.1.Final",
-			"com.google.javascript" % "closure-compiler" % "v20171112",
-			"org.sangria-graphql" %% "sangria" % "1.3.2",
-			"org.sangria-graphql" %% "sangria-play-json" % "1.0.4",
-			"org.sangria-graphql" %% "sangria-akka-streams" % "1.0.0",
+			"com.typesafe.slick" %% "slick" % "3.2.3",
+			"com.typesafe.play" %% "play-slick" % "3.0.3",
+			"org.mariadb.jdbc" % "mariadb-java-client" % "2.2.6",
+			"org.ocpsoft.prettytime" % "prettytime" % "4.0.2.Final",
+			"com.google.javascript" % "closure-compiler" % "v20180506",
 		),
 		scalaJSProjects := Seq(client, electron),
 		pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -97,25 +96,25 @@ lazy val electron = (project in file("electron"))
 	.enablePlugins(ScalaJSPlugin, ScalaJSWeb)
 	.dependsOn(sharedJs)
 
-lazy val shared = (crossProject.crossType(CrossType.Full) in file("shared"))
+lazy val shared = (crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Full) in file("shared"))
 	.settings(
 		name := "shared",
 		commonSettings,
 		libraryDependencies ++= Seq(
-			"com.typesafe.play" %%% "play-json" % "2.6.7",
+			"com.typesafe.play" %%% "play-json" % "2.6.10",
 		)
 	)
 	.jsSettings(
 		commonScalaJsSettings,
 		libraryDependencies ++= Seq(
-			"io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M12",
-			"org.scala-js" %%% "scalajs-dom" % "0.9.3",
-			"org.akka-js" %%% "akkajsactor" % "1.2.5.6",
-			"org.akka-js" %%% "akkajsactorstream" % "1.2.5.6",
+			"io.github.cquiroz" %%% "scala-java-time" % "2.0.0-M13",
+			"org.scala-js" %%% "scalajs-dom" % "0.9.6",
+//			"org.akka-js" %%% "akkajsactor" % "1.2.5.15",
+//			"org.akka-js" %%% "akkajsactorstream" % "1.2.5.15",
 		)
 	)
 	.jvmSettings(
-		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.21" % "provided",
+		libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "0.6.24" % "provided",
 	)
 
 lazy val sharedJvm = shared.jvm

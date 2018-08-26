@@ -1,0 +1,36 @@
+@import base.UserRequest
+@import gt.modules.availability.AvailabilityUtils
+@import models.availability.Availability
+@(mines: Seq[Availability])(implicit req: UserRequest[_])
+
+@view("Disponibilités", "availability", "gt.modules.availability.Availability") {
+	@value("availabilities", mines)
+	<div class="layout-columns" id="availability-index">
+		<div class="column">
+			<div>
+				<button>Sauvegarder</button>
+			</div>
+			<table class="box" id="availability-table">
+				<tr>
+					<th></th>
+					@for(slice <- AvailabilityUtils.timeSlices if slice.getMinute != 30) {
+						<th colspan="2">@AvailabilityUtils.twoDigits(slice.getHour)</th>
+					}
+				</tr>
+				@for(day <- AvailabilityUtils.dateSequence(14)) {
+					<tr data-dow="@day.getDayOfWeek.getValue" data-day="@day">
+						<th>
+							@AvailabilityUtils.dayName(day)
+						<span class="light">@AvailabilityUtils.twoDigits(day.getDayOfMonth)</span>
+						</th>
+						@for(slice <- AvailabilityUtils.timeSlices) {
+							<td tooltip data-time="@slice">
+								<div class="tooltip">@slice</div>
+							</td>
+						}
+					</tr>
+				}
+			</table>
+		</div>
+	</div>
+}
